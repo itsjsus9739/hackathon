@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { CabeceraEmpresa } from "@/components/empresas/cabecera-empresa";
+import { DiagnosticoMadurez } from "@/components/empresas/diagnostico-madurez";
 import { LineaTiempo } from "@/components/empresas/linea-tiempo";
 import { obtenerFicha } from "@/lib/empresas";
 
@@ -27,8 +28,11 @@ export default async function FichaEmpresaPage({ params }: Props) {
       <Link href="/empresas" className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm">
         <ArrowLeft className="size-4" aria-hidden /> Empresas
       </Link>
-      <CabeceraEmpresa empresa={ficha.empresa} hitos={ficha.hitos} />
-      <LineaTiempo hitos={ficha.hitos} />
+      <CabeceraEmpresa empresa={ficha.empresa} hitos={ficha.hitos} postulaciones={ficha.postulaciones} />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <LineaTiempo hitos={ficha.hitos} />
+        <DiagnosticoMadurez diagnostico={ficha.diagnostico} />
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { Building2, Factory, GraduationCap, Landmark, MapPin, Ruler, type Lucide
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { EmpresaFicha, Hito, TipoHito } from "@/lib/empresas";
+import type { EmpresaFicha, Hito, Postulacion, TipoHito } from "@/lib/empresas";
 import { contarPorTipo } from "@/lib/empresas";
 import { ESTILO_TIPO } from "./estilos-hito";
 
@@ -22,7 +22,15 @@ function Dato({ icono: Icono, etiqueta, valor }: { icono: LucideIcon; etiqueta: 
 
 const ORDEN_RESUMEN: TipoHito[] = ["proyecto_aula", "cita", "diagnostico", "evento", "atencion"];
 
-export function CabeceraEmpresa({ empresa, hitos }: { empresa: EmpresaFicha; hitos: Hito[] }) {
+export function CabeceraEmpresa({
+  empresa,
+  hitos,
+  postulaciones = [],
+}: {
+  empresa: EmpresaFicha;
+  hitos: Hito[];
+  postulaciones?: Postulacion[];
+}) {
   const nit = empresa.nit ? `NIT ${empresa.nit}${empresa.nit_dv !== null ? `-${empresa.nit_dv}` : ""}` : "Sin NIT registrado";
   const ubicacion = [empresa.municipio, empresa.departamento].filter(Boolean).join(", ") || null;
   const conteo = contarPorTipo(hitos);
@@ -37,6 +45,11 @@ export function CabeceraEmpresa({ empresa, hitos }: { empresa: EmpresaFicha; hit
         <CardDescription className="flex flex-wrap items-center gap-2">
           <span>{nit}</span>
           {empresa.vinculo_unab && <Badge variant="secondary">Comunidad UNAB · {empresa.vinculo_unab}</Badge>}
+          {postulaciones.map((p) => (
+            <Badge key={p.id} variant="outline" title={`Origen: ${p.origen_registro}`}>
+              Postulación · {p.estado}
+            </Badge>
+          ))}
         </CardDescription>
       </CardHeader>
 

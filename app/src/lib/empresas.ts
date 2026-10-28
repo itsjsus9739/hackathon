@@ -19,6 +19,32 @@ export type EmpresaFicha = Pick<
   | "descripcion"
 >;
 
+export type Diagnostico = Pick<
+  Tables<"diagnosticos">,
+  | "fecha"
+  | "tipo_iniciativa"
+  | "estrategia"
+  | "mercadeo_ventas"
+  | "financiera"
+  | "normativa_legal"
+  | "productividad"
+  | "transformacion_digital"
+  | "promedio"
+  | "nivel"
+>;
+
+export type Postulacion = Pick<Tables<"postulaciones">, "id" | "estado" | "origen" | "origen_registro">;
+
+/** Áreas del autodiagnóstico de madurez del CDE (escala 1–5). */
+export const AREAS_DIAGNOSTICO = [
+  { campo: "estrategia", nombre: "Gestión de Estrategia Empresarial" },
+  { campo: "mercadeo_ventas", nombre: "Gestión de Mercadeo y Ventas" },
+  { campo: "financiera", nombre: "Gestión Financiera" },
+  { campo: "normativa_legal", nombre: "Gestión Normativa y Legal" },
+  { campo: "productividad", nombre: "Productividad" },
+  { campo: "transformacion_digital", nombre: "Transformación Digital" },
+] as const satisfies readonly { campo: keyof Diagnostico; nombre: string }[];
+
 export type TipoHito = "proyecto_aula" | "cita" | "diagnostico" | "evento" | "atencion";
 
 export type Hito = {
@@ -45,7 +71,7 @@ export const obtenerFicha = cache(async (id: string) => {
   if (!esUuid(id)) return null;
   const supabase = await crearClienteServidor();
 
-  const [empresa, historial] = await Promise.all([
+  const [empresa, historial, diagnostico, postulaciones] = await Promise.all([
     supabase
       .from("empresas")
       .select("id, nombre, nit, nit_dv, sector, tamano, formalizacion, municipio, departamento, vinculo_unab, descripcion")
@@ -56,10 +82,24 @@ export const obtenerFicha = cache(async (id: string) => {
       .select("id_registro, tipo, fecha, titulo, detalle, estado")
       .eq("id_empresa", id)
       .order("fecha", { ascending: true }),
+    supabase
+      .from("diagnosticos")
+      .select(
+        "fecha, tipo_iniciativa, estrategia, mercadeo_ventas, financiera, normativa_legal, productividad, transformacion_digital, promedio, nivel",
+      )
+      .eq("id_empresa", id)
+      .order("fecha", { ascending: false })
+      .order("creado_en", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    // Docentes y estudiantes no ven postulaciones (RLS): reciben una lista vacía
+    supabase.from("postulaciones").select("id, estado, origen, origen_registro").eq("id_empresa", id),
   ]);
 
   if (empresa.error) throw new Error(`No se pudo consultar la empresa: ${empresa.error.message}`);
   if (historial.error) throw new Error(`No se pudo consultar el historial: ${historial.error.message}`);
+  if (diagnostico.error) throw new Error(`No se pudo consultar el diagnóstico: ${diagnostico.error.message}`);
+  if (postulaciones.error) throw new Error(`No se pudo consultar las postulaciones: ${postulaciones.error.message}`);
   if (!empresa.data) return null;
 
   const hitos: Hito[] = (historial.data ?? [])
@@ -73,7 +113,12 @@ export const obtenerFicha = cache(async (id: string) => {
       estado: h.estado,
     }));
 
-  return { empresa: empresa.data as EmpresaFicha, hitos };
+  return {
+    empresa: empresa.data as EmpresaFicha,
+    hitos,
+    diagnostico: diagnostico.data as Diagnostico | null,
+    postulaciones: (postulaciones.data ?? []) as Postulacion[],
+  };
 });
 
 /** Agrupa los hitos (ya ordenados) por mes, p. ej. "agosto de 2026". */
@@ -98,6 +143,11 @@ export function fechaLegible(iso: string): string {
   const fecha = new Date(iso);
   const sinHora = formato24h.format(fecha) === "00:00";
   return sinHora ? formatoDia.format(fecha) : `${formatoDia.format(fecha)} · ${formatoHora.format(fecha)}`;
+}
+
+/** Área con el puntaje más bajo: la mayor brecha frente al máximo (5). */
+export function mayorBrecha(d: Diagnostico): (typeof AREAS_DIAGNOSTICO)[number] {
+  return AREAS_DIAGNOSTICO.reduce((peor, area) => (Number(d[area.campo]) < Number(d[peor.campo]) ? area : peor));
 }
 
 export function contarPorTipo(hitos: Hito[]): Record<TipoHito, number> {

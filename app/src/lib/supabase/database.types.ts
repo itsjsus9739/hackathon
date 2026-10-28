@@ -697,3 +697,16 @@ export type Tables<T extends keyof (PublicSchema["Tables"] & PublicSchema["Views
   (PublicSchema["Tables"] & PublicSchema["Views"])[T] extends { Row: infer R } ? R : never
 
 export type Enums<T extends keyof PublicSchema["Enums"]> = PublicSchema["Enums"][T]
+
+export const Constants = {
+  public: {
+    Enums: {
+      estado_acceso: ["pendiente", "aprobado", "rechazado"],
+      estado_proyecto: ["Planeado", "En curso", "Finalizado", "Cancelado"],
+      rol_usuario: ["admin_cde", "cde", "emprendedor", "docente", "estudiante"],
+      sexo: ["Femenino", "Masculino"],
+      tamano_empresa: ["Emprendimiento", "Micro", "Pequeña", "Mediana", "Grande"],
+      vinculo_unab: ["Externo", "Estudiante", "Graduado", "Colaborador", "Emprendedor"],
+    },
+  },
+} as const

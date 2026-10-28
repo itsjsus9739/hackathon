@@ -37,3 +37,15 @@ describe("Ficha 360°: utilidades de la línea de tiempo", () => {
     expect(conteo).toEqual({ proyecto_aula: 0, cita: 2, diagnostico: 0, evento: 1, atencion: 0 });
   });
 });
+
+import { mayorBrecha, type Diagnostico } from "../empresas";
+
+describe("diagnóstico de madurez", () => {
+  it("identifica el área con mayor brecha", () => {
+    const d: Diagnostico = {
+      fecha: "2026-10-28", tipo_iniciativa: null, promedio: 2.85, nivel: "Medio",
+      estrategia: 3, mercadeo_ventas: 2.5, financiera: 2.8, normativa_legal: 3.1, productividad: 3, transformacion_digital: 2.7,
+    };
+    expect(mayorBrecha(d).nombre).toBe("Gestión de Mercadeo y Ventas");
+  });
+});
