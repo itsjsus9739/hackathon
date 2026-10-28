@@ -869,6 +869,9 @@ export type Database = {
       }
       eventos: {
         Row: {
+          creado_por: string | null
+          es_ejemplo: boolean
+          fin: string | null
           creado_en: string
           cupo: number | null
           descripcion: string | null
@@ -881,6 +884,9 @@ export type Database = {
           tipo: string
         }
         Insert: {
+          creado_por?: string | null
+          es_ejemplo?: boolean
+          fin?: string | null
           creado_en?: string
           cupo?: number | null
           descripcion?: string | null
@@ -893,6 +899,9 @@ export type Database = {
           tipo?: string
         }
         Update: {
+          creado_por?: string | null
+          es_ejemplo?: boolean
+          fin?: string | null
           creado_en?: string
           cupo?: number | null
           descripcion?: string | null
@@ -982,6 +991,8 @@ export type Database = {
       }
       inscripciones_eventos: {
         Row: {
+          estado: string
+          invitado_por: string | null
           asistio: boolean
           id: string
           id_empresa: string | null
@@ -990,6 +1001,8 @@ export type Database = {
           inscrito_en: string
         }
         Insert: {
+          estado?: string
+          invitado_por?: string | null
           asistio?: boolean
           id?: string
           id_empresa?: string | null
@@ -998,6 +1011,8 @@ export type Database = {
           inscrito_en?: string
         }
         Update: {
+          estado?: string
+          invitado_por?: string | null
           asistio?: boolean
           id?: string
           id_empresa?: string | null
@@ -2125,6 +2140,20 @@ export type Database = {
         }[]
       }
       es_admin: { Args: never; Returns: boolean }
+      evento_publico: { Args: { ev: string }; Returns: boolean }
+      invitado_a_evento: { Args: { ev: string }; Returns: boolean }
+      organiza_evento: { Args: { ev: string }; Returns: boolean }
+      personas_comunidad: {
+        Args: never
+        Returns: {
+          id: string
+          nombre: string
+          rol: Database["public"]["Enums"]["rol_usuario"]
+        }[]
+      }
+      puede_crear_tipo_evento: { Args: { tipo: string }; Returns: boolean }
+      puede_ver_evento: { Args: { ev: string }; Returns: boolean }
+      tipo_evento_publico: { Args: { tipo: string }; Returns: boolean }
       es_cde: { Args: never; Returns: boolean }
       es_correo_institucional: { Args: { correo: string }; Returns: boolean }
       es_miembro_sala: { Args: { sala: string }; Returns: boolean }

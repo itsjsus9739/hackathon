@@ -33,9 +33,10 @@ TABLAS PRINCIPALES
 - proyecto_docentes(id_proyecto, id_docente); proyecto_estudiantes(id_proyecto, id_estudiante)
 - perfiles(id, nombre, rol ('admin_cde','cde','emprendedor','docente','estudiante'), sexo)   -- usuarios del sistema
 - citas(id, id_empresa, motivo, estado ('Solicitada','Agendada','Atendida','Cancelada','No asistió'), fecha_hora, id_miembro_cde)
-- eventos(id, nombre, fecha, tipo ('Evento','Capacitación','Ruta de acompañamiento','Sesión empresarial','Conversatorio','Networking','Feria'),
-  lugar, cupo, puntos_gamificacion)
-- inscripciones_eventos(id, id_evento, id_usuario, id_empresa, asistio boolean)
+- eventos(id, nombre, fecha (inicio), fin, tipo ('Evento','Capacitación','Ruta de acompañamiento','Sesión empresarial','Conversatorio',
+  'Networking','Feria','Cita','Coworking'), lugar, cupo, puntos_gamificacion, creado_por (perfiles.id), es_ejemplo boolean)
+- inscripciones_eventos(id, id_evento, id_usuario, id_empresa, asistio boolean, estado ('pendiente','confirmado','rechazado'),
+  invitado_por)   -- estado = respuesta a la invitación; asistio = asistencia real
 - actividades_cronograma(id, categoria, actividad, fecha_inicio, fecha_fin, estado, responsable)
 - Gamificación: areas(nombre, puntos_por_aporte), aportes(id_proyecto, id_usuario, id_area, estado ('Pendiente','Validado','Rechazado')),
   insignias(nombre, nivel, criterio, meta), insignias_usuario(id_usuario, id_insignia), puntos_movimientos(id_usuario, puntos, motivo, origen_tipo),
