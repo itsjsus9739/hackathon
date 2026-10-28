@@ -123,7 +123,7 @@ export default async function Inicio() {
       {/* Pendientes de hoy */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#00a862] via-[#12b873] to-[#5fd39b] p-6 text-white md:p-7">
         <span className="pointer-events-none absolute -top-16 -right-16 size-64 rounded-full bg-white/10" aria-hidden />
-        <div className="relative grid gap-5 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+        <div className="relative grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center">
           <div>
             <p className="text-xs font-semibold tracking-wider text-white/80 uppercase">Tu día</p>
             <h2 className="mt-1 text-2xl font-semibold tracking-tight">
@@ -162,7 +162,7 @@ export default async function Inicio() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
         {/* Esta semana */}
         <section className="rounded-2xl border bg-white p-5">
           <div className="flex items-center justify-between">
@@ -209,12 +209,12 @@ export default async function Inicio() {
         {/* Accesos rápidos */}
         <section>
           <h2 className="font-semibold text-[var(--tinta)]">Accesos rápidos</h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-3">
             {ACCESOS.map(({ href, icono: Icono, titulo, texto }) => (
               <Link
                 key={titulo}
                 href={href}
-                className="flex flex-col gap-3 rounded-2xl border bg-white p-5 transition hover:border-[var(--primario)] hover:shadow-sm"
+                className="flex flex-col gap-3 rounded-2xl border bg-white p-4 transition sm:p-5 hover:border-[var(--primario)] hover:shadow-sm"
               >
                 <span className="flex size-12 items-center justify-center rounded-2xl bg-[var(--verde-suave)] text-[var(--primario-texto)]">
                   <Icono className="size-6" strokeWidth={1.8} aria-hidden />

@@ -42,12 +42,12 @@ export default async function LayoutAplicacion({ children }: { children: React.R
           </span>
         </Link>
         <MenuLateral />
-        <div className="mt-auto flex items-center gap-3 rounded-2xl border p-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7ed8a9] to-[var(--primario)] text-sm font-bold text-white">
+        <div className="mt-auto flex items-center gap-2.5 rounded-2xl border p-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7ed8a9] to-[var(--primario)] text-sm font-bold text-white">
             {iniciales(sesion.nombre)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm leading-tight font-semibold text-[var(--tinta)]">{sesion.nombre}</p>
+            <p className="line-clamp-2 text-[13px] leading-tight font-semibold text-[var(--tinta)]">{sesion.nombre}</p>
             <p className="text-muted-foreground text-xs">{ETIQUETA_ROL[sesion.rol]}</p>
           </div>
           <form action={cerrarSesion}>
