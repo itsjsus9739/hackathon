@@ -14,9 +14,9 @@ export type Movimiento = { id: string; x: number; y: number };
 
 export type Transporte = {
   conectar(yo: Presencia): Promise<void>;
-  /** Presencia (quién está, avatar, voz): Supabase limita su frecuencia, se envía como mucho cada 2 s */
+  /** Presencia (quién está, avatar, voz): Supabase la limita mucho, se envía como mucho cada 5 s y nunca al moverse */
   actualizar(yo: Presencia): void;
-  /** Movimiento: viaja por broadcast, más liviano que la presencia */
+  /** Movimiento: viaja por broadcast (la sala lo repite cada pocos segundos para quien acaba de entrar) */
   enviarMovimiento(m: Movimiento): void;
   enviarSenal(s: Senal): void;
   enviarMensaje(texto: string): Promise<{ error?: string }>;
@@ -66,6 +66,9 @@ export function crearTransporteSupabase(
   const o = nuevosOyentes();
   let canal: ReturnType<SupabaseClient["channel"]> | null = null;
   let miId = "";
+  let yoActual: Presencia | null = null;
+  let cerrado = false;
+  let reintento: ReturnType<typeof setTimeout> | null = null;
 
   const avisarPresencia = () => {
     if (!canal) return;
@@ -77,54 +80,82 @@ export function crearTransporteSupabase(
     o.presencia.forEach((cb) => cb(personas));
   };
   // ClientPresenceRateLimitReached: con actualizaciones muy seguidas Supabase deja de difundir la presencia
-  const rastrear = limitado((yo: Presencia) => void canal?.track(yo), 2000);
-  const mover = limitado((m: Movimiento) => void canal?.send({ type: "broadcast", event: "mover", payload: m }), 120);
+  // y expulsa al cliente del canal: por eso la presencia cambia poco y la posición va por broadcast
+  const rastrear = limitado((yo: Presencia) => void canal?.track(yo), 5000);
+  // Solo con el canal unido: si no, supabase-js manda cada mensaje por HTTP
+  const enviar = (event: string, payload: unknown) => {
+    if (canal?.state === "joined") void canal.send({ type: "broadcast", event, payload });
+  };
+  const mover = limitado((m: Movimiento) => enviar("mover", m), 150);
+
+  // Si el canal se cae (límite de Realtime, red, token vencido) se vuelve a entrar solo
+  const reconectar = () => {
+    if (cerrado || reintento) return;
+    o.estado.forEach((cb) => cb("conectando"));
+    reintento = setTimeout(() => {
+      reintento = null;
+      void abrir().catch(reconectar);
+    }, 3000);
+  };
+
+  const abrir = async () => {
+    if (canal) void supabase.removeChannel(canal);
+    canal = null;
+    o.estado.forEach((cb) => cb("conectando"));
+    await supabase.realtime.setAuth(); // canal privado: Realtime valida el JWT contra las políticas
+    const nuevo = supabase.channel(`coworking:${opciones.sala}`, {
+      config: { private: true, presence: { key: miId }, broadcast: { self: false } },
+    });
+    canal = nuevo;
+    nuevo
+      .on("presence", { event: "sync" }, avisarPresencia)
+      .on("broadcast", { event: "mover" }, ({ payload }) => o.movimiento.forEach((cb) => cb(payload as Movimiento)))
+      .on("broadcast", { event: "senal" }, ({ payload }) => {
+        const s = payload as Senal;
+        if (s.para === miId) o.senal.forEach((cb) => cb(s));
+      })
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "mensajes", filter: `id_canal=eq.${opciones.idCanal}` },
+        ({ new: m }) => {
+          const fila = m as { id: string; id_autor: string; contenido: string; creado_en: string };
+          o.mensaje.forEach((cb) =>
+            cb({
+              id: fila.id,
+              idAutor: fila.id_autor,
+              autor: opciones.nombres.get(fila.id_autor) ?? "Miembro",
+              texto: fila.contenido,
+              fecha: fila.creado_en,
+            }),
+          );
+        },
+      )
+      .subscribe(async (estado) => {
+        if (canal !== nuevo) return; // un canal viejo que se está cerrando
+        if (estado === "SUBSCRIBED") {
+          if (yoActual) await nuevo.track(yoActual);
+          o.estado.forEach((cb) => cb("conectado"));
+        } else if (estado === "CHANNEL_ERROR" || estado === "TIMED_OUT" || estado === "CLOSED") {
+          if (cerrado) return;
+          o.estado.forEach((cb) => cb("error"));
+          reconectar();
+        }
+      });
+  };
 
   return {
     async conectar(yo) {
       miId = yo.id;
-      o.estado.forEach((cb) => cb("conectando"));
-      await supabase.realtime.setAuth(); // canal privado: Realtime valida el JWT contra las políticas
-      canal = supabase.channel(`coworking:${opciones.sala}`, {
-        config: { private: true, presence: { key: yo.id }, broadcast: { self: false } },
-      });
-      canal
-        .on("presence", { event: "sync" }, avisarPresencia)
-        .on("broadcast", { event: "mover" }, ({ payload }) => o.movimiento.forEach((cb) => cb(payload as Movimiento)))
-        .on("broadcast", { event: "senal" }, ({ payload }) => {
-          const s = payload as Senal;
-          if (s.para === miId) o.senal.forEach((cb) => cb(s));
-        })
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "mensajes", filter: `id_canal=eq.${opciones.idCanal}` },
-          ({ new: m }) => {
-            const fila = m as { id: string; id_autor: string; contenido: string; creado_en: string };
-            o.mensaje.forEach((cb) =>
-              cb({
-                id: fila.id,
-                idAutor: fila.id_autor,
-                autor: opciones.nombres.get(fila.id_autor) ?? "Miembro",
-                texto: fila.contenido,
-                fecha: fila.creado_en,
-              }),
-            );
-          },
-        )
-        .subscribe(async (estado) => {
-          if (estado === "SUBSCRIBED") {
-            await canal?.track(yo);
-            o.estado.forEach((cb) => cb("conectado"));
-          } else if (estado === "CHANNEL_ERROR" || estado === "TIMED_OUT") {
-            o.estado.forEach((cb) => cb("error"));
-          }
-        });
+      yoActual = yo;
+      cerrado = false;
+      await abrir();
     },
-    actualizar: (yo) => rastrear(yo),
+    actualizar(yo) {
+      yoActual = yo;
+      rastrear(yo);
+    },
     enviarMovimiento: (m) => mover(m),
-    enviarSenal(s) {
-      void canal?.send({ type: "broadcast", event: "senal", payload: s });
-    },
+    enviarSenal: (s) => enviar("senal", s),
     async enviarMensaje(texto) {
       const { error } = await supabase.from("mensajes").insert({ id_canal: opciones.idCanal, contenido: texto });
       return error ? { error: "No se pudo enviar el mensaje." } : {};
@@ -135,6 +166,8 @@ export function crearTransporteSupabase(
     alRecibirMensaje: (cb) => void o.mensaje.push(cb),
     alCambiarEstado: (cb) => void o.estado.push(cb),
     desconectar() {
+      cerrado = true;
+      if (reintento) clearTimeout(reintento);
       if (canal) void supabase.removeChannel(canal);
       canal = null;
     },

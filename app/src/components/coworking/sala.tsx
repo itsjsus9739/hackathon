@@ -95,9 +95,9 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
         if (p.id === identidad.id) continue;
         vistos.add(p.id);
         const previo = otros.current.get(p.id);
-        // La presencia llega cada 2 s; el destino lo manda el broadcast de movimiento. Si hace rato no llega
-        // ninguno (se pudo perder), se corrige con la posición de la presencia.
-        const reciente = previo?.ultimoMovimiento && Date.now() - previo.ultimoMovimiento < 2500;
+        // La posición la manda el broadcast de movimiento (repetido cada 2 s); la de la presencia solo
+        // sirve mientras no haya llegado ninguno.
+        const reciente = Boolean(previo?.ultimoMovimiento);
         otros.current.set(
           p.id,
           previo
@@ -111,7 +111,7 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
     });
     t.alRecibirMovimiento((m) => {
       const o = otros.current.get(m.id);
-      if (o) {
+      if (o && Number.isFinite(m.x) && Number.isFinite(m.y)) {
         o.x = m.x;
         o.y = m.y;
         o.ultimoMovimiento = Date.now();
@@ -133,6 +133,14 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
     // Con llaves: en Chrome reciente scrollIntoView devuelve una promesa y un efecto solo puede devolver su limpieza
     finChat.current?.scrollIntoView({ block: "nearest" });
   }, [mensajes]);
+
+  // La posición se repite cada 2 s: quien entra o se reconecta ve a cada uno donde está de verdad
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      transporte.current?.enviarMovimiento({ id: identidad.id, x: yo.current.x, y: yo.current.y });
+    }, 2000);
+    return () => clearInterval(intervalo);
+  }, [identidad.id]);
 
   // Volumen por cercanía: cada medio segundo según la distancia en la sala
   useEffect(() => {
@@ -264,8 +272,8 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
     if (!baldosaLibre(gx, gy, ocupadas)) return;
     yo.current.x = gx + 0.5;
     yo.current.y = gy + 0.5;
+    // Sin tocar la presencia: moverse seguido con ella hacía que Supabase sacara al jugador del canal
     transporte.current?.enviarMovimiento({ id: identidad.id, x: yo.current.x, y: yo.current.y });
-    publicar(); // la presencia también guarda la posición, para quien entra después
   };
 
   const clicEnSala = (e: React.MouseEvent<HTMLCanvasElement>) => {
