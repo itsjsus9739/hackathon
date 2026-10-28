@@ -19,6 +19,8 @@
   --border: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --panel: oklch(0.985 0 0);
+  /* Serie de datos de las gráficas (paleta validada: azul, contraste ≥ 3:1 sobre la superficie) */
+  --serie-1: #2a78d6;
   --primario: #c8102e; /* rojo institucional aproximado; ajustar al manual de marca UNAB */
 }
 

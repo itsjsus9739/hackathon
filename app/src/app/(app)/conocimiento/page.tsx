@@ -1,0 +1,76 @@
+import type { Metadata } from "next";
+
+import { Tablero } from "@/components/conocimiento/tablero";
+import {
+  brechasPorArea,
+  calidadDatos,
+  contarPor,
+  formalizacionEstimada,
+  type DiagnosticoFila,
+  type EmpresaResumen,
+} from "@/lib/conocimiento";
+import { Constants } from "@/lib/supabase/database.types";
+import { crearClienteServidor } from "@/lib/supabase/server";
+
+export const metadata: Metadata = { title: "Conocimiento · CDE Conecta" };
+
+export default async function PaginaConocimiento() {
+  const supabase = await crearClienteServidor();
+  const [empresas, diagnosticos, postulaciones, proyectos, atenciones] = await Promise.all([
+    supabase
+      .from("empresas")
+      .select("nit, sector, tamano, formalizacion, municipio, vinculo_unab, id_representante, contactos_empresa (count)"),
+    supabase
+      .from("diagnosticos")
+      .select(
+        "id_empresa, fecha, creado_en, es_ejemplo, estrategia, mercadeo_ventas, financiera, normativa_legal, productividad, transformacion_digital",
+      ),
+    supabase.from("postulaciones").select("estado"),
+    supabase.from("proyectos_aula").select("*", { count: "exact", head: true }),
+    supabase.from("atenciones").select("*", { count: "exact", head: true }),
+  ]);
+  for (const r of [empresas, diagnosticos, postulaciones, proyectos, atenciones]) {
+    if (r.error) throw new Error(`No se pudo consultar el tablero: ${r.error.message}`);
+  }
+
+  const lista: EmpresaResumen[] = (empresas.data ?? []).map(({ contactos_empresa: c, ...e }) => ({
+    ...e,
+    contactos: c[0]?.count ?? 0,
+  }));
+  const calidad = calidadDatos(lista);
+  const porSector = contarPor(lista, (e) => e.sector, { maximo: 8 });
+  const porTamano = contarPor(lista, (e) => e.tamano, { orden: Constants.public.Enums.tamano_empresa });
+  const porMunicipio = contarPor(lista, (e) => e.municipio, { maximo: 6 });
+  const porFormalizacion = contarPor(lista, formalizacionEstimada);
+  const formalizacionRegistrada = lista.some((e) => e.formalizacion);
+  const porPostulacion = contarPor(postulaciones.data ?? [], (p) => p.estado);
+
+  const diags = diagnosticos.data ?? [];
+  const brechas = brechasPorArea(diags as DiagnosticoFila[]);
+  const ejemplos = diags.filter((d) => d.es_ejemplo).length;
+  const masDebil = brechas.barras.reduce<(typeof brechas.barras)[number] | null>(
+    (peor, b) => (!peor || b.valor < peor.valor ? b : peor),
+    null,
+  );
+
+  return (
+    <Tablero
+      datos={{
+        totalEmpresas: lista.length,
+        calidad,
+        brechas,
+        masDebil,
+        ejemplos,
+        porSector,
+        porTamano,
+        porMunicipio,
+        porFormalizacion,
+        formalizacionRegistrada,
+        porPostulacion,
+        postulaciones: postulaciones.data?.length ?? 0,
+        proyectos: proyectos.count ?? 0,
+        atenciones: atenciones.count ?? 0,
+      }}
+    />
+  );
+}
