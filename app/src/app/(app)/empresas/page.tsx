@@ -62,7 +62,7 @@ export default async function PaginaEmpresas({ searchParams }: { searchParams: P
         <p className="text-muted-foreground text-sm">Busca una empresa para abrir su Ficha 360°.</p>
       </div>
 
-      <form className="grid gap-3 sm:grid-cols-[1fr_12rem_10rem_auto]" role="search">
+      <form data-recorrido="empresas-buscador" className="grid gap-3 sm:grid-cols-[1fr_12rem_10rem_auto]" role="search">
         <div className="relative">
           <Search className="text-muted-foreground absolute top-2.5 left-3 size-4" aria-hidden />
           <Input name="q" defaultValue={q} placeholder="Nombre o NIT" className="pl-9" aria-label="Buscar por nombre o NIT" />
