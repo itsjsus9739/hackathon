@@ -107,7 +107,7 @@ export function Importador({ sectores, existentes }: { sectores: string[]; exist
 
   if (!archivo) {
     return (
-      <Card>
+      <Card data-recorrido="importar-archivo">
         <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
           <FileSpreadsheet className="text-muted-foreground size-10" aria-hidden />
           <div>
