@@ -136,14 +136,14 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div data-recorrido="planes-indicadores" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Indicador etiqueta="Planes activos" valor={abiertos.length} />
         <Indicador etiqueta="Compromisos abiertos" valor={totalCompromisos} />
         <Indicador etiqueta="Avance promedio" valor={`${avancePromedio} %`} />
         <Indicador etiqueta="Compromisos vencidos" valor={totalVencidos} alerta={totalVencidos > 0} />
       </div>
 
-      <nav className="flex flex-wrap items-center gap-2" aria-label="Filtrar planes">
+      <nav data-recorrido="planes-filtros" className="flex flex-wrap items-center gap-2" aria-label="Filtrar planes">
         {VISTAS.map((v) => (
           <Link
             key={v.valor}
