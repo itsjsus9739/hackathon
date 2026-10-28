@@ -1,4 +1,4 @@
-// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0006; helpers Tables/Enums simplificados.
+// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0008; helpers Tables/Enums simplificados.
 // Regenerar con: npx supabase gen types typescript --project-id dgubdqszyxrlpcfatqvl > src/lib/supabase/database.types.ts
 export type Json =
   | string
@@ -387,6 +387,7 @@ export type Database = {
           actualizado_en: string
           creado_en: string
           documento_identidad: string | null
+          estado_acceso: Database["public"]["Enums"]["estado_acceso"]
           id: string
           nombre: string
           rol: Database["public"]["Enums"]["rol_usuario"]
@@ -396,6 +397,7 @@ export type Database = {
           actualizado_en?: string
           creado_en?: string
           documento_identidad?: string | null
+          estado_acceso?: Database["public"]["Enums"]["estado_acceso"]
           id: string
           nombre: string
           rol?: Database["public"]["Enums"]["rol_usuario"]
@@ -405,6 +407,7 @@ export type Database = {
           actualizado_en?: string
           creado_en?: string
           documento_identidad?: string | null
+          estado_acceso?: Database["public"]["Enums"]["estado_acceso"]
           id?: string
           nombre?: string
           rol?: Database["public"]["Enums"]["rol_usuario"]
@@ -522,6 +525,60 @@ export type Database = {
         Update: { nombre?: string }
         Relationships: []
       }
+      solicitudes_acceso: {
+        Row: {
+          confianza_ia: number | null
+          comentario_revision: string | null
+          correo: string
+          creado_en: string
+          estado: Database["public"]["Enums"]["estado_acceso"]
+          id: string
+          id_perfil: string
+          justificacion_ia: string | null
+          motivo: string | null
+          recomendacion_ia: Database["public"]["Enums"]["estado_acceso"] | null
+          revisado_en: string | null
+          revisado_por: string | null
+          revisor_tipo: string | null
+          rol_solicitado: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Insert: {
+          confianza_ia?: number | null
+          comentario_revision?: string | null
+          correo: string
+          creado_en?: string
+          estado?: Database["public"]["Enums"]["estado_acceso"]
+          id?: string
+          id_perfil: string
+          justificacion_ia?: string | null
+          motivo?: string | null
+          recomendacion_ia?: Database["public"]["Enums"]["estado_acceso"] | null
+          revisado_en?: string | null
+          revisado_por?: string | null
+          revisor_tipo?: string | null
+          rol_solicitado?: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Update: {
+          confianza_ia?: number | null
+          comentario_revision?: string | null
+          correo?: string
+          creado_en?: string
+          estado?: Database["public"]["Enums"]["estado_acceso"]
+          id?: string
+          id_perfil?: string
+          justificacion_ia?: string | null
+          motivo?: string | null
+          recomendacion_ia?: Database["public"]["Enums"]["estado_acceso"] | null
+          revisado_en?: string | null
+          revisado_por?: string | null
+          revisor_tipo?: string | null
+          rol_solicitado?: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Relationships: [
+          { foreignKeyName: "solicitudes_acceso_id_perfil_fkey"; columns: ["id_perfil"]; isOneToOne: true; referencedRelation: "perfiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "solicitudes_acceso_revisado_por_fkey"; columns: ["revisado_por"]; isOneToOne: false; referencedRelation: "perfiles"; referencedColumns: ["id"] },
+        ]
+      }
       tipos_actividad: {
         Row: { nombre: string }
         Insert: { nombre: string }
@@ -605,6 +662,7 @@ export type Database = {
       }
     }
     Functions: {
+      acceso_aprobado: { Args: never; Returns: boolean }
       asignaturas_del_docente: { Args: never; Returns: string[] }
       directorio: {
         Args: never
@@ -612,12 +670,14 @@ export type Database = {
       }
       es_admin: { Args: never; Returns: boolean }
       es_cde: { Args: never; Returns: boolean }
+      es_correo_institucional: { Args: { correo: string }; Returns: boolean }
       mis_empresas: { Args: never; Returns: string[] }
       proyectos_del_docente: { Args: never; Returns: string[] }
       proyectos_del_estudiante: { Args: never; Returns: string[] }
       rol_actual: { Args: never; Returns: Database["public"]["Enums"]["rol_usuario"] }
     }
     Enums: {
+      estado_acceso: "pendiente" | "aprobado" | "rechazado"
       estado_proyecto: "Planeado" | "En curso" | "Finalizado" | "Cancelado"
       rol_usuario: "admin_cde" | "cde" | "emprendedor" | "docente" | "estudiante"
       sexo: "Femenino" | "Masculino"
