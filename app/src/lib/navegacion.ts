@@ -9,6 +9,7 @@ export const MODULOS = [
   { href: "/formacion", etiqueta: "Formación y recompensas" },
   { href: "/conocimiento", etiqueta: "Conocimiento" },
   { href: "/asistente", etiqueta: "Asistente IA" },
+  { href: "/coworking", etiqueta: "Coworking" },
   { href: "/portal", etiqueta: "Portal del emprendedor" },
 ] as const;
 
