@@ -1,4 +1,4 @@
-// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0015; helpers Tables/Enums simplificados.
+// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0016; helpers Tables/Enums simplificados.
 // Regenerar con: npx supabase gen types typescript --project-id dgubdqszyxrlpcfatqvl > src/lib/supabase/database.types.ts
 export type Json =
   | string
@@ -1184,6 +1184,7 @@ export type Database = {
           cuerpo: string | null
           enlace: string | null
           id: string
+          id_referencia: string | null
           id_usuario: string
           leida_en: string | null
           tipo: string
@@ -1194,6 +1195,7 @@ export type Database = {
           cuerpo?: string | null
           enlace?: string | null
           id?: string
+          id_referencia?: string | null
           id_usuario: string
           leida_en?: string | null
           tipo?: string
@@ -1204,6 +1206,7 @@ export type Database = {
           cuerpo?: string | null
           enlace?: string | null
           id?: string
+          id_referencia?: string | null
           id_usuario?: string
           leida_en?: string | null
           tipo?: string
