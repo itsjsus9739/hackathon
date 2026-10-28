@@ -73,6 +73,7 @@ export function Asistente() {
       </ol>
 
       <form
+        data-recorrido="asistente-pregunta"
         className="bg-background sticky bottom-0 flex items-end gap-2 border-t pt-3 pb-1"
         onSubmit={(e) => {
           e.preventDefault();
