@@ -8,7 +8,7 @@ import { FormularioIngreso, FormularioRegistro } from "./formulario-acceso";
 export const metadata: Metadata = { title: "Ingresar · CDE Conecta" };
 
 const ERRORES_ENLACE: Record<string, string> = {
-  enlace: "El enlace de confirmación no es válido o ya venció. Ingresa o regístrate de nuevo.",
+  enlace: "El enlace no es válido o ya venció. Pide uno nuevo y ábrelo en el mismo navegador donde lo solicitaste.",
 };
 
 export default async function PaginaLogin({ searchParams }: { searchParams: Promise<{ modo?: string; error?: string }> }) {

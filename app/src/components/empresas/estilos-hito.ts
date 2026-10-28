@@ -1,4 +1,4 @@
-import { CalendarClock, ClipboardCheck, GraduationCap, Handshake, Ticket, type LucideIcon } from "lucide-react";
+import { CalendarClock, ClipboardCheck, GraduationCap, Handshake, ListChecks, Ticket, type LucideIcon } from "lucide-react";
 
 import type { TipoHito } from "@/lib/empresas";
 
@@ -14,6 +14,15 @@ export const ESTILO_TIPO: Record<
     punto: "bg-violet-600",
     texto: "text-violet-700",
     anillo: "ring-violet-200",
+  },
+  plan_accion: {
+    etiqueta: "Plan de acción",
+    etiquetaSingular: "plan de acción",
+    etiquetaPlural: "planes de acción",
+    icono: ListChecks,
+    punto: "bg-orange-600",
+    texto: "text-orange-700",
+    anillo: "ring-orange-200",
   },
   cita: {
     etiqueta: "Asesoría / cita",

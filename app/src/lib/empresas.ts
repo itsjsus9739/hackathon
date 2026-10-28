@@ -45,7 +45,7 @@ export const AREAS_DIAGNOSTICO = [
   { campo: "transformacion_digital", nombre: "Transformación Digital" },
 ] as const satisfies readonly { campo: keyof Diagnostico; nombre: string }[];
 
-export type TipoHito = "proyecto_aula" | "cita" | "diagnostico" | "evento" | "atencion";
+export type TipoHito = "proyecto_aula" | "plan_accion" | "cita" | "diagnostico" | "evento" | "atencion";
 
 export type Hito = {
   id: string;
@@ -151,7 +151,7 @@ export function mayorBrecha(d: Diagnostico): (typeof AREAS_DIAGNOSTICO)[number] 
 }
 
 export function contarPorTipo(hitos: Hito[]): Record<TipoHito, number> {
-  const conteo: Record<TipoHito, number> = { proyecto_aula: 0, cita: 0, diagnostico: 0, evento: 0, atencion: 0 };
+  const conteo: Record<TipoHito, number> = { proyecto_aula: 0, plan_accion: 0, cita: 0, diagnostico: 0, evento: 0, atencion: 0 };
   for (const h of hitos) conteo[h.tipo] = (conteo[h.tipo] ?? 0) + 1;
   return conteo;
 }

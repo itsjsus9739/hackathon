@@ -12,7 +12,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { iniciarSesion, registrarse } from "./actions";
 
-function Mensaje({ estado }: { estado: { error?: string; aviso?: string } | undefined }) {
+export function Mensaje({ estado }: { estado: { error?: string; aviso?: string } | undefined }) {
   if (estado?.error)
     return (
       <Alert variant="destructive">
@@ -39,7 +39,12 @@ export function FormularioIngreso() {
         <Input id="correo" name="correo" type="email" autoComplete="email" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="contrasena">Contraseña</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="contrasena">Contraseña</Label>
+          <Link href="/recuperar" className="text-muted-foreground text-xs underline-offset-4 hover:underline">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
         <Input id="contrasena" name="contrasena" type="password" autoComplete="current-password" required />
       </div>
       <Mensaje estado={estado} />

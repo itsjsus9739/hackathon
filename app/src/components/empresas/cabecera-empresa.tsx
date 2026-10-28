@@ -20,7 +20,7 @@ function Dato({ icono: Icono, etiqueta, valor }: { icono: LucideIcon; etiqueta: 
   );
 }
 
-const ORDEN_RESUMEN: TipoHito[] = ["proyecto_aula", "cita", "diagnostico", "evento", "atencion"];
+const ORDEN_RESUMEN: TipoHito[] = ["proyecto_aula", "plan_accion", "cita", "diagnostico", "evento", "atencion"];
 
 export function CabeceraEmpresa({
   empresa,

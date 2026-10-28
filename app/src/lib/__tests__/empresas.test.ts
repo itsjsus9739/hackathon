@@ -34,7 +34,7 @@ describe("Ficha 360°: utilidades de la línea de tiempo", () => {
 
   it("cuenta hitos por tipo", () => {
     const conteo = contarPorTipo([hito("cita", "2026-01-01T00:00:00Z"), hito("cita", "2026-01-02T00:00:00Z"), hito("evento", "2026-01-03T00:00:00Z")]);
-    expect(conteo).toEqual({ proyecto_aula: 0, cita: 2, diagnostico: 0, evento: 1, atencion: 0 });
+    expect(conteo).toEqual({ proyecto_aula: 0, plan_accion: 0, cita: 2, diagnostico: 0, evento: 1, atencion: 0 });
   });
 });
 
