@@ -1,5 +1,4 @@
 -- =====================================================================
--- PENDIENTE DE APLICAR en Supabase (la confirmación de apply_migration expiró): pegarla en el SQL Editor o reintentar.
 -- CDE UNAB · Ajustes de la segunda revisión
 --   1. Nadie valida su propio aporte (también como restricción, no solo en el trigger)
 --   2. diagnosticos.nivel se calcula solo a partir de las 6 áreas

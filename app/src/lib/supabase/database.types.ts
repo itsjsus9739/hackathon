@@ -1,4 +1,4 @@
-// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0009; helpers Tables/Enums simplificados.
+// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0010; helpers Tables/Enums simplificados.
 // Regenerar con: npx supabase gen types typescript --project-id dgubdqszyxrlpcfatqvl > src/lib/supabase/database.types.ts
 export type Json =
   | string
@@ -1216,6 +1216,7 @@ export type Database = {
       perfiles: {
         Row: {
           actualizado_en: string
+          avatar: Json
           creado_en: string
           documento_identidad: string | null
           estado_acceso: Database["public"]["Enums"]["estado_acceso"]
@@ -1226,6 +1227,7 @@ export type Database = {
         }
         Insert: {
           actualizado_en?: string
+          avatar?: Json
           creado_en?: string
           documento_identidad?: string | null
           estado_acceso?: Database["public"]["Enums"]["estado_acceso"]
@@ -1236,6 +1238,7 @@ export type Database = {
         }
         Update: {
           actualizado_en?: string
+          avatar?: Json
           creado_en?: string
           documento_identidad?: string | null
           estado_acceso?: Database["public"]["Enums"]["estado_acceso"]
@@ -1889,6 +1892,18 @@ export type Database = {
         }
         Relationships: []
       }
+      linea_tiempo_empresa: {
+        Row: {
+          detalle: string | null
+          estado: string | null
+          fecha: string | null
+          id_empresa: string | null
+          id_registro: string | null
+          tipo: string | null
+          titulo: string | null
+        }
+        Relationships: []
+      }
       posibles_duplicados: {
         Row: {
           id_empresa_a: string | null
@@ -1933,6 +1948,11 @@ export type Database = {
       }
     }
     Functions: {
+      avatares: {
+        Args: never
+        Returns: { avatar: Json; id: string; nombre: string; rol: Database["public"]["Enums"]["rol_usuario"] }[]
+      }
+      guardar_avatar: { Args: { avatar: Json }; Returns: Json }
       acceso_aprobado: { Args: never; Returns: boolean }
       asignaturas_del_docente: { Args: never; Returns: string[] }
       compromisos_editables: { Args: never; Returns: string[] }
