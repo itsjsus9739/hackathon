@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendario CDE Conecta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales/es.global.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f7fb; --panel: #ffffff; --ink: #1f2937; --muted: #6b7280; --line: #e5e7eb;
+    --brand: #c8102e; --brand-ink: #ffffff; --soft: #f3f4f6;
+    --ok: #16a34a; --no: #dc2626; --wait: #d97706; --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  button { font: inherit; cursor: pointer; }
+  .hidden { display: none !important; }
+
+  /* Barra superior */
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--panel);
+           border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+  .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--brand); color: #fff;
+          display: grid; place-items: center; font-weight: 700; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  header .spacer { flex: 1; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+          background: var(--soft); font-size: 14px; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: #fff;
+            display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; }
+  .btn { border: 1px solid var(--line); background: var(--panel); padding: 8px 14px; border-radius: 10px; }
+  .btn:hover { background: var(--soft); }
+  .btn.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+  .btn.primary:hover { filter: brightness(.95); }
+  .btn.danger { color: var(--no); border-color: #fecaca; }
+  .btn.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+  .btn.no { background: #fff; color: var(--no); border-color: #fecaca; }
+  .btn.sm { padding: 4px 10px; font-size: 13px; border-radius: 8px; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 290px 1fr; gap: 20px; padding: 20px; max-width: 1500px; margin: 0 auto; }
+  aside { display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+  .card h3 { margin: 0 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .create-btn { width: 100%; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 14px;
+                box-shadow: 0 2px 8px rgba(200,16,46,.25); }
+  .legend label { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; cursor: pointer; }
+  .legend input { width: 16px; height: 16px; accent-color: var(--brand); }
+  .dot { width: 12px; height: 12px; border-radius: 4px; flex: none; }
+  .tag { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .inv { border-top: 1px solid var(--line); padding: 10px 0; font-size: 14px; }
+  .inv:first-of-type { border-top: 0; padding-top: 0; }
+  .inv .t { font-weight: 600; cursor: pointer; }
+  .inv .m { color: var(--muted); font-size: 12px; margin: 2px 0 8px; }
+  .inv .actions { display: flex; gap: 6px; }
+  .empty { color: var(--muted); font-size: 13px; }
+  .perm li { font-size: 13px; margin-bottom: 4px; color: var(--muted); }
+  .perm ul { padding-left: 18px; margin: 0; }
+  #calendar { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; min-height: 70vh; }
+  .badge-count { background: var(--brand); color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 12px; margin-left: 6px; }
+
+  /* FullCalendar */
+  .fc .fc-toolbar-title { font-size: 20px; font-weight: 600; }
+  .fc .fc-toolbar-title::first-letter { text-transform: uppercase; }
+  .fc .fc-button-primary:disabled { background: var(--soft); color: var(--muted); border-color: var(--line); }
+  .fc .fc-button-primary { background: #fff; color: var(--ink); border-color: var(--line); text-transform: capitalize; }
+  .fc .fc-button-primary:hover { background: var(--soft); color: var(--ink); border-color: var(--line); }
+  .fc .fc-button-primary:not(:disabled).fc-button-active { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .fc .fc-day-today { background: #fff5f6 !important; }
+  .fc-event { border-radius: 6px; padding: 1px 3px; cursor: pointer; }
+  .fc-event.pending { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0 6px, transparent 6px 12px); }
+  .fc-event.declined { opacity: .45; text-decoration: line-through; }
+
+  /* Modales */
+  .overlay { position: fixed; inset: 0; background: rgba(17,24,39,.45); display: grid; place-items: center; z-index: 20; padding: 16px; }
+  .modal { background: var(--panel); width: min(560px, 100%); max-height: 92vh; overflow: auto; border-radius: 18px;
+           box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  .modal header { position: static; border: 0; padding: 18px 22px 0; background: transparent; }
+  .modal .body { padding: 14px 22px 22px; }
+  .x { border: 0; background: transparent; font-size: 22px; color: var(--muted); }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; font-size: 14px; }
+  .field > span { font-weight: 500; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  input[type=text], input[type=datetime-local], textarea, select, input[type=search] {
+    font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; width: 100%; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid #fecdd3; border-color: var(--brand); }
+  .type-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .type-pills button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px;
+                       display: inline-flex; align-items: center; gap: 6px; }
+  .type-pills button.active { border-color: var(--ink); background: var(--ink); color: #fff; }
+  .type-pills button:disabled { opacity: .35; cursor: not-allowed; }
+  .hint { font-size: 12px; color: var(--muted); }
+  .people { border: 1px solid var(--line); border-radius: 10px; max-height: 210px; overflow: auto; }
+  .people .grp { font-size: 11px; text-transform: uppercase; color: var(--muted); padding: 8px 12px 4px; background: var(--soft); }
+  .people label { display: flex; align-items: center; gap: 10px; padding: 7px 12px; font-size: 14px; cursor: pointer; }
+  .people label:hover { background: var(--soft); }
+  .footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
+  .meta { display: grid; grid-template-columns: 22px 1fr; gap: 8px 10px; font-size: 14px; margin: 12px 0; }
+  .meta .i { color: var(--muted); text-align: center; }
+  .att { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; }
+  .att .st { margin-left: auto; font-size: 12px; padding: 2px 8px; border-radius: 999px; }
+  .st.confirmado { background: #dcfce7; color: #166534; }
+  .st.rechazado { background: #fee2e2; color: #991b1b; }
+  .st.pendiente { background: #fef3c7; color: #92400e; }
+  .rsvp-box { background: var(--soft); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .rsvp-box strong { flex: 1; font-size: 14px; }
+
+  /* Login */
+  .login { max-width: 900px; margin: 6vh auto; padding: 0 16px; }
+  .login h2 { font-size: 26px; margin-bottom: 4px; }
+  .grid-users { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 20px; }
+  .user-card { display: flex; gap: 12px; align-items: center; text-align: left; padding: 14px; border-radius: 14px;
+               border: 1px solid var(--line); background: #fff; }
+  .user-card:hover { border-color: var(--brand); box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+  .user-card small { display: block; color: var(--muted); }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff;
+           padding: 10px 18px; border-radius: 10px; z-index: 40; font-size: 14px; }
+  .toast.err { background: var(--no); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; padding: 12px; }
+    header { padding: 10px 12px; }
+    header h1, .role-sep { display: none; }
+    .chip { padding: 4px 10px 4px 4px; font-size: 13px; }
+    main { order: -1; }
+    .perm { display: none; }
+    .row { grid-template-columns: 1fr; }
+    .fc .fc-toolbar { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Pantalla de ingreso (demo) -->
+<section id="login" class="login hidden">
+  <div class="logo" style="width:48px;height:48px;font-size:20px">C</div>
+  <h2>Calendario CDE Conecta</h2>
+  <p class="hint" style="font-size:15px">Elige un usuario de demostración para ver el calendario según su rol.</p>
+  <div id="userGrid" class="grid-users"></div>
+</section>
+
+<!-- Aplicación -->
+<div id="app" class="hidden">
+  <header>
+    <div class="logo">C</div>
+    <h1>Calendario CDE</h1>
+    <div class="spacer"></div>
+    <span class="chip"><span class="avatar" id="meAvatar"></span><span><b id="meName"></b><span class="role-sep"> · <span id="meRole"></span></span></span></span>
+    <button class="btn sm" id="switchUser">Cambiar usuario</button>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <button class="btn primary create-btn" id="createBtn">＋ Crear</button>
+
+      <div class="card">
+        <h3>Invitaciones pendientes <span id="invCount" class="badge-count hidden"></span></h3>
+        <div id="invList"></div>
+      </div>
+
+      <div class="card legend">
+        <h3>Mostrar</h3>
+        <div id="legend"></div>
+        <label style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px">
+          <input type="checkbox" id="onlyMine"> Solo donde participo
+        </label>
+      </div>
+
+      <div class="card perm">
+        <h3>Lo que puedes hacer</h3>
+        <ul id="permList"></ul>
+      </div>
+    </aside>
+
+    <main><div id="calendar"></div></main>
+  </div>
+</div>
+
+<!-- Modal detalle -->
+<div id="detailModal" class="overlay hidden">
+  <div class="modal">
+    <header><span class="dot" id="dDot" style="width:16px;height:16px"></span><h1 id="dTitle" style="font-size:20px"></h1>
+      <div class="spacer"></div><button class="x" data-close>×</button></header>
+    <div class="body">
+      <div class="meta">
+        <span class="i">🏷️</span><span id="dType"></span>
+        <span class="i">🕒</span><span id="dWhen"></span>
+        <span class="i">📍</span><span id="dWhere"></span>
+        <span class="i">👤</span><span id="dCreator"></span>
+      </div>
+      <p id="dDesc" style="font-size:14px;white-space:pre-wrap"></p>
+      <div id="dRsvp"></div>
+      <h3 style="font-size:14px;margin:16px 0 6px">Asistentes <span id="dCounts" class="hint"></span></h3>
+      <div id="dAttendees"></div>
+      <div class="footer" id="dActions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal crear/editar -->
+<div id="formModal" class="overlay hidden">
+  <div class="modal">
+    <header><h1 id="fHeading" style="font-size:20px">Nueva actividad</h1><div class="spacer"></div><button class="x" data-close>×</button></header>
+    <form class="body" id="eventForm">
+      <label class="field"><span>Título</span><input type="text" name="title" required placeholder="Ej. Asesoría plan de negocio"></label>
+      <div class="field"><span>Tipo de actividad</span><div class="type-pills" id="typePills"></div>
+        <span class="hint" id="typeHint"></span></div>
+      <div class="row">
+        <label class="field"><span>Inicio</span><input type="datetime-local" name="start" required></label>
+        <label class="field"><span>Fin</span><input type="datetime-local" name="end" required></label>
+      </div>
+      <label class="field"><span>Lugar o enlace</span><input type="text" name="location" placeholder="CDE - Sala 2 o enlace de Meet/Teams"></label>
+      <label class="field"><span>Descripción</span><textarea name="description" rows="3"></textarea></label>
+      <div class="field"><span>Invitar asistentes <span class="hint" id="selCount"></span></span>
+        <input type="search" id="peopleSearch" placeholder="Buscar por nombre o rol…">
+        <div class="people" id="peopleList"></div>
+        <span class="hint" id="peopleHint"></span></div>
+      <div class="footer"><button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn primary" id="saveBtn">Guardar</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const state = { me: null, types: {}, roles: {}, users: [], events: [], hidden: new Set(), onlyMine: false, editing: null, formType: null };
+
+// Permite servir la app en la raíz (/) o bajo un subpath (p. ej. /calendario vía rewrite de Next.js)
+const BASE = location.pathname.replace(/\/+$/, '');
+async function api(url, opts = {}) {
+  const res = await fetch(BASE + url, { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Error inesperado');
+  return data;
+}
+function toast(msg, err = false) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.add('hidden'), 3000);
+}
+const initials = n => n.replace(/\(.*\)|Dr\.|Mtra\./g, '').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = d => new Date(d).toLocaleString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+const toLocalInput = d => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 16); };
+const ROLE_ORDER = ['admin', 'miembro', 'profesor', 'emprendedor', 'estudiante'];
+
+/* ---------- Ingreso ---------- */
+async function showLogin() {
+  $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
+  state.users = await api('/api/users');
+  $('#userGrid').innerHTML = state.users.map(u => `
+    <button class="user-card" data-id="${u.id}"><span class="avatar">${initials(u.name)}</span>
+      <span><b>${esc(u.name)}</b><small>${esc(u.role_label)}</small></span></button>`).join('');
+  document.querySelectorAll('.user-card').forEach(b => b.onclick = async () => {
+    await api('/api/login', { method: 'POST', body: { user_id: +b.dataset.id } }); boot();
+  });
+}
+
+async function boot() {
+  try {
+    const me = await api('/api/me');
+    state.me = me.user; state.types = me.types; state.roles = me.roles;
+  } catch { return showLogin(); }
+  state.users = await api('/api/users');
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#meName').textContent = state.me.name; $('#meRole').textContent = state.me.role_label;
+  $('#meAvatar').textContent = initials(state.me.name);
+  renderLegend(); renderPermissions();
+  $('#createBtn').classList.toggle('hidden', !Object.values(state.types).some(t => t.can_create));
+  initCalendar();
+}
+
+function renderLegend() {
+  $('#legend').innerHTML = Object.entries(state.types).map(([k, t]) => `
+    <label><input type="checkbox" data-type="${k}" ${state.hidden.has(k) ? '' : 'checked'}>
+      <span class="dot" style="background:${t.color}"></span>${t.label}<span class="tag">${t.public ? 'Público' : 'Privado'}</span></label>`).join('');
+  document.querySelectorAll('#legend input').forEach(i => i.onchange = () => {
+    i.checked ? state.hidden.delete(i.dataset.type) : state.hidden.add(i.dataset.type); calendar.refetchEvents();
+  });
+  $('#onlyMine').onchange = e => { state.onlyMine = e.target.checked; calendar.refetchEvents(); };
+}
+
+function renderPermissions() {
+  const creatable = Object.values(state.types).filter(t => t.can_create).map(t => t.label);
+  const items = [`Crear: <b>${creatable.join(', ') || 'nada'}</b>`,
+    'Ver todos los eventos y espacios de networking (son públicos)'];
+  if (state.me.role === 'admin') items.push('Ver, editar y eliminar <b>todas</b> las actividades');
+  else items.push('Ver citas, coworking y conversatorios donde participas', 'Editar o eliminar lo que tú creaste');
+  items.push('Confirmar o rechazar tu asistencia');
+  $('#permList').innerHTML = items.map(i => `<li>${i}</li>`).join('');
+}
+
+/* ---------- Calendario ---------- */
+let calendar;
+function initCalendar() {
+  if (calendar) { calendar.refetchEvents(); return; }
+  const mobile = window.innerWidth < 700;
+  calendar = new FullCalendar.Calendar($('#calendar'), {
+    locale: 'es', firstDay: 1, height: 'auto', nowIndicator: true, selectable: true, editable: true,
+    initialView: mobile ? 'listWeek' : 'dayGridMonth',
+    headerToolbar: mobile ? { left: 'prev,next', center: 'title', right: 'today' }
+                          : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
+    footerToolbar: mobile ? { center: 'dayGridMonth,timeGridWeek,listWeek' } : undefined,
+    buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día', list: 'Agenda' },
+    slotMinTime: '06:00:00', slotMaxTime: '22:00:00', dayMaxEvents: 3,
+    events: async (info, ok, fail) => {
+      try {
+        const evs = await api(`/api/events?start=${encodeURIComponent(info.startStr)}&end=${encodeURIComponent(info.endStr)}`);
+        state.events = evs; renderInvitations();
+        ok(evs.filter(e => !state.hidden.has(e.type))
+              .filter(e => !state.onlyMine || e.my_status || e.creator.id === state.me.id)
+              .map(e => ({ id: e.id, title: e.title, start: e.start, end: e.end, color: e.color,
+                           editable: e.can_manage, extendedProps: e,
+                           classNames: e.my_status === 'pendiente' ? ['pending'] : e.my_status === 'rechazado' ? ['declined'] : [] })));
+      } catch (err) { fail(err); }
+    },
+    eventClick: info => openDetail(info.event.extendedProps),
+    select: info => { if (Object.values(state.types).some(t => t.can_create)) openForm(null, info); calendar.unselect(); },
+    eventDrop: moveEvent, eventResize: moveEvent,
+  });
+  calendar.render();
+}
+
+async function moveEvent(info) {
+  const e = info.event.extendedProps;
+  try {
+    await api(`/api/events/${e.id}`, { method: 'PUT', body: { ...payloadFrom(e),
+      start: toLocalInput(info.event.start), end: toLocalInput(info.event.end || info.event.start) } });
+    toast('Horario actualizado'); calendar.refetchEvents();
+  } catch (err) { info.revert(); toast(err.message, true); }
+}
+const payloadFrom = e => ({ title: e.title, type: e.type, description: e.description, location: e.location,
+                            start: e.start, end: e.end, attendees: e.attendees.map(a => a.user.id) });
+
+function renderInvitations() {
+  const pending = state.events.filter(e => e.my_status === 'pendiente' && new Date(e.end) > new Date());
+  $('#invCount').textContent = pending.length; $('#invCount').classList.toggle('hidden', !pending.length);
+  $('#invList').innerHTML = pending.length ? pending.map(e => `
+    <div class="inv"><div class="t" data-open="${e.id}"><span class="dot" style="display:inline-block;background:${e.color}"></span> ${esc(e.title)}</div>
+      <div class="m">${e.type_label} · ${fmt(e.start)}</div>
+      <div class="actions"><button class="btn sm ok" data-rsvp="${e.id}" data-st="confirmado">Asistiré</button>
+        <button class="btn sm no" data-rsvp="${e.id}" data-st="rechazado">No asistiré</button></div></div>`).join('')
+    : '<p class="empty">No tienes invitaciones pendientes en este periodo 🎉</p>';
+  document.querySelectorAll('#invList [data-open]').forEach(el => el.onclick = () => openDetail(state.events.find(e => e.id == el.dataset.open)));
+  document.querySelectorAll('#invList [data-rsvp]').forEach(b => b.onclick = () => rsvp(+b.dataset.rsvp, b.dataset.st));
+}
+
+async function rsvp(id, status) {
+  try {
+    const ev = await api(`/api/events/${id}/rsvp`, { method: 'POST', body: { status } });
+    toast(status === 'confirmado' ? '¡Asistencia confirmada!' : 'Respuesta registrada');
+    calendar.refetchEvents();
+    if (!$('#detailModal').classList.contains('hidden')) openDetail(ev);
+  } catch (err) { toast(err.message, true); }
+}
+
+/* ---------- Detalle ---------- */
+function openDetail(e) {
+  $('#dDot').style.background = e.color; $('#dTitle').textContent = e.title;
+  $('#dType').innerHTML = `${e.type_label} · <span class="hint">${e.public ? 'Abierto a todos' : 'Solo invitados'}</span>`;
+  const sameDay = new Date(e.start).toDateString() === new Date(e.end).toDateString();
+  $('#dWhen').textContent = `${fmt(e.start)} – ${sameDay ? new Date(e.end).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : fmt(e.end)}`;
+  $('#dWhere').textContent = e.location || 'Sin lugar definido';
+  $('#dCreator').textContent = `Organiza ${e.creator.name} (${e.creator.role_label})`;
+  $('#dDesc').textContent = e.description;
+  const c = e.counts;
+  $('#dCounts').textContent = `· ${c.confirmado} confirmados, ${c.pendiente} pendientes, ${c.rechazado} no asisten`;
+  $('#dAttendees').innerHTML = e.attendees.length ? e.attendees.map(a => `
+    <div class="att"><span class="avatar">${initials(a.user.name)}</span><span>${esc(a.user.name)}<br><span class="hint">${a.user.role_label}</span></span>
+      <span class="st ${a.status}">${{ confirmado: 'Asistirá', rechazado: 'No asistirá', pendiente: 'Pendiente' }[a.status]}</span></div>`).join('')
+    : '<p class="empty">Aún no hay asistentes.</p>';
+
+  const isCreator = e.creator.id === state.me.id;
+  let rsvpHtml = '';
+  if (!isCreator && (e.my_status || e.public)) {
+    const label = e.my_status === 'confirmado' ? 'Confirmaste tu asistencia' : e.my_status === 'rechazado' ? 'Indicaste que no asistirás'
+                : e.my_status === 'pendiente' ? '¿Asistirás?' : '¿Te gustaría asistir?';
+    rsvpHtml = `<div class="rsvp-box"><strong>${label}</strong>
+      <button class="btn sm ok" data-st="confirmado" ${e.my_status === 'confirmado' ? 'disabled' : ''}>Asistiré</button>
+      <button class="btn sm no" data-st="rechazado" ${e.my_status === 'rechazado' ? 'disabled' : ''}>No asistiré</button></div>`;
+  }
+  $('#dRsvp').innerHTML = rsvpHtml;
+  $('#dRsvp').querySelectorAll('button').forEach(b => b.onclick = () => rsvp(e.id, b.dataset.st));
+
+  $('#dActions').innerHTML = e.can_manage
+    ? `<button class="btn danger" id="delBtn">Eliminar</button><button class="btn primary" id="editBtn">Editar</button>` : '';
+  if (e.can_manage) {
+    $('#delBtn').onclick = async () => {
+      if (!confirm(`¿Eliminar "${e.title}"? Esta acción no se puede deshacer.`)) return;
+      try { await api(`/api/events/${e.id}`, { method: 'DELETE' }); close('#detailModal'); toast('Actividad eliminada'); calendar.refetchEvents(); }
+      catch (err) { toast(err.message, true); }
+    };
+    $('#editBtn').onclick = () => { close('#detailModal'); openForm(e); };
+  }
+  open('#detailModal');
+}
+
+/* ---------- Formulario ---------- */
+function openForm(e = null, sel = null) {
+  state.editing = e;
+  const f = $('#eventForm'); f.reset();
+  $('#fHeading').textContent = e ? 'Editar actividad' : 'Nueva actividad';
+  const creatable = Object.keys(state.types).filter(k => state.types[k].can_create);
+  state.formType = e ? e.type : creatable.includes('cita') ? 'cita' : creatable[0];
+  const selected = new Set(e ? e.attendees.map(a => a.user.id) : []);
+
+  if (e) {
+    f.title.value = e.title; f.location.value = e.location; f.description.value = e.description;
+    f.start.value = e.start.slice(0, 16); f.end.value = e.end.slice(0, 16);
+  } else {
+    let s = sel ? new Date(sel.start) : new Date();
+    if (!sel || sel.allDay) { s.setHours(sel ? 9 : new Date().getHours() + 1, 0, 0, 0); }
+    const en = sel && !sel.allDay ? new Date(sel.end) : new Date(s.getTime() + 3600000);
+    f.start.value = toLocalInput(s); f.end.value = toLocalInput(en);
+  }
+
+  const renderTypes = () => {
+    $('#typePills').innerHTML = Object.entries(state.types).map(([k, t]) => `
+      <button type="button" data-type="${k}" class="${k === state.formType ? 'active' : ''}"
+        ${t.can_create || (e && k === e.type) ? '' : 'disabled title="Tu rol no puede crear este tipo"'}>
+        <span class="dot" style="background:${t.color}"></span>${t.label}</button>`).join('');
+    const t = state.types[state.formType];
+    $('#typeHint').textContent = t.public ? 'Visible para todos los usuarios; cualquiera puede inscribirse.'
+                                          : 'Solo lo verán tú, los invitados y el administrador.';
+    $('#typePills').querySelectorAll('button:not([disabled])').forEach(b => b.onclick = () => { state.formType = b.dataset.type; renderTypes(); renderPeople(); });
+  };
+
+  const renderPeople = () => {
+    const allowed = state.types[state.formType].attendee_roles;
+    const q = $('#peopleSearch').value.toLowerCase();
+    const creatorId = e ? e.creator.id : state.me.id;
+    for (const id of [...selected]) { const u = state.users.find(x => x.id === id); if (u && !allowed.includes(u.role)) selected.delete(id); }
+    const html = ROLE_ORDER.filter(r => allowed.includes(r)).map(r => {
+      const people = state.users.filter(u => u.role === r && u.id !== creatorId &&
+        (!q || u.name.toLowerCase().includes(q) || u.role_label.toLowerCase().includes(q)));
+      return people.length ? `<div class="grp">${state.roles[r]}</div>` + people.map(u => `
+        <label><input type="checkbox" value="${u.id}" ${selected.has(u.id) ? 'checked' : ''}>
+          <span class="avatar">${initials(u.name)}</span>${esc(u.name)}</label>`).join('') : '';
+    }).join('');
+    $('#peopleList').innerHTML = html || '<p class="empty" style="padding:10px">Sin resultados</p>';
+    $('#peopleList').querySelectorAll('input').forEach(i => i.onchange = () => {
+      i.checked ? selected.add(+i.value) : selected.delete(+i.value); $('#selCount').textContent = selected.size ? `(${selected.size} seleccionados)` : '';
+    });
+    $('#selCount').textContent = selected.size ? `(${selected.size} seleccionados)` : '';
+    $('#peopleHint').textContent = 'Puedes invitar a: ' + allowed.map(r => state.roles[r]).join(', ');
+  };
+
+  $('#peopleSearch').value = ''; $('#peopleSearch').oninput = renderPeople;
+  renderTypes(); renderPeople();
+
+  f.onsubmit = async ev => {
+    ev.preventDefault();
+    const body = { title: f.title.value, type: state.formType, start: f.start.value, end: f.end.value,
+                   location: f.location.value, description: f.description.value, attendees: [...selected] };
+    $('#saveBtn').disabled = true;
+    try {
+      await api(e ? `/api/events/${e.id}` : '/api/events', { method: e ? 'PUT' : 'POST', body });
+      close('#formModal'); toast(e ? 'Cambios guardados' : 'Actividad creada'); calendar.refetchEvents();
+    } catch (err) { toast(err.message, true); }
+    finally { $('#saveBtn').disabled = false; }
+  };
+  open('#formModal'); f.title.focus();
+}
+
+/* ---------- Utilidades de modales ---------- */
+function open(sel) { $(sel).classList.remove('hidden'); }
+function close(sel) { $(sel).classList.add('hidden'); }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', ev => { if (ev.target === o || ev.target.closest('[data-close]')) close('#' + o.id); });
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') document.querySelectorAll('.overlay').forEach(o => o.classList.add('hidden')); });
+$('#createBtn').onclick = () => openForm();
+$('#switchUser').onclick = async () => { await api('/api/logout', { method: 'POST' }); showLogin(); };
+
+boot();
+</script>
+</body>
+</html>
