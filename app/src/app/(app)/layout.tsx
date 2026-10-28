@@ -15,6 +15,7 @@ const MODULOS = [
   { href: "/eventos", etiqueta: "Eventos" },
   { href: "/formacion", etiqueta: "Formación y recompensas" },
   { href: "/conocimiento", etiqueta: "Conocimiento" },
+  { href: "/asistente", etiqueta: "Asistente IA" },
   { href: "/portal", etiqueta: "Portal del emprendedor" },
 ];
 
