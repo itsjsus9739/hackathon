@@ -1,9 +1,11 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { avisarRegistroDocente } from "@/lib/avisos";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
 export type EstadoFormulario = { error?: string; aviso?: string } | undefined;
@@ -58,7 +60,7 @@ export async function registrarse(_: EstadoFormulario, datos: FormData): Promise
     password: contrasena,
     options: {
       emailRedirectTo: `${origen}/auth/confirm`,
-      // El trigger de la base usa estos datos para la solicitud de acceso; el rol real lo asigna el CDE
+      // El trigger de la base crea el perfil con el rol pedido (nunca uno del CDE) y, si es externo, la solicitud
       data: { nombre, rol_solicitado, motivo },
     },
   });
@@ -67,12 +69,19 @@ export async function registrarse(_: EstadoFormulario, datos: FormData): Promise
     if (error.code === "over_email_send_rate_limit") return { error: "Demasiados intentos. Espera unos minutos." };
     return { error: "No pudimos crear la cuenta. Inténtalo de nuevo." };
   }
+  // Correo ya registrado: Supabase responde igual pero sin identidades nuevas (no se avisa dos veces)
+  const esNuevo = (data.user?.identities?.length ?? 0) > 0;
+  if (esNuevo && rol_solicitado === "docente") {
+    // Después de responder al usuario: el aviso al CDE no retrasa ni bloquea el registro
+    after(() => avisarRegistroDocente({ nombre, correo, institucional: esInstitucional(correo), origen }));
+  }
   if (data.session) redirect("/"); // proyecto sin confirmación de correo
 
+  const confirmacion = esInstitucional(correo)
+    ? "Te enviamos un correo de confirmación. Al confirmarlo podrás ingresar con tu cuenta UNAB."
+    : "Te enviamos un correo de confirmación. Después de confirmarlo, el CDE revisará tu solicitud de acceso.";
   return {
-    aviso: esInstitucional(correo)
-      ? "Te enviamos un correo de confirmación. Al confirmarlo podrás ingresar con tu cuenta UNAB."
-      : "Te enviamos un correo de confirmación. Después de confirmarlo, el CDE revisará tu solicitud de acceso.",
+    aviso: rol_solicitado === "docente" ? `${confirmacion} También avisamos al CDE para que confirme tu rol de docente.` : confirmacion,
   };
 }
 

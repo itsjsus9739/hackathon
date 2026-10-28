@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 
 import { cerrarSesion } from "@/app/login/actions";
 import { RecorridoBuho } from "@/components/buho/recorrido-buho";
+import { Campana } from "@/components/notificaciones/campana";
 import { Button } from "@/components/ui/button";
 import { MODULOS } from "@/lib/navegacion";
 import { ETIQUETA_ROL, obtenerSesion } from "@/lib/sesion";
@@ -19,7 +20,10 @@ export default async function LayoutAplicacion({ children }: { children: React.R
   return (
     <div className="flex min-h-screen">
       <nav data-recorrido="menu" className="hidden w-60 shrink-0 flex-col gap-1 border-r bg-[var(--panel)] p-4 md:flex">
-        <p className="mb-4 text-lg font-semibold">CDE Conecta</p>
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-lg font-semibold">CDE Conecta</p>
+          <Campana />
+        </div>
         {MODULOS.map((m) => (
           <Link key={m.href} href={m.href} data-recorrido={`nav:${m.href}`} className="rounded-md px-3 py-2 text-sm hover:bg-black/5">
             {m.etiqueta}
@@ -35,7 +39,16 @@ export default async function LayoutAplicacion({ children }: { children: React.R
           </form>
         </div>
       </nav>
-      <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* En celular el menú lateral no se muestra: barra superior con la campana */}
+        <header className="flex items-center justify-between border-b bg-[var(--panel)] px-4 py-2 md:hidden">
+          <Link href="/" className="font-semibold">
+            CDE Conecta
+          </Link>
+          <Campana />
+        </header>
+        <main className="min-w-0 flex-1 p-4 md:p-6">{children}</main>
+      </div>
       <RecorridoBuho idUsuario={sesion.id} rol={sesion.rol} nombre={sesion.nombre} />
     </div>
   );

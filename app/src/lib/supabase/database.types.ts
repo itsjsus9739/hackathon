@@ -1,4 +1,4 @@
-// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0013; helpers Tables/Enums simplificados.
+// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0018; helpers Tables/TablesInsert/Enums simplificados.
 // Regenerar con: npx supabase gen types typescript --project-id dgubdqszyxrlpcfatqvl > src/lib/supabase/database.types.ts
 export type Json =
   | string
@@ -342,6 +342,7 @@ export type Database = {
           descripcion: string | null
           id: string
           id_proyecto: string | null
+          id_sala: string | null
           nombre: string
           tipo: string
         }
@@ -350,6 +351,7 @@ export type Database = {
           descripcion?: string | null
           id?: string
           id_proyecto?: string | null
+          id_sala?: string | null
           nombre: string
           tipo?: string
         }
@@ -358,6 +360,7 @@ export type Database = {
           descripcion?: string | null
           id?: string
           id_proyecto?: string | null
+          id_sala?: string | null
           nombre?: string
           tipo?: string
         }
@@ -374,6 +377,20 @@ export type Database = {
             columns: ["id_proyecto"]
             isOneToOne: true
             referencedRelation: "resumen_proyectos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "canales_id_sala_fkey"
+            columns: ["id_sala"]
+            isOneToOne: true
+            referencedRelation: "salas_coworking"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "canales_id_sala_fkey"
+            columns: ["id_sala"]
+            isOneToOne: true
+            referencedRelation: "salas_coworking_lista"
             referencedColumns: ["id"]
           },
         ]
@@ -1184,6 +1201,7 @@ export type Database = {
           cuerpo: string | null
           enlace: string | null
           id: string
+          id_referencia: string | null
           id_usuario: string
           leida_en: string | null
           tipo: string
@@ -1194,6 +1212,7 @@ export type Database = {
           cuerpo?: string | null
           enlace?: string | null
           id?: string
+          id_referencia?: string | null
           id_usuario: string
           leida_en?: string | null
           tipo?: string
@@ -1204,6 +1223,7 @@ export type Database = {
           cuerpo?: string | null
           enlace?: string | null
           id?: string
+          id_referencia?: string | null
           id_usuario?: string
           leida_en?: string | null
           tipo?: string
@@ -1682,6 +1702,78 @@ export type Database = {
           },
         ]
       }
+      sala_miembros: {
+        Row: {
+          id_sala: string
+          id_usuario: string
+          unido_en: string
+        }
+        Insert: {
+          id_sala: string
+          id_usuario: string
+          unido_en?: string
+        }
+        Update: {
+          id_sala?: string
+          id_usuario?: string
+          unido_en?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sala_miembros_id_sala_fkey"
+            columns: ["id_sala"]
+            isOneToOne: false
+            referencedRelation: "salas_coworking"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sala_miembros_id_sala_fkey"
+            columns: ["id_sala"]
+            isOneToOne: false
+            referencedRelation: "salas_coworking_lista"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sala_miembros_id_usuario_fkey"
+            columns: ["id_usuario"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salas_coworking: {
+        Row: {
+          clave_hash: string | null
+          creada_por: string
+          creado_en: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          clave_hash?: string | null
+          creada_por?: string
+          creado_en?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          clave_hash?: string | null
+          creada_por?: string
+          creado_en?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salas_coworking_creada_por_fkey"
+            columns: ["creada_por"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sectores: {
         Row: {
           nombre: string
@@ -1955,16 +2047,66 @@ export type Database = {
         }
         Relationships: []
       }
+      salas_coworking_lista: {
+        Row: {
+          creada_por: string | null
+          creado_en: string | null
+          id: string | null
+          miembros: number | null
+          nombre: string | null
+          soy_miembro: boolean | null
+          tiene_clave: boolean | null
+        }
+        Insert: {
+          creada_por?: string | null
+          creado_en?: string | null
+          id?: string | null
+          miembros?: never
+          nombre?: string | null
+          soy_miembro?: never
+          tiene_clave?: never
+        }
+        Update: {
+          creada_por?: string | null
+          creado_en?: string | null
+          id?: string | null
+          miembros?: never
+          nombre?: string | null
+          soy_miembro?: never
+          tiene_clave?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salas_coworking_creada_por_fkey"
+            columns: ["creada_por"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      avatares: {
-        Args: never
-        Returns: { avatar: Json; id: string; nombre: string; rol: Database["public"]["Enums"]["rol_usuario"] }[]
-      }
-      guardar_avatar: { Args: { avatar: Json }; Returns: Json }
       acceso_aprobado: { Args: never; Returns: boolean }
       asignaturas_del_docente: { Args: never; Returns: string[] }
+      avatares: {
+        Args: never
+        Returns: {
+          avatar: Json
+          id: string
+          nombre: string
+          rol: Database["public"]["Enums"]["rol_usuario"]
+        }[]
+      }
       compromisos_editables: { Args: never; Returns: string[] }
+      correos_cde: {
+        Args: never
+        Returns: {
+          correo: string
+          nombre: string
+        }[]
+      }
+      crear_sala: { Args: { clave?: string; nombre: string }; Returns: string }
       cupos_eventos: {
         Args: never
         Returns: {
@@ -1985,6 +2127,8 @@ export type Database = {
       es_admin: { Args: never; Returns: boolean }
       es_cde: { Args: never; Returns: boolean }
       es_correo_institucional: { Args: { correo: string }; Returns: boolean }
+      es_miembro_sala: { Args: { sala: string }; Returns: boolean }
+      guardar_avatar: { Args: { avatar: Json }; Returns: Json }
       mis_empresas: { Args: never; Returns: string[] }
       notificar: {
         Args: {
@@ -2001,6 +2145,7 @@ export type Database = {
       planes_visibles: { Args: never; Returns: string[] }
       proyectos_del_docente: { Args: never; Returns: string[] }
       proyectos_del_estudiante: { Args: never; Returns: string[] }
+      puede_entrar_sala_realtime: { Args: { tema: string }; Returns: boolean }
       puede_ver_canal: { Args: { canal: string }; Returns: boolean }
       ranking_puntos: {
         Args: { limite?: number }
@@ -2017,6 +2162,8 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["rol_usuario"]
       }
+      sala_tiene_clave: { Args: { sala: string }; Returns: boolean }
+      unirse_sala: { Args: { clave?: string; sala: string }; Returns: boolean }
     }
     Enums: {
       estado_acceso: "pendiente" | "aprobado" | "rechazado"
