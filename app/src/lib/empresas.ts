@@ -1,8 +1,9 @@
 import { cache } from "react";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/database.types";
+import { AREAS_DIAGNOSTICO, ZONA_HORARIA } from "./constantes";
 
-export const ZONA_HORARIA = "America/Bogota";
+export { AREAS_DIAGNOSTICO, ZONA_HORARIA };
 
 export type EmpresaFicha = Pick<
   Tables<"empresas">,
@@ -36,15 +37,8 @@ export type Diagnostico = Pick<
 
 export type Postulacion = Pick<Tables<"postulaciones">, "id" | "estado" | "origen" | "origen_registro">;
 
-/** Áreas del autodiagnóstico de madurez del CDE (escala 1–5). */
-export const AREAS_DIAGNOSTICO = [
-  { campo: "estrategia", nombre: "Gestión de Estrategia Empresarial" },
-  { campo: "mercadeo_ventas", nombre: "Gestión de Mercadeo y Ventas" },
-  { campo: "financiera", nombre: "Gestión Financiera" },
-  { campo: "normativa_legal", nombre: "Gestión Normativa y Legal" },
-  { campo: "productividad", nombre: "Productividad" },
-  { campo: "transformacion_digital", nombre: "Transformación Digital" },
-] as const satisfies readonly { campo: keyof Diagnostico; nombre: string }[];
+// Cada área del catálogo debe ser una columna del diagnóstico
+AREAS_DIAGNOSTICO satisfies readonly { campo: keyof Diagnostico; nombre: string }[];
 
 export type TipoHito = "proyecto_aula" | "plan_accion" | "cita" | "diagnostico" | "evento" | "atencion";
 

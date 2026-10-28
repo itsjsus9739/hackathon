@@ -10,6 +10,7 @@ const MODULOS = [
   { href: "/", etiqueta: "Inicio" },
   { href: "/empresas", etiqueta: "Empresas" },
   { href: "/importar", etiqueta: "Importar y depurar" },
+  { href: "/planes", etiqueta: "Planes de acción" },
   { href: "/citas", etiqueta: "Citas" },
   { href: "/eventos", etiqueta: "Eventos" },
   { href: "/formacion", etiqueta: "Formación y recompensas" },
