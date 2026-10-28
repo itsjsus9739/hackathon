@@ -31,11 +31,11 @@ as $$
 $$;
 
 -- Solo el CDE Admin crea, cambia de rol o elimina perfiles; el Miembro CDE los consulta
-drop policy cde_todo on public.perfiles;
+-- (se modifica la política existente en lugar de borrarla: la migración no tiene sentencias destructivas)
+alter policy cde_todo on public.perfiles using (public.es_admin()) with check (public.es_admin());
+alter policy cde_todo on public.perfiles rename to admin_gestiona_perfiles;
 create policy cde_lee_perfiles on public.perfiles
   for select to authenticated using (public.es_cde());
-create policy admin_gestiona_perfiles on public.perfiles
-  for all to authenticated using (public.es_admin()) with check (public.es_admin());
 
 -- ---------------------------------------------------------------------
 -- 2. Asignaturas: el docente las dicta, el estudiante las cursa, los proyectos viven en ellas
@@ -75,11 +75,10 @@ on conflict do nothing;
 alter table public.carga_docente add column id_asignatura uuid references public.asignaturas (id);
 update public.carga_docente c set id_asignatura = a.id from public.asignaturas a where a.nombre = c.asignatura;
 
--- Proyecto de aula → asignatura (reemplaza el texto libre)
-drop view public.resumen_proyectos;
+-- Proyecto de aula → asignatura (reemplaza el texto libre, que queda vacío y en desuso)
 alter table public.proyectos_aula
-  drop column asignatura,
   add column id_asignatura uuid references public.asignaturas (id) on delete set null;
+comment on column public.proyectos_aula.asignatura is 'Obsoleta: usar id_asignatura';
 create index proyectos_aula_asignatura_idx on public.proyectos_aula (id_asignatura);
 
 create or replace function public.proteger_campos_proyecto()
@@ -100,7 +99,7 @@ begin
 end;
 $$;
 
-create view public.resumen_proyectos with (security_invoker = true) as
+create or replace view public.resumen_proyectos with (security_invoker = true) as
 select p.id, p.nombre, a.nombre as asignatura, p.semestre, p.estado, e.nombre as empresa,
        -- estudiantes registrados en el sistema o, si aún no hay, los que reportó el Cuadro de control
        coalesce(nullif((select count(*) from public.proyecto_estudiantes pe where pe.id_proyecto = p.id), 0),
