@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ShieldAlert, Sparkles } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { asistenteConfigurado } from "@/lib/ia/sql";
+import { asistenteConfigurado, modeloEnUso } from "@/lib/ia/asistente";
 import { obtenerSesion } from "@/lib/sesion";
 import { Asistente } from "./asistente";
 
@@ -32,6 +32,7 @@ export default async function PaginaAsistente() {
           Escribe en español lo que quieres saber. El asistente consulta la base con un usuario de solo lectura, sin acceso a
           documentos de identidad, correos ni teléfonos, y te muestra cómo calculó cada cifra.
         </p>
+        {asistenteConfigurado() && <p className="text-muted-foreground mt-1 text-xs">Modelo: {modeloEnUso()}</p>}
       </div>
       {asistenteConfigurado() ? (
         <Asistente />
@@ -40,8 +41,8 @@ export default async function PaginaAsistente() {
           <ShieldAlert aria-hidden />
           <AlertTitle>Falta configurar el asistente</AlertTitle>
           <AlertDescription>
-            Agrega en Vercel las variables <code>ANTHROPIC_API_KEY</code> e <code>IA_DATABASE_URL</code> (conexión con el rol
-            de solo lectura <code>ia_lectura</code>) y vuelve a desplegar.
+            Agrega en Vercel <code>IA_API_KEY</code> (clave del proveedor del modelo abierto, p. ej. Groq) e{" "}
+            <code>IA_DATABASE_URL</code> (conexión con el rol de solo lectura <code>ia_lectura</code>) y vuelve a desplegar.
           </AlertDescription>
         </Alert>
       )}

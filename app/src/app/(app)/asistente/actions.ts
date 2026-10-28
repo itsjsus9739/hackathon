@@ -2,8 +2,7 @@
 
 import { z } from "zod";
 
-import { asistenteConfigurado } from "@/lib/ia/sql";
-import { preguntarAlAsistente, type RespuestaAsistente } from "@/lib/ia/asistente";
+import { asistenteConfigurado, preguntarAlAsistente, type RespuestaAsistente } from "@/lib/ia/asistente";
 import { obtenerSesion } from "@/lib/sesion";
 
 const esquema = z.string().trim().min(5, "Escribe una pregunta un poco más completa").max(500, "La pregunta es muy larga");

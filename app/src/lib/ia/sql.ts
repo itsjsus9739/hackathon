@@ -44,8 +44,6 @@ const obtenerPool = () => {
   return pool;
 };
 
-export const asistenteConfigurado = () => Boolean(process.env.IA_DATABASE_URL && process.env.ANTHROPIC_API_KEY);
-
 export async function ejecutarConsulta(sql: string): Promise<ResultadoConsulta> {
   const valida = validarConsulta(sql);
   if (!valida.ok) throw new Error(valida.motivo);

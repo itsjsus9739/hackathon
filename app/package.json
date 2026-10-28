@@ -20,6 +20,7 @@
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^1.63.0",
     "next": "15.5.28",
+    "openai": "^7.45.1",
     "papaparse": "^5.7.0",
     "pg": "^8.23.1",
     "qrcode": "^1.5.4",
