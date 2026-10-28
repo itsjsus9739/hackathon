@@ -19,7 +19,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
 
   return (
     <div className="flex min-h-screen">
-      <nav data-recorrido="menu" className="hidden w-64 shrink-0 flex-col gap-0.5 border-r bg-[var(--panel)] p-4 md:flex">
+      <nav data-recorrido="menu" className="hidden w-[17rem] shrink-0 flex-col gap-0.5 border-r bg-[var(--panel)] p-4 md:flex">
         <div className="mb-5 flex items-center justify-between pl-1">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="flex size-9 items-center justify-center rounded-[10px] bg-[var(--primario)] text-sm font-extrabold tracking-tight text-white">

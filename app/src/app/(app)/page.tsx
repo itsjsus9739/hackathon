@@ -21,7 +21,7 @@ const PILARES = [
   { href: "/eventos", icono: CalendarDays, titulo: "Eventos", texto: "Inscripción y asistencia QR" },
   { href: "/formacion", icono: GraduationCap, titulo: "Formación", texto: "Microcursos y recompensas" },
   { href: "/conocimiento", icono: Lightbulb, titulo: "Conocimiento", texto: "Brechas e impacto" },
-  { href: "/portal", icono: Rocket, titulo: "Portal", texto: "La oferta para cada emprendedor" },
+  { href: "/portal", icono: Rocket, titulo: "Portal", texto: "Oferta para emprendedores" },
 ];
 
 const FECHA = new Intl.DateTimeFormat("es-CO", {
