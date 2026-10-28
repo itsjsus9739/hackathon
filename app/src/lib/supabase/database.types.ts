@@ -1,4 +1,4 @@
-// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0012; helpers Tables/Enums simplificados.
+// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0013; helpers Tables/Enums simplificados.
 // Regenerar con: npx supabase gen types typescript --project-id dgubdqszyxrlpcfatqvl > src/lib/supabase/database.types.ts
 export type Json =
   | string
@@ -1261,6 +1261,7 @@ export type Database = {
           area: string | null
           creado_en: string
           creado_por: string | null
+          es_ejemplo: boolean
           estado: string
           fecha_inicio: string
           fecha_limite: string | null
@@ -1276,6 +1277,7 @@ export type Database = {
           area?: string | null
           creado_en?: string
           creado_por?: string | null
+          es_ejemplo?: boolean
           estado?: string
           fecha_inicio?: string
           fecha_limite?: string | null
@@ -1291,6 +1293,7 @@ export type Database = {
           area?: string | null
           creado_en?: string
           creado_por?: string | null
+          es_ejemplo?: boolean
           estado?: string
           fecha_inicio?: string
           fecha_limite?: string | null
