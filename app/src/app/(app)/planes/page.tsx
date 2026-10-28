@@ -71,6 +71,7 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
         es_ejemplo: esEjemplo.has(p.id!),
         esMio: p.id_responsable === sesion?.id || propios.some((c) => c.id_responsable === sesion?.id),
         editableEstado: esCde || p.id_responsable === sesion?.id,
+        editablePlan: esCde,
         compromisos: propios.map((c) => ({
           id: c.id,
           descripcion: c.descripcion,

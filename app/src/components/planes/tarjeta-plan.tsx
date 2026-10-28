@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { CircleCheck, CircleDashed, Clock, TriangleAlert, UserRound } from "lucide-react";
+import { CircleCheck, CircleDashed, Clock, Pencil, TriangleAlert, UserRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { estaVencido, nombreArea, textoPlazo } from "@/lib/planes";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,8 @@ export type PlanVista = {
   vencidos: number;
   es_ejemplo: boolean;
   editableEstado: boolean;
+  /** Solo el CDE edita responsables, fechas y compromisos */
+  editablePlan: boolean;
   compromisos: {
     id: string;
     descripcion: string;
@@ -94,11 +97,18 @@ export function TarjetaPlan({ plan, hoy }: { plan: PlanVista; hoy: string }) {
               {plan.es_ejemplo && <Badge variant="outline">Ejemplo</Badge>}
             </p>
           </div>
-          {plan.editableEstado ? (
-            <SelectorEstadoPlan id={plan.id} estado={plan.estado} />
-          ) : (
-            <Badge variant="secondary">{plan.estado}</Badge>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {plan.editableEstado ? (
+              <SelectorEstadoPlan id={plan.id} estado={plan.estado} />
+            ) : (
+              <Badge variant="secondary">{plan.estado}</Badge>
+            )}
+            {plan.editablePlan && (
+              <Link href={`/planes/${plan.id}/editar`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+                <Pencil aria-hidden /> Editar plan
+              </Link>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Barra valor={plan.avance} />
