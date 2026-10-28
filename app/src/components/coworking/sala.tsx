@@ -35,10 +35,12 @@ const aCuadricula = (px: number, py: number) => {
   return { gx: Math.floor((a + b) / 2), gy: Math.floor((b - a) / 2) };
 };
 
-type Movil = Presencia & { px: number; py: number }; // px/py = posición animada
+type Movil = Presencia & { px: number; py: number; ultimoMovimiento?: number }; // px/py = posición animada
 
 type Props = {
   yo: { id: string; nombre: string; rol: string };
+  /** "principal" o el id de una sala creada: cada sala es un canal de Realtime distinto */
+  sala: string;
   avatarInicial: Avatar;
   historial: MensajeChat[];
   /** "supabase" en la app; "local" (entre pestañas del mismo navegador) para pruebas y demo sin internet */
@@ -46,7 +48,7 @@ type Props = {
   guardarAvatar?: (avatar: Avatar) => Promise<{ error?: string } | undefined>;
 };
 
-export function SalaCoworking({ yo: identidad, avatarInicial, historial, modo, guardarAvatar }: Props) {
+export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, modo, guardarAvatar }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const transporte = useRef<Transporte | null>(null);
   const voz = useRef<Voz | null>(null);
@@ -73,12 +75,15 @@ export function SalaCoworking({ yo: identidad, avatarInicial, historial, modo, g
     transporte.current?.actualizar(presencia);
   }, []);
 
-  // Conexión con la sala
+  // Conexión con la sala: depende solo de valores estables (un objeto nuevo en props no debe reconectar)
+  const modoActual = useRef(modo);
+  const idCanal = modo.tipo === "supabase" ? modo.idCanal : null;
   useEffect(() => {
+    const modo = modoActual.current;
     const t =
       modo.tipo === "supabase"
-        ? crearTransporteSupabase(crearClienteNavegador(), { sala: "principal", idCanal: modo.idCanal, nombres: new Map(modo.nombres) })
-        : crearTransporteLocal("principal");
+        ? crearTransporteSupabase(crearClienteNavegador(), { sala, idCanal: modo.idCanal, nombres: new Map(modo.nombres) })
+        : crearTransporteLocal(sala);
     transporte.current = t;
     const v = new Voz(identidad.id, t, () => setConectadosVoz(v.conectados()));
     voz.current = v;
@@ -90,11 +95,27 @@ export function SalaCoworking({ yo: identidad, avatarInicial, historial, modo, g
         if (p.id === identidad.id) continue;
         vistos.add(p.id);
         const previo = otros.current.get(p.id);
-        otros.current.set(p.id, { ...p, px: previo?.px ?? p.x, py: previo?.py ?? p.y });
+        // La presencia llega cada 2 s; el destino lo manda el broadcast de movimiento. Si hace rato no llega
+        // ninguno (se pudo perder), se corrige con la posición de la presencia.
+        const reciente = previo?.ultimoMovimiento && Date.now() - previo.ultimoMovimiento < 2500;
+        otros.current.set(
+          p.id,
+          previo
+            ? { ...p, x: reciente ? previo.x : p.x, y: reciente ? previo.y : p.y, px: previo.px, py: previo.py, ultimoMovimiento: previo.ultimoMovimiento }
+            : { ...p, px: p.x, py: p.y },
+        );
       }
       for (const id of [...otros.current.keys()]) if (!vistos.has(id)) otros.current.delete(id);
       setPersonas(lista.filter((p) => p.id !== identidad.id));
       v.sincronizar(lista.filter((p) => p.enVoz).map((p) => p.id));
+    });
+    t.alRecibirMovimiento((m) => {
+      const o = otros.current.get(m.id);
+      if (o) {
+        o.x = m.x;
+        o.y = m.y;
+        o.ultimoMovimiento = Date.now();
+      }
     });
     t.alRecibirMensaje((m) => setMensajes((ms) => (ms.some((x) => x.id === m.id) ? ms : [...ms.slice(-99), m])));
     const { px: _px, py: _py, ...presencia } = yo.current;
@@ -106,7 +127,7 @@ export function SalaCoworking({ yo: identidad, avatarInicial, historial, modo, g
       v.desactivar();
       t.desconectar();
     };
-  }, [identidad.id, modo]);
+  }, [identidad.id, sala, idCanal]);
 
   useEffect(() => {
     // Con llaves: en Chrome reciente scrollIntoView devuelve una promesa y un efecto solo puede devolver su limpieza
@@ -243,7 +264,8 @@ export function SalaCoworking({ yo: identidad, avatarInicial, historial, modo, g
     if (!baldosaLibre(gx, gy, ocupadas)) return;
     yo.current.x = gx + 0.5;
     yo.current.y = gy + 0.5;
-    publicar();
+    transporte.current?.enviarMovimiento({ id: identidad.id, x: yo.current.x, y: yo.current.y });
+    publicar(); // la presencia también guarda la posición, para quien entra después
   };
 
   const clicEnSala = (e: React.MouseEvent<HTMLCanvasElement>) => {
