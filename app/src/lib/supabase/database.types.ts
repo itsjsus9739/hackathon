@@ -1,4 +1,4 @@
-// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0013; helpers Tables/Enums simplificados.
+// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0015; helpers Tables/Enums simplificados.
 // Regenerar con: npx supabase gen types typescript --project-id dgubdqszyxrlpcfatqvl > src/lib/supabase/database.types.ts
 export type Json =
   | string
@@ -1957,6 +1957,7 @@ export type Database = {
       }
     }
     Functions: {
+      correos_cde: { Args: never; Returns: { correo: string; nombre: string }[] }
       avatares: {
         Args: never
         Returns: { avatar: Json; id: string; nombre: string; rol: Database["public"]["Enums"]["rol_usuario"] }[]
