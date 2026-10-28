@@ -6,7 +6,17 @@ import type { EmpresaFicha, Hito, Postulacion, TipoHito } from "@/lib/empresas";
 import { contarPorTipo } from "@/lib/empresas";
 import { ESTILO_TIPO } from "./estilos-hito";
 
-function Dato({ icono: Icono, etiqueta, valor }: { icono: LucideIcon; etiqueta: string; valor: string | null }) {
+function Dato({
+  icono: Icono,
+  etiqueta,
+  valor,
+  estimado = false,
+}: {
+  icono: LucideIcon;
+  etiqueta: string;
+  valor: string | null;
+  estimado?: boolean;
+}) {
   return (
     <div className="flex items-start gap-3">
       <span className="bg-muted text-muted-foreground mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md">
@@ -14,7 +24,14 @@ function Dato({ icono: Icono, etiqueta, valor }: { icono: LucideIcon; etiqueta: 
       </span>
       <div className="min-w-0">
         <dt className="text-muted-foreground text-xs">{etiqueta}</dt>
-        <dd className={valor ? "text-sm font-medium" : "text-muted-foreground text-sm italic"}>{valor ?? "Sin dato"}</dd>
+        <dd className={valor ? "text-sm font-medium" : "text-muted-foreground text-sm italic"}>
+          {valor ?? "Sin dato"}
+          {estimado && valor && (
+            <Badge variant="outline" className="ml-1.5 align-middle text-[10px]" title="Dato estimado para la demostración; falta confirmarlo con la empresa">
+              Estimado
+            </Badge>
+          )}
+        </dd>
       </div>
     </div>
   );
@@ -57,8 +74,8 @@ export function CabeceraEmpresa({
         {empresa.descripcion && <p className="text-muted-foreground line-clamp-3 max-w-3xl text-sm">{empresa.descripcion}</p>}
 
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <Dato icono={Factory} etiqueta="Sector" valor={empresa.sector} />
-          <Dato icono={Ruler} etiqueta="Tamaño" valor={empresa.tamano} />
+          <Dato icono={Factory} etiqueta="Sector" valor={empresa.sector} estimado={empresa.datos_estimados.includes("sector")} />
+          <Dato icono={Ruler} etiqueta="Tamaño" valor={empresa.tamano} estimado={empresa.datos_estimados.includes("tamano")} />
           <Dato icono={Landmark} etiqueta="Formalización" valor={empresa.formalizacion} />
           <Dato icono={MapPin} etiqueta="Municipio" valor={ubicacion} />
           <Dato icono={GraduationCap} etiqueta="Vínculo UNAB" valor={empresa.vinculo_unab} />

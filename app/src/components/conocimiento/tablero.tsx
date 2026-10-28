@@ -9,6 +9,7 @@ type Conteo = ReturnType<typeof contarPor>;
 
 export type DatosTablero = {
   totalEmpresas: number;
+  estimados: { sector: number; tamano: number };
   calidad: { campos: Calidad[]; perfilCompleto: number };
   brechas: { barras: Barra[]; empresas: number };
   masDebil: Barra | null;
@@ -77,6 +78,13 @@ export function Tablero({ datos: d }: { datos: DatosTablero }) {
                 </li>
               ))}
             </ul>
+            {(d.estimados.sector > 0 || d.estimados.tamano > 0) && (
+              <p className="mt-4 flex gap-2 text-xs text-amber-700">
+                <TriangleAlert className="size-4 shrink-0" aria-hidden />
+                El sector de {d.estimados.sector} empresas y el tamaño de {d.estimados.tamano} son estimados a partir del nombre
+                para la demostración; en la Ficha 360° aparecen marcados como «Estimado».
+              </p>
+            )}
           </CardContent>
         </Card>
 

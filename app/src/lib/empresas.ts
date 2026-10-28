@@ -17,6 +17,7 @@ export type EmpresaFicha = Pick<
   | "departamento"
   | "vinculo_unab"
   | "descripcion"
+  | "datos_estimados"
 >;
 
 export type Diagnostico = Pick<
@@ -74,7 +75,7 @@ export const obtenerFicha = cache(async (id: string) => {
   const [empresa, historial, diagnostico, postulaciones] = await Promise.all([
     supabase
       .from("empresas")
-      .select("id, nombre, nit, nit_dv, sector, tamano, formalizacion, municipio, departamento, vinculo_unab, descripcion")
+      .select("id, nombre, nit, nit_dv, sector, tamano, formalizacion, municipio, departamento, vinculo_unab, descripcion, datos_estimados")
       .eq("id", id)
       .maybeSingle(),
     supabase

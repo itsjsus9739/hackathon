@@ -11,6 +11,7 @@ const empresa = (e: Partial<EmpresaResumen>): EmpresaResumen => ({
   vinculo_unab: null,
   id_representante: null,
   contactos: 0,
+  datos_estimados: [],
   ...e,
 });
 

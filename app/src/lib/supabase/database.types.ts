@@ -1,4 +1,4 @@
-// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0011; helpers Tables/Enums simplificados.
+// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0012; helpers Tables/Enums simplificados.
 // Regenerar con: npx supabase gen types typescript --project-id dgubdqszyxrlpcfatqvl > src/lib/supabase/database.types.ts
 export type Json =
   | string
@@ -775,6 +775,7 @@ export type Database = {
         Row: {
           actualizado_en: string
           creado_en: string
+          datos_estimados: string[]
           departamento: string | null
           descripcion: string | null
           formalizacion: string | null
@@ -792,6 +793,7 @@ export type Database = {
         Insert: {
           actualizado_en?: string
           creado_en?: string
+          datos_estimados?: string[]
           departamento?: string | null
           descripcion?: string | null
           formalizacion?: string | null
@@ -809,6 +811,7 @@ export type Database = {
         Update: {
           actualizado_en?: string
           creado_en?: string
+          datos_estimados?: string[]
           departamento?: string | null
           descripcion?: string | null
           formalizacion?: string | null

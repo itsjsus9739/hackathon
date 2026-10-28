@@ -12,6 +12,7 @@ export type EmpresaResumen = {
   vinculo_unab: string | null;
   id_representante: string | null;
   contactos: number;
+  datos_estimados: string[];
 };
 
 /**

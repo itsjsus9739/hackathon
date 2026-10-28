@@ -19,7 +19,7 @@ export default async function PaginaConocimiento() {
   const [empresas, diagnosticos, postulaciones, proyectos, atenciones] = await Promise.all([
     supabase
       .from("empresas")
-      .select("nit, sector, tamano, formalizacion, municipio, vinculo_unab, id_representante, contactos_empresa (count)"),
+      .select("nit, sector, tamano, formalizacion, municipio, vinculo_unab, id_representante, datos_estimados, contactos_empresa (count)"),
     supabase
       .from("diagnosticos")
       .select(
@@ -57,6 +57,10 @@ export default async function PaginaConocimiento() {
     <Tablero
       datos={{
         totalEmpresas: lista.length,
+        estimados: {
+          sector: lista.filter((e) => e.datos_estimados.includes("sector")).length,
+          tamano: lista.filter((e) => e.datos_estimados.includes("tamano")).length,
+        },
         calidad,
         brechas,
         masDebil,
