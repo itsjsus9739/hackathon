@@ -4,9 +4,9 @@ import { LogOut } from "lucide-react";
 
 import { cerrarSesion } from "@/app/login/actions";
 import { RecorridoBuho } from "@/components/buho/recorrido-buho";
+import { MenuLateral } from "@/components/navegacion/menu-lateral";
 import { Campana } from "@/components/notificaciones/campana";
 import { Button } from "@/components/ui/button";
-import { MODULOS } from "@/lib/navegacion";
 import { ETIQUETA_ROL, obtenerSesion } from "@/lib/sesion";
 
 
@@ -19,20 +19,24 @@ export default async function LayoutAplicacion({ children }: { children: React.R
 
   return (
     <div className="flex min-h-screen">
-      <nav data-recorrido="menu" className="hidden w-60 shrink-0 flex-col gap-1 border-r bg-[var(--panel)] p-4 md:flex">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-lg font-semibold">CDE Conecta</p>
+      <nav data-recorrido="menu" className="hidden w-64 shrink-0 flex-col gap-0.5 border-r bg-[var(--panel)] p-4 md:flex">
+        <div className="mb-5 flex items-center justify-between pl-1">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex size-9 items-center justify-center rounded-[10px] bg-[var(--primario)] text-sm font-extrabold tracking-tight text-white">
+              Cde
+            </span>
+            <span className="text-[var(--tinta)]">
+              <span className="block leading-tight font-semibold">CDE Conecta</span>
+              <span className="text-muted-foreground block text-[11px] leading-tight">UNAB</span>
+            </span>
+          </Link>
           <Campana />
         </div>
-        {MODULOS.map((m) => (
-          <Link key={m.href} href={m.href} data-recorrido={`nav:${m.href}`} className="rounded-md px-3 py-2 text-sm hover:bg-black/5">
-            {m.etiqueta}
-          </Link>
-        ))}
-        <div className="mt-auto border-t pt-4">
-          <p className="truncate text-sm font-medium">{sesion.nombre}</p>
+        <MenuLateral />
+        <div className="mt-auto rounded-2xl border p-3">
+          <p className="truncate text-sm font-semibold text-[var(--tinta)]">{sesion.nombre}</p>
           <p className="text-muted-foreground text-xs">{ETIQUETA_ROL[sesion.rol]}</p>
-          <form action={cerrarSesion} className="mt-2">
+          <form action={cerrarSesion} className="mt-1">
             <Button type="submit" variant="ghost" size="sm" className="-ml-2">
               <LogOut aria-hidden /> Cerrar sesión
             </Button>
