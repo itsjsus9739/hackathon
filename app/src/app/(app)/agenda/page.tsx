@@ -6,7 +6,7 @@ export const metadata = { title: "Agenda · CDE Conecta" };
 // servida bajo /calendario por el rewrite de next.config.ts.
 export default function Pagina() {
   if (!process.env.CALENDARIO_URL) {
-    return <Proximamente modulo="Agenda" descripcion="Falta configurar la variable CALENDARIO_URL con la URL del calendario en Vercel." />;
+    return <Proximamente modulo="Agenda" descripcion="Falta la variable CALENDARIO_URL en app/.env.local: usa la URL del calendario en Vercel, o http://localhost:5000 si corres calendario-cde en local." />;
   }
   return (
     <iframe
