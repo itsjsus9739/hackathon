@@ -32,3 +32,17 @@ describe("detección de duplicados", () => {
     expect(grupos.flat()).not.toContain("7");
   });
 });
+
+describe("falsos positivos por nombre", () => {
+  it("no une nombres que solo cambian en un número o con NIT distintos", () => {
+    const pares = encontrarDuplicados([
+      { id: "1", nombre: "Emprendimiento El Bosque 3" },
+      { id: "2", nombre: "Emprendimiento El Bosque 8" },
+      { id: "3", nombre: "Café El Bosque 28" },
+      { id: "4", nombre: "Cafe El Bosque 28" },
+      { id: "5", nombre: "Panadería Guane", nit: "900101773" },
+      { id: "6", nombre: "Panaderia Guane SAS", nit: "901494448" },
+    ]);
+    expect(pares.map((p) => [p.a, p.b])).toEqual([["3", "4"]]);
+  });
+});

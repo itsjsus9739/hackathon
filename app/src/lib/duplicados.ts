@@ -57,6 +57,9 @@ export type ParDuplicado = { a: string; b: string; razon: "nit" | "correo" | "te
 
 export const UMBRAL_NOMBRE = 0.75;
 
+// Números del nombre: "El Bosque 3" y "El Bosque 8" son negocios distintos aunque se parezcan
+const numerosDelNombre = (nombre: string) => (normalizarNombre(nombre).match(/\d+/g) ?? []).join(" ");
+
 export function encontrarDuplicados(registros: RegistroEmpresa[], umbral = UMBRAL_NOMBRE): ParDuplicado[] {
   const pares: ParDuplicado[] = [];
   const norm = registros.map((r) => ({
@@ -72,7 +75,8 @@ export function encontrarDuplicados(registros: RegistroEmpresa[], umbral = UMBRA
       if (a.nit && a.nit === b.nit) pares.push({ a: a.id, b: b.id, razon: "nit", puntaje: 1 });
       else if (a.correo && a.correo === b.correo) pares.push({ a: a.id, b: b.id, razon: "correo", puntaje: 0.95 });
       else if (a.telefono && a.telefono === b.telefono) pares.push({ a: a.id, b: b.id, razon: "telefono", puntaje: 0.9 });
-      else {
+      // Por nombre solo si nada lo contradice: dos NIT distintos o números distintos son dos empresas
+      else if (!(a.nit && b.nit) && numerosDelNombre(a.nombre) === numerosDelNombre(b.nombre)) {
         const s = similitud(a.nombre, b.nombre);
         if (s >= umbral) pares.push({ a: a.id, b: b.id, razon: "nombre", puntaje: Number(s.toFixed(2)) });
       }

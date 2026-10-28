@@ -2044,6 +2044,10 @@ type PublicSchema = Database["public"]
 export type Tables<T extends keyof (PublicSchema["Tables"] & PublicSchema["Views"])> =
   (PublicSchema["Tables"] & PublicSchema["Views"])[T] extends { Row: infer R } ? R : never
 
+/** Fila para insertar: TablesInsert<"empresas"> */
+export type TablesInsert<T extends keyof PublicSchema["Tables"]> =
+  PublicSchema["Tables"][T] extends { Insert: infer I } ? I : never
+
 export type Enums<T extends keyof PublicSchema["Enums"]> = PublicSchema["Enums"][T]
 
 export const Constants = {
