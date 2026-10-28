@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { MODULOS } from "@/lib/navegacion";
 import { ETIQUETA_ROL, obtenerSesion } from "@/lib/sesion";
 
+
 // Puerta de entrada: sin sesión → /login; sin acceso aprobado → /solicitud.
 // (RLS ya protege los datos; esto solo lleva a cada quien a la pantalla correcta.)
 export default async function LayoutAplicacion({ children }: { children: React.ReactNode }) {
