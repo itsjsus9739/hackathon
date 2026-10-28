@@ -1,7 +1,8 @@
-import { Proximamente } from "@/components/buho/pantalla-buho";
+import { redirect } from "next/navigation";
 
 export const metadata = { title: "Citas · CDE Conecta" };
 
+// Citas se gestionan en el calendario de /agenda.
 export default function Pagina() {
-  return <Proximamente modulo="Citas" descripcion="Solicitud de citas, agenda de asesores y recordatorios automáticos por correo." />;
+  redirect("/agenda");
 }

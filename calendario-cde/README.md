@@ -46,6 +46,8 @@ Este calendario vive en `calendario-cde/` en la raíz del repo y se despliega co
 3. Copia la URL de producción (p. ej. `https://cde-calendario.vercel.app`).
 4. En el proyecto de la app Next.js agrega `CALENDARIO_URL` con esa URL y vuelve a desplegar (los rewrites se leen en el build).
 
+En local: corre `python api/index.py` (puerto 5000), pon `CALENDARIO_URL=http://localhost:5000` en `app/.env.local` y reinicia `npm run dev`.
+
 ## Desplegar en Vercel
 
 ```bash

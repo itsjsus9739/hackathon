@@ -1,7 +1,8 @@
-import { Proximamente } from "@/components/buho/pantalla-buho";
+import { redirect } from "next/navigation";
 
 export const metadata = { title: "Eventos · CDE Conecta" };
 
+// Eventos se gestionan en el calendario de /agenda.
 export default function Pagina() {
-  return <Proximamente modulo="Eventos" descripcion="Publicación de eventos, inscripción y asistencia real escaneando un código QR." />;
+  redirect("/agenda");
 }
