@@ -10,12 +10,19 @@ export type { ConsultaHecha, RespuestaAsistente } from "./comun";
 // con OpenAI) o IA_PROVEEDOR=claude. Cambiar de proveedor no toca la base ni la interfaz.
 const proveedor = () => (process.env.IA_PROVEEDOR === "claude" ? "claude" : "abierto");
 
-export function asistenteConfigurado(): boolean {
-  if (!process.env.IA_DATABASE_URL) return false;
-  return proveedor() === "claude"
-    ? Boolean(process.env.ANTHROPIC_API_KEY)
-    : Boolean(process.env.IA_API_KEY || process.env.IA_BASE_URL);
+/** Variables que le faltan al servidor para usar el asistente (vacío = listo). */
+export function variablesFaltantes(): string[] {
+  const faltan: string[] = [];
+  if (!process.env.IA_DATABASE_URL) faltan.push("IA_DATABASE_URL");
+  if (proveedor() === "claude") {
+    if (!process.env.ANTHROPIC_API_KEY) faltan.push("ANTHROPIC_API_KEY");
+  } else if (!process.env.IA_API_KEY && !process.env.IA_BASE_URL) {
+    faltan.push("IA_API_KEY");
+  }
+  return faltan;
 }
+
+export const asistenteConfigurado = () => variablesFaltantes().length === 0;
 
 /** Nombre del modelo en uso, para mostrarlo en la interfaz. */
 export const modeloEnUso = () =>

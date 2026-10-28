@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ShieldAlert, Sparkles } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { asistenteConfigurado, modeloEnUso } from "@/lib/ia/asistente";
+import { asistenteConfigurado, modeloEnUso, variablesFaltantes } from "@/lib/ia/asistente";
 import { obtenerSesion } from "@/lib/sesion";
 import { Asistente } from "./asistente";
 
@@ -41,8 +41,14 @@ export default async function PaginaAsistente() {
           <ShieldAlert aria-hidden />
           <AlertTitle>Falta configurar el asistente</AlertTitle>
           <AlertDescription>
-            Agrega en Vercel <code>IA_API_KEY</code> (clave del proveedor del modelo abierto, p. ej. Groq) e{" "}
-            <code>IA_DATABASE_URL</code> (conexión con el rol de solo lectura <code>ia_lectura</code>) y vuelve a desplegar.
+            <p>
+              Al servidor le {variablesFaltantes().length === 1 ? "falta la variable" : "faltan las variables"}{" "}
+              <b>{variablesFaltantes().join(" y ")}</b>.
+            </p>
+            <p>
+              Agrégala en Vercel → Settings → Environment Variables (entorno Production) y luego haz Redeploy: las
+              variables solo se aplican en un despliegue nuevo.
+            </p>
           </AlertDescription>
         </Alert>
       )}
