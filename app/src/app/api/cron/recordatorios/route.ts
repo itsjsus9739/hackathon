@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { crearClienteServicio } from "@/lib/supabase/server";
 
-// Recordatorios automáticos (Vercel Cron, diario): citas de mañana y compromisos que vencen en 3 días.
+// Recordatorios automáticos (Vercel Cron, diario): citas agendadas para las próximas 24 horas.
 // Elimina el trabajo manual de "enviar recordatorios" que hoy hace el equipo del CDE.
 export async function GET(req: Request) {
   if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -13,39 +13,38 @@ export async function GET(req: Request) {
   const de = process.env.CORREO_REMITENTE ?? "CDE UNAB <onboarding@resend.dev>";
   const ahora = new Date();
   const manana = new Date(ahora.getTime() + 24 * 3600 * 1000);
-  const enTresDias = new Date(ahora.getTime() + 3 * 24 * 3600 * 1000).toISOString().slice(0, 10);
 
   const { data: citas, error } = await db
     .from("citas")
-    .select("id, motivo, inicio, personas(nombre, correo), empresas(nombre)")
-    .eq("estado", "agendada")
+    .select("id, motivo, fecha_hora, solicitada_por, empresas(nombre)")
+    .eq("estado", "Agendada")
     .is("recordatorio_enviado_en", null)
-    .gte("inicio", ahora.toISOString())
-    .lte("inicio", manana.toISOString());
+    .gte("fecha_hora", ahora.toISOString())
+    .lte("fecha_hora", manana.toISOString());
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   let enviados = 0;
-  for (const c of citas ?? []) {
-    const persona = c.personas as unknown as { nombre: string; correo: string | null } | null;
-    if (!persona?.correo) continue;
-    const hora = new Date(c.inicio!).toLocaleString("es-CO", { timeZone: "America/Bogota", dateStyle: "full", timeStyle: "short" });
+  for (const cita of citas ?? []) {
+    if (!cita.solicitada_por || !cita.fecha_hora) continue;
+    // El correo vive en auth.users; solo la llave de servicio puede leerlo
+    const { data: usuario } = await db.auth.admin.getUserById(cita.solicitada_por);
+    const correo = usuario?.user?.email;
+    if (!correo) continue;
+    const hora = new Date(cita.fecha_hora).toLocaleString("es-CO", {
+      timeZone: "America/Bogota",
+      dateStyle: "full",
+      timeStyle: "short",
+    });
+    const empresa = cita.empresas?.nombre ?? "tu empresa";
     await resend.emails.send({
       from: de,
-      to: persona.correo,
+      to: correo,
       subject: `Recordatorio: tu asesoría con el CDE es ${hora}`,
-      html: `<p>Hola ${persona.nombre},</p><p>Te recordamos tu cita <b>${c.motivo}</b> el <b>${hora}</b>.</p><p>Centro de Desarrollo Empresarial · UNAB</p>`,
+      html: `<p>Hola,</p><p>Te recordamos la asesoría <b>${cita.motivo}</b> de <b>${empresa}</b> el <b>${hora}</b>.</p><p>Centro de Desarrollo Empresarial · UNAB</p>`,
     });
-    await db.from("citas").update({ recordatorio_enviado_en: new Date().toISOString() }).eq("id", c.id);
+    await db.from("citas").update({ recordatorio_enviado_en: new Date().toISOString() }).eq("id", cita.id);
     enviados++;
   }
 
-  // Compromisos vencidos se marcan solos; los próximos a vencer se reportan
-  await db.from("compromisos").update({ estado: "vencido" }).lt("fecha_limite", ahora.toISOString().slice(0, 10)).in("estado", ["pendiente", "en_progreso"]);
-  const { count: porVencer } = await db
-    .from("compromisos")
-    .select("id", { count: "exact", head: true })
-    .lte("fecha_limite", enTresDias)
-    .in("estado", ["pendiente", "en_progreso"]);
-
-  return NextResponse.json({ recordatoriosCitas: enviados, compromisosPorVencer: porVencer ?? 0 });
+  return NextResponse.json({ recordatoriosCitas: enviados });
 }
