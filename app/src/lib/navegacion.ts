@@ -6,6 +6,7 @@ export const MODULOS = [
   { href: "/planes", etiqueta: "Planes de acción" },
   { href: "/citas", etiqueta: "Citas" },
   { href: "/eventos", etiqueta: "Eventos" },
+  { href: "/agenda", etiqueta: "Agenda" },
   { href: "/formacion", etiqueta: "Formación y recompensas" },
   { href: "/conocimiento", etiqueta: "Conocimiento" },
   { href: "/asistente", etiqueta: "Asistente IA" },
