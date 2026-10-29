@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { esCde } from "@/lib/gamificacion";
+import { esCde, recompensaParaRol } from "@/lib/gamificacion";
 import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
@@ -42,6 +42,11 @@ export async function solicitarCanje(idRecompensa: string): Promise<Resultado> {
   if (!z.uuid().safeParse(idRecompensa).success) return { error: "Recompensa no válida." };
 
   const supabase = await crearClienteServidor();
+  // El público («Para: …») solo vive en la descripción: la base no lo valida, se hace aquí
+  const { data: recompensa } = await supabase.from("recompensas").select("descripcion").eq("id", idRecompensa).maybeSingle();
+  if (!recompensa) return { error: "La recompensa no está disponible" };
+  if (!esCde(sesion.rol) && !recompensaParaRol(recompensa.descripcion, sesion.rol)) return { error: "Esta recompensa no es para tu rol." };
+
   const { error } = await supabase.from("canjes").insert({ id_recompensa: idRecompensa, id_usuario: sesion.id });
   if (error) return { error: traducir(error.message, "No pudimos registrar el canje. Inténtalo de nuevo.") };
   refrescar();
@@ -145,6 +150,14 @@ export async function otorgarInsignia(_: Resultado, formulario: FormData): Promi
   if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Datos no válidos.", valores };
 
   const supabase = await crearClienteServidor();
+  const [insignia, persona] = await Promise.all([
+    supabase.from("insignias").select("roles").eq("id", datos.data.id_insignia).eq("criterio", "manual").maybeSingle(),
+    supabase.from("perfiles").select("rol").eq("id", datos.data.id_usuario).maybeSingle(),
+  ]);
+  if (!insignia.data) return { error: "Solo se otorgan a mano las insignias de reconocimiento.", valores };
+  if (!persona.data) return { error: "No encontramos a esa persona.", valores };
+  if (insignia.data.roles && !insignia.data.roles.includes(persona.data.rol)) return { error: "Esa insignia no es para el rol de esta persona.", valores };
+
   const { error } = await supabase.from("insignias_usuario").insert(datos.data);
   if (error) {
     if (error.code === "23505" || error.message.includes("duplicate key")) return { error: "Esa persona ya tiene la insignia.", valores };
