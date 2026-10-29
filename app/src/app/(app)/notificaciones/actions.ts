@@ -105,3 +105,28 @@ export async function resolverSolicitud(entrada: z.input<typeof esquemaSolicitud
   await supabase.from("notificaciones").update({ leida_en: new Date().toISOString() }).eq("id_referencia", d.idPerfil).is("leida_en", null);
   refrescar();
 }
+
+const esquemaEmpresa = z.object({
+  idSolicitud: z.uuid(),
+  aprobar: z.boolean(),
+  comentario: z.string().max(1000).optional(),
+});
+
+/** El admin confirma (vincula o crea la empresa) o rechaza la empresa que registró un emprendedor. */
+export async function resolverSolicitudEmpresa(entrada: z.input<typeof esquemaEmpresa>): Promise<Resultado> {
+  const datos = esquemaEmpresa.safeParse(entrada);
+  if (!datos.success) return { error: "Datos no válidos." };
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("resolver_solicitud_empresa", {
+    solicitud: datos.data.idSolicitud,
+    aprobar: datos.data.aprobar,
+    comentario: datos.data.comentario ?? null,
+  });
+  if (error) {
+    if (error.message.includes("Solo un administrador")) return { error: "Solo un administrador del CDE confirma empresas." };
+    if (error.message.includes("ya fue revisada")) return { error: "Otra persona del CDE ya revisó esta solicitud." };
+    return { error: "No se pudo resolver la solicitud." };
+  }
+  refrescar();
+  revalidatePath("/empresas");
+}

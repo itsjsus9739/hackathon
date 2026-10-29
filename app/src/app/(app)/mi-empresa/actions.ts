@@ -56,3 +56,41 @@ export async function actualizarMiEmpresa(_: EstadoMiEmpresa, formulario: FormDa
   revalidatePath(`/empresas/${d.empresa}`);
   return { ok: "Datos actualizados. El CDE recibió un aviso." };
 }
+
+const esquemaSolicitud = z.object({
+  nombre: z.string().trim().min(2, "Escribe el nombre de tu empresa").max(200),
+  nit: z
+    .string()
+    .regex(/^[\d.\s-]{6,20}$/, "El NIT solo lleva números")
+    .nullable(),
+  sector: z.string().max(120).nullable(),
+  tamano: z.enum(Constants.public.Enums.tamano_empresa).nullable(),
+  municipio: z.string().max(120).nullable(),
+  descripcion: z.string().max(2000).nullable(),
+  cargo: z.string().max(120).nullable(),
+});
+
+/** El emprendedor registra su empresa: queda pendiente hasta que un admin del CDE confirme que le pertenece. */
+export async function solicitarEmpresa(_: EstadoMiEmpresa, formulario: FormData): Promise<EstadoMiEmpresa> {
+  const datos = esquemaSolicitud.safeParse({
+    nombre: formulario.get("nombre") ?? "",
+    nit: vacio(formulario.get("nit")),
+    sector: vacio(formulario.get("sector")),
+    tamano: vacio(formulario.get("tamano")),
+    municipio: vacio(formulario.get("municipio")),
+    descripcion: vacio(formulario.get("descripcion")),
+    cargo: vacio(formulario.get("cargo")),
+  });
+  if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Revisa los datos." };
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("solicitar_empresa", datos.data);
+  if (error) {
+    if (error.message.includes("Ya enviaste")) return { error: "Ya enviaste una solicitud para esta empresa: el CDE la está revisando." };
+    if (error.message.includes("ya está vinculada")) return { error: "Esa empresa ya está vinculada a tu cuenta." };
+    if (error.message.includes("Solo los emprendedores")) return { error: "Solo los emprendedores registran su empresa." };
+    if (error.message.includes("solicitudes_empresa_nit_check")) return { error: "El NIT debe tener entre 6 y 15 dígitos." };
+    return { error: "No se pudo enviar la solicitud. Inténtalo de nuevo." };
+  }
+  revalidatePath("/mi-empresa");
+  return { ok: "Enviamos tu empresa al CDE. Un administrador confirmará que te pertenece y te avisaremos en la campana." };
+}

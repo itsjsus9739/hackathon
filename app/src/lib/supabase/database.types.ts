@@ -16,6 +16,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      solicitudes_empresa: {
+        Row: {
+          cargo: string | null
+          comentario_revision: string | null
+          creado_en: string
+          descripcion: string | null
+          estado: string
+          id: string
+          id_empresa_existente: string | null
+          id_empresa_resultante: string | null
+          id_solicitante: string
+          municipio: string | null
+          nit: string | null
+          nombre: string
+          revisado_en: string | null
+          revisado_por: string | null
+          sector: string | null
+          tamano: Database["public"]["Enums"]["tamano_empresa"] | null
+        }
+        Insert: {
+          cargo?: string | null
+          comentario_revision?: string | null
+          creado_en?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          id_empresa_existente?: string | null
+          id_empresa_resultante?: string | null
+          id_solicitante?: string
+          municipio?: string | null
+          nit?: string | null
+          nombre: string
+          revisado_en?: string | null
+          revisado_por?: string | null
+          sector?: string | null
+          tamano?: Database["public"]["Enums"]["tamano_empresa"] | null
+        }
+        Update: {
+          cargo?: string | null
+          comentario_revision?: string | null
+          creado_en?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          id_empresa_existente?: string | null
+          id_empresa_resultante?: string | null
+          id_solicitante?: string
+          municipio?: string | null
+          nit?: string | null
+          nombre?: string
+          revisado_en?: string | null
+          revisado_por?: string | null
+          sector?: string | null
+          tamano?: Database["public"]["Enums"]["tamano_empresa"] | null
+        }
+        Relationships: []
+      }
       plan_estudiantes: {
         Row: {
           asignado_en: string
@@ -2272,6 +2329,20 @@ export type Database = {
       }
     }
     Functions: {
+      es_admin_cde: { Args: never; Returns: boolean }
+      resolver_solicitud_empresa: { Args: { solicitud: string; aprobar: boolean; comentario?: string | null }; Returns: string }
+      solicitar_empresa: {
+        Args: {
+          nombre: string
+          nit?: string | null
+          sector?: string | null
+          tamano?: string | null
+          municipio?: string | null
+          descripcion?: string | null
+          cargo?: string | null
+        }
+        Returns: string
+      }
       actualizar_mi_empresa: {
         Args: {
           empresa: string

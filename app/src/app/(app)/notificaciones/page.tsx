@@ -27,6 +27,12 @@ export default async function PaginaNotificaciones() {
       ])
     : [{ data: [] }, { data: [] }];
   const perfilPor = new Map((perfiles.data ?? []).map((p) => [p.id, p]));
+  // Solicitudes de empresa de los emprendedores (el CDE las lee; el admin las resuelve)
+  const idsEmpresa = [...new Set((data ?? []).filter((n) => n.tipo === "solicitud_empresa" && n.id_referencia).map((n) => n.id_referencia!))];
+  const { data: solicitudesEmpresa } = idsEmpresa.length
+    ? await supabase.from("solicitudes_empresa").select("id, estado, id_empresa_existente").in("id", idsEmpresa)
+    : { data: [] };
+  const solicitudEmpresaPor = new Map((solicitudesEmpresa ?? []).map((s) => [s.id, s]));
   const solicitudPor = new Map((solicitudes.data ?? []).map((s) => [s.id_perfil, s.estado]));
 
   const formato = new Intl.DateTimeFormat("es-CO", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Bogota" });
@@ -35,6 +41,14 @@ export default async function PaginaNotificaciones() {
     return {
       ...n,
       fecha: formato.format(new Date(creado_en)),
+      empresa:
+        n.tipo === "solicitud_empresa" && id_referencia && solicitudEmpresaPor.has(id_referencia)
+          ? {
+              idSolicitud: id_referencia,
+              estado: solicitudEmpresaPor.get(id_referencia)!.estado,
+              existente: Boolean(solicitudEmpresaPor.get(id_referencia)!.id_empresa_existente),
+            }
+          : null,
       docente:
         conPersona(n.tipo) && id_referencia
           ? {

@@ -269,7 +269,7 @@ const pasosEmprendedor: PasoRecorrido[] = [
     id: "mi-empresa",
     titulo: "Actualiza los datos de tu empresa",
     texto:
-      "Revisa tu sector, tamaño, municipio y lo que vendes. Si el CDE marcó algún dato como estimado, confírmalo aquí: así te recomendamos lo que de verdad te sirve.",
+      "Registra tu empresa (un administrador del CDE confirma que te pertenece) y mantén al día su sector, tamaño, municipio y lo que vendes. Así te recomendamos lo que de verdad te sirve.",
     sprite: "subir-archivo",
     ruta: "/mi-empresa",
   },
