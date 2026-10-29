@@ -18,7 +18,8 @@ export default async function PaginaNotificaciones() {
   if (error) throw new Error(`No se pudieron consultar las notificaciones: ${error.message}`);
 
   // Estado actual de las personas que se registraron como docentes (para saber si ya se resolvió)
-  const ids = [...new Set((data ?? []).filter((n) => n.tipo === "registro_docente" && n.id_referencia).map((n) => n.id_referencia!))];
+  const conPersona = (t: string) => t === "registro_docente" || t === "solicitud_acceso";
+  const ids = [...new Set((data ?? []).filter((n) => conPersona(n.tipo) && n.id_referencia).map((n) => n.id_referencia!))];
   const [perfiles, solicitudes] = ids.length
     ? await Promise.all([
         supabase.from("perfiles").select("id, nombre, rol, estado_acceso").in("id", ids),
@@ -35,7 +36,7 @@ export default async function PaginaNotificaciones() {
       ...n,
       fecha: formato.format(new Date(creado_en)),
       docente:
-        n.tipo === "registro_docente" && id_referencia
+        conPersona(n.tipo) && id_referencia
           ? {
               idPerfil: id_referencia,
               rol: perfil?.rol ?? null,
@@ -50,7 +51,9 @@ export default async function PaginaNotificaciones() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Notificaciones</h1>
-        <p className="text-muted-foreground text-sm">Avances de proyectos y planes, insignias, citas y avisos del CDE.</p>
+        <p className="text-muted-foreground text-sm">
+          Solicitudes de acceso, avances de proyectos y planes, invitaciones, insignias y avisos del CDE.
+        </p>
       </div>
       {notificaciones.length ? (
         <ListaNotificaciones notificaciones={notificaciones} esAdmin={sesion?.rol === "admin_cde"} />

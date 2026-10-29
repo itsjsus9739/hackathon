@@ -2,12 +2,12 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Check, CheckCheck, GraduationCap, Loader2, Trash2 } from "lucide-react";
+import { Check, CheckCheck, GraduationCap, Loader2, Trash2, UserPlus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { borrarNotificacion, marcarLeida, marcarTodasLeidas, resolverRegistroDocente, type Resultado } from "./actions";
+import { borrarNotificacion, marcarLeida, marcarTodasLeidas, resolverRegistroDocente, resolverSolicitud, type Resultado } from "./actions";
 
 export type NotificacionVista = {
   id: string;
@@ -18,6 +18,7 @@ export type NotificacionVista = {
   leida_en: string | null;
   /** Fecha ya formateada en el servidor (el formato de Intl varía entre Node y el navegador) */
   fecha: string;
+  /** Persona a la que se refiere (registro como docente o solicitud de acceso), con su estado actual */
   docente: { idPerfil: string; rol: string | null; estadoAcceso: string | null; solicitud: string | null } | null;
 };
 
@@ -61,13 +62,15 @@ function Notificacion({ n, esAdmin }: { n: NotificacionVista; esAdmin: boolean }
         <div className="min-w-0 flex-1 space-y-1">
           <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
             {n.tipo === "registro_docente" && <GraduationCap className="size-4" aria-hidden />}
+            {n.tipo === "solicitud_acceso" && <UserPlus className="size-4" aria-hidden />}
             {n.titulo}
             {!n.leida_en && <span className="sr-only">(sin leer)</span>}
           </p>
           {n.cuerpo && <p className="text-muted-foreground text-sm">{n.cuerpo}</p>}
           <p className="text-muted-foreground text-xs">{n.fecha}</p>
 
-          {n.docente && <AccionesDocente n={n} esAdmin={esAdmin} ejecutar={ejecutar} pendiente={pendiente} />}
+          {n.docente && n.tipo === "registro_docente" && <AccionesDocente n={n} esAdmin={esAdmin} ejecutar={ejecutar} pendiente={pendiente} />}
+          {n.docente && n.tipo === "solicitud_acceso" && <AccionesSolicitud n={n} ejecutar={ejecutar} pendiente={pendiente} />}
           {n.enlace && (
             <Link href={n.enlace} className="text-sm font-medium underline underline-offset-4" onClick={() => !n.leida_en && void marcarLeida(n.id)}>
               Ver
@@ -152,6 +155,44 @@ function AccionesDocente({
       )}
       {!esAdmin && d.rol === "docente" && d.solicitud !== "pendiente" && (
         <p className="text-muted-foreground text-xs">Si no es docente, un administrador del CDE puede cambiar su rol.</p>
+      )}
+    </div>
+  );
+}
+
+/** Solicitud de acceso con correo externo: el CDE la aprueba o la rechaza aquí mismo. */
+function AccionesSolicitud({
+  n,
+  ejecutar,
+  pendiente,
+}: {
+  n: NotificacionVista;
+  ejecutar: (a: () => Promise<Resultado>) => void;
+  pendiente: boolean;
+}) {
+  const d = n.docente!;
+  const base = { idNotificacion: n.id, idPerfil: d.idPerfil };
+  const estado =
+    d.rol === null
+      ? "La cuenta ya no existe."
+      : d.solicitud === "pendiente"
+        ? "Pendiente de revisión."
+        : d.solicitud === "aprobado" || d.estadoAcceso === "aprobado"
+          ? "Aprobada: ya tiene acceso."
+          : "Rechazada.";
+
+  return (
+    <div className="space-y-2 pt-1">
+      <Badge variant="outline">{estado}</Badge>
+      {d.solicitud === "pendiente" && d.rol !== null && (
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" disabled={pendiente} onClick={() => ejecutar(() => resolverSolicitud({ ...base, accion: "aprobar" }))}>
+            <Check aria-hidden /> Aprobar acceso
+          </Button>
+          <Button size="sm" variant="outline" disabled={pendiente} onClick={() => ejecutar(() => resolverSolicitud({ ...base, accion: "rechazar" }))}>
+            Rechazar
+          </Button>
+        </div>
       )}
     </div>
   );

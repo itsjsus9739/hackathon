@@ -74,3 +74,34 @@ export async function resolverRegistroDocente(entrada: z.input<typeof esquemaDoc
   await supabase.from("notificaciones").update({ leida_en: new Date().toISOString() }).eq("id", d.idNotificacion);
   refrescar();
 }
+
+const esquemaSolicitud = z.object({
+  accion: z.enum(["aprobar", "rechazar"]),
+  idNotificacion: z.uuid(),
+  idPerfil: z.uuid(),
+});
+
+/**
+ * Aprobar o rechazar una solicitud de acceso con correo externo (solo el CDE: RLS).
+ * El trigger aplicar_decision_solicitud actualiza el acceso del perfil. Se marcan como leídas
+ * las notificaciones de esa solicitud de quien la resolvió.
+ */
+export async function resolverSolicitud(entrada: z.input<typeof esquemaSolicitud>): Promise<Resultado> {
+  const datos = esquemaSolicitud.safeParse(entrada);
+  if (!datos.success) return { error: "Datos no válidos." };
+  const d = datos.data;
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase
+    .from("solicitudes_acceso")
+    .update({
+      estado: d.accion === "aprobar" ? "aprobado" : "rechazado",
+      comentario_revision: d.accion === "aprobar" ? "Aprobada por el CDE desde las notificaciones" : "Rechazada por el CDE",
+    })
+    .eq("id_perfil", d.idPerfil)
+    .eq("estado", "pendiente")
+    .select("id");
+  if (error) return { error: "No se pudo actualizar la solicitud. Solo el equipo del CDE puede revisarla." };
+  if (!data?.length) return { error: "La solicitud ya fue revisada por otra persona del CDE." };
+  await supabase.from("notificaciones").update({ leida_en: new Date().toISOString() }).eq("id_referencia", d.idPerfil).is("leida_en", null);
+  refrescar();
+}

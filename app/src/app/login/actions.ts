@@ -5,7 +5,7 @@ import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { avisarRegistroDocente } from "@/lib/avisos";
+import { avisarRegistroAlCde } from "@/lib/avisos";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
 export type EstadoFormulario = { error?: string; aviso?: string } | undefined;
@@ -71,13 +71,14 @@ export async function registrarse(_: EstadoFormulario, datos: FormData): Promise
   }
   // Correo ya registrado: Supabase responde igual pero sin identidades nuevas (no se avisa dos veces)
   const esNuevo = (data.user?.identities?.length ?? 0) > 0;
-  if (esNuevo && rol_solicitado === "docente") {
+  const institucional = esInstitucional(correo);
+  if (esNuevo && (rol_solicitado === "docente" || !institucional)) {
     // Después de responder al usuario: el aviso al CDE no retrasa ni bloquea el registro
-    after(() => avisarRegistroDocente({ nombre, correo, institucional: esInstitucional(correo), origen }));
+    after(() => avisarRegistroAlCde({ nombre, correo, rol: rol_solicitado, institucional, origen }));
   }
   if (data.session) redirect("/"); // proyecto sin confirmación de correo
 
-  const confirmacion = esInstitucional(correo)
+  const confirmacion = institucional
     ? "Te enviamos un correo de confirmación. Al confirmarlo podrás ingresar con tu cuenta UNAB."
     : "Te enviamos un correo de confirmación. Después de confirmarlo, el CDE revisará tu solicitud de acceso.";
   return {
