@@ -5,23 +5,29 @@
 /* Tokens de shadcn/ui (base neutral) + color institucional */
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: #f7faf8; /* blanco hueso */
+  --foreground: #0b3d2a;
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --primary: oklch(0.205 0 0);
+  --card-foreground: #0b3d2a;
+  --muted: #eef6f1;
+  --muted-foreground: #5e7a6c;
+  --secondary: #e6f6ee;
+  --secondary-foreground: #0b3d2a;
+  --primary: #00784a;
   --primary-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --panel: oklch(0.985 0 0);
+  --border: #ddefe5;
+  --ring: #00a862;
+  --panel: #ffffff;
   /* Serie de datos de las gráficas (paleta validada: azul, contraste ≥ 3:1 sobre la superficie) */
   --serie-1: #2a78d6;
-  --primario: #c8102e; /* rojo institucional aproximado; ajustar al manual de marca UNAB */
+  /* Paleta verde del logo del CDE */
+  --primario: #00a862; /* verde del logo: fondos, íconos y acentos */
+  --primario-texto: #00784a; /* mismo verde, oscurecido para texto sobre blanco (contraste AA) */
+  --verde-suave: #e6f6ee; /* fondo del ítem activo y de los íconos */
+  --tinta: #0b3d2a; /* títulos */
+  --tinta-suave: #36564a; /* texto del menú */
+  --acento-calido: #fff4d6; /* solo alertas y fechas */
 }
 
 @theme inline {
@@ -43,7 +49,7 @@
   --color-border: var(--border);
   --color-ring: var(--ring);
   --color-primario: var(--primario);
-  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 @layer base {

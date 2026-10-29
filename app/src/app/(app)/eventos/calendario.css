@@ -1,7 +1,7 @@
 /* FullCalendar con los colores de la app */
 .calendario-cde .fc {
   --fc-border-color: var(--border);
-  --fc-today-bg-color: color-mix(in oklab, #c8102e 6%, transparent);
+  --fc-today-bg-color: var(--verde-suave);
   --fc-page-bg-color: var(--background);
   --fc-neutral-bg-color: var(--muted);
   --fc-list-event-hover-bg-color: var(--muted);
@@ -28,8 +28,8 @@
   border-color: var(--border);
 }
 .calendario-cde .fc .fc-button-primary:not(:disabled).fc-button-active {
-  background: #c8102e;
-  border-color: #c8102e;
+  background: var(--primario);
+  border-color: var(--primario);
   color: #fff;
 }
 .calendario-cde .fc-event {

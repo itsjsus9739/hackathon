@@ -1,32 +1,33 @@
 import {
-  BarChart3,
+  Armchair,
+  BookOpen,
   Building2,
-  CalendarClock,
   CalendarDays,
-  ClipboardList,
-  FileUp,
-  GraduationCap,
-  Home,
+  Flag,
+  House,
+  Rocket,
   Sparkles,
-  Store,
-  Users,
+  Star,
+  Ticket,
+  Upload,
   type LucideIcon,
 } from "lucide-react";
 
 import type { RutaModulo } from "@/lib/navegacion";
 
+/** Ícono de cada módulo (menú lateral, barra inferior y menú del celular). */
 export const ICONO_MODULO: Record<RutaModulo, LucideIcon> = {
-  "/": Home,
+  "/": House,
   "/empresas": Building2,
-  "/importar": FileUp,
-  "/planes": ClipboardList,
-  "/citas": CalendarClock,
-  "/eventos": CalendarDays,
-  "/formacion": GraduationCap,
-  "/conocimiento": BarChart3,
+  "/importar": Upload,
+  "/planes": Flag,
+  "/citas": CalendarDays,
+  "/eventos": Ticket,
+  "/formacion": Star,
+  "/conocimiento": BookOpen,
   "/asistente": Sparkles,
-  "/coworking": Users,
-  "/portal": Store,
+  "/coworking": Armchair,
+  "/portal": Rocket,
 };
 
 /** Módulo activo: la ruta exacta o una subruta (/empresas/123 activa Empresas). */

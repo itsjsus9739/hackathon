@@ -60,7 +60,7 @@ export function BarraMovil({ nombre, rol }: { nombre: string; rol: string }) {
                   aria-current={activo ? "page" : undefined}
                   className={cn(
                     "flex h-16 flex-col items-center justify-center gap-1 text-[11px]",
-                    activo ? "text-[var(--primario,#c8102e)] font-semibold" : "text-muted-foreground",
+                    activo ? "font-semibold text-[var(--primario-texto)]" : "text-muted-foreground",
                   )}
                 >
                   <Icono className="size-5" aria-hidden />
@@ -77,7 +77,7 @@ export function BarraMovil({ nombre, rol }: { nombre: string; rol: string }) {
               aria-controls="menu-movil"
               className={cn(
                 "flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px]",
-                enOtroModulo ? "text-[var(--primario,#c8102e)] font-semibold" : "text-muted-foreground",
+                enOtroModulo ? "font-semibold text-[var(--primario-texto)]" : "text-muted-foreground",
               )}
             >
               <LayoutGrid className="size-5" aria-hidden />
@@ -113,7 +113,7 @@ export function BarraMovil({ nombre, rol }: { nombre: string; rol: string }) {
                       onClick={() => setAbierto(false)}
                       className={cn(
                         "flex h-20 flex-col items-center justify-center gap-1.5 rounded-xl border px-1 text-center text-xs leading-tight",
-                        activo ? "border-[var(--primario,#c8102e)] bg-[var(--primario,#c8102e)]/5 font-semibold" : "active:bg-muted",
+                        activo ? "border-[var(--primario)] bg-[var(--verde-suave)] font-semibold text-[var(--primario-texto)]" : "active:bg-muted",
                       )}
                     >
                       <Icono className="size-5" aria-hidden />
