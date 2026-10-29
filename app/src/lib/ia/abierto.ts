@@ -32,12 +32,21 @@ const herramienta: OpenAI.Chat.Completions.ChatCompletionTool = {
 let cliente: OpenAI | null = null;
 // Modelo que de verdad respondió (si el configurado no existe en el proveedor, se elige otro y se recuerda)
 let modeloElegido: string | null = null;
-export const modeloActivo = () => modeloElegido ?? (process.env.IA_MODELO || MODELO_PREDETERMINADO);
+// Google Gemini también habla la API de OpenAI: basta IA_BASE_URL=URL_GEMINI y la clave de Google AI Studio
+export const URL_GEMINI = "https://generativelanguage.googleapis.com/v1beta/openai/";
+const esGemini = () => (process.env.IA_BASE_URL ?? "").includes("generativelanguage.googleapis.com");
+export const modeloActivo = () =>
+  modeloElegido ?? (process.env.IA_MODELO || (esGemini() ? "gemini-2.5-flash" : MODELO_PREDETERMINADO));
 
-/** Si el proveedor no tiene el modelo pedido (404), elige entre los que sí ofrece: Qwen 32B, otro Qwen o gpt-oss. */
+/** Si el proveedor no tiene el modelo pedido (404), elige entre los que sí ofrece: Gemini Flash, Qwen 32B, otro Qwen o gpt-oss. */
 export function elegirModelo(disponibles: string[], pedido: string): string | null {
   if (disponibles.includes(pedido)) return pedido;
+  const gemini = disponibles
+    .filter((id) => /gemini/i.test(id) && /flash/i.test(id) && !/lite|image|tts|live|audio|embed|exp|preview/i.test(id))
+    .sort()
+    .at(-1); // la versión más nueva
   return (
+    gemini ??
     disponibles.find((id) => /qwen/i.test(id) && /32b/i.test(id)) ??
     disponibles.find((id) => /qwen/i.test(id) && !/guard|vl|audio|embed/i.test(id)) ??
     disponibles.find((id) => id === "openai/gpt-oss-120b") ??
@@ -57,6 +66,8 @@ const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 function razonamiento(modelo: string): { reasoning_effort?: "low" | "none" } {
   if (modelo.includes("gpt-oss")) return { reasoning_effort: "low" };
   if (/qwen3/i.test(modelo)) return { reasoning_effort: "none" };
+  // Gemini Flash: sin «pensar» (si el modelo no lo permite, el proveedor lo rechaza y se reintenta sin él)
+  if (/gemini/i.test(modelo) && /flash/i.test(modelo)) return { reasoning_effort: "none" };
   return {};
 }
 
@@ -105,7 +116,8 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
           tools: [herramienta],
           tool_choice: "auto",
           temperature: 0.1, // SQL y cifras: poca creatividad
-          max_completion_tokens: MAX_SALIDA,
+          // Gemini (API compatible) usa el nombre clásico del límite de salida
+          ...(esGemini() ? { max_tokens: MAX_SALIDA } : { max_completion_tokens: MAX_SALIDA }),
           ...extra,
         });
       } catch (e) {

@@ -38,5 +38,9 @@ describe("modelo no disponible en el proveedor (404)", () => {
     expect(elegirModelo(["qwen/qwen3-guard", "qwen/qwen3.6-27b", "openai/gpt-oss-120b"], "qwen/qwen3-32b")).toBe("qwen/qwen3.6-27b");
     expect(elegirModelo(["whisper-large-v3", "openai/gpt-oss-120b"], "qwen/qwen3-32b")).toBe("openai/gpt-oss-120b");
     expect(elegirModelo([], "qwen/qwen3-32b")).toBeNull();
+    // Gemini: el Flash más nuevo, sin variantes de imagen, audio o prueba
+    expect(
+      elegirModelo(["models/gemini-2.0-flash", "models/gemini-2.5-flash", "models/gemini-2.5-flash-lite", "models/gemini-2.5-flash-image", "models/gemini-2.5-pro"], "gemini-x"),
+    ).toBe("models/gemini-2.5-flash");
   });
 });
