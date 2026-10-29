@@ -42,7 +42,7 @@ export function Tablero({ datos: d }: { datos: DatosTablero }) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Conocimiento</h1>
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
         <p className="text-muted-foreground text-sm">
           Qué empresas acompaña el CDE, qué tan completos están sus datos y dónde están sus mayores brechas.
         </p>

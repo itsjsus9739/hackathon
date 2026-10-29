@@ -12,7 +12,7 @@ export const MODULOS = [
   { href: "/contactos", etiqueta: "Mis contactos" },
   { href: "/eventos", etiqueta: "Eventos" },
   { href: "/formacion", etiqueta: "Formación y recompensas" },
-  { href: "/conocimiento", etiqueta: "Conocimiento" },
+  { href: "/conocimiento", etiqueta: "Dashboard" },
   { href: "/asistente", etiqueta: "Asistente IA" },
   { href: "/coworking", etiqueta: "Coworking" },
   { href: "/portal", etiqueta: "Portal del emprendedor" },
@@ -21,7 +21,7 @@ export const MODULOS = [
 export type RutaModulo = (typeof MODULOS)[number]["href"];
 
 /**
- * Módulos que solo ve el equipo del CDE (a los demás roles no se les muestran): Conocimiento y el asistente
+ * Módulos que solo ve el equipo del CDE (a los demás roles no se les muestran): Dashboard y el asistente
  * analizan toda la base, y los demás roles solo pueden ver las empresas vinculadas a ellos.
  */
 export const SOLO_CDE: readonly RutaModulo[] = ["/importar", "/conocimiento", "/asistente"];

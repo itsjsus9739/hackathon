@@ -16,7 +16,7 @@ import { Constants } from "@/lib/supabase/database.types";
 import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Conocimiento · CDE Conecta" };
+export const metadata: Metadata = { title: "Dashboard · CDE Conecta" };
 
 export default async function PaginaConocimiento() {
   const sesion = await obtenerSesion();

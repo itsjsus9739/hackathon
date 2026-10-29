@@ -136,7 +136,7 @@ const pasosCde = (esAdmin: boolean): PasoRecorrido[] => [
   ),
   {
     id: "conocimiento",
-    titulo: "Conocimiento",
+    titulo: "Dashboard",
     texto:
       "Un tablero con las empresas por sector, tamaño y municipio, la calidad de los datos y las brechas del diagnóstico. Sin consolidar nada a mano.",
     sprite: "estadisticas",
@@ -425,7 +425,7 @@ export const TUTORIALES = {
       { id: "imp-1", titulo: "1. Sube el archivo", texto: "Arrastra el Excel o CSV del CDE. Reconozco las columnas aunque tengan nombres distintos (NIT, Razón social, Municipio…).", sprite: "subir-archivo", ruta: "/importar", objetivo: "importar-archivo" },
       { id: "imp-2", titulo: "2. Revisa la validación", texto: "Verifico el NIT con su dígito de verificación, limpio nombres y municipios, y te muestro qué filas tienen errores antes de guardar nada.", sprite: "buscando-datos", objetivo: "importar-archivo" },
       { id: "imp-3", titulo: "3. Fusiona duplicados", texto: "Si una empresa ya existe (mismo NIT o nombre equivalente), propongo fusionarla en una sola ficha en vez de crear otra.", sprite: "lista-verificacion", objetivo: "importar-archivo" },
-      fin("Al confirmar, la base queda depurada y el tablero de Conocimiento se actualiza solo."),
+      fin("Al confirmar, la base queda depurada y el Dashboard se actualiza solo."),
     ],
   },
   coworking: {
