@@ -9,10 +9,13 @@ export const metadata: Metadata = { title: "Notificaciones · CDE Conecta" };
 
 export default async function PaginaNotificaciones() {
   const sesion = await obtenerSesion();
+  if (!sesion) return null; // el layout ya redirige a /login
   const supabase = await crearClienteServidor();
+  // Solo las propias: RLS deja al CDE leer las de todos
   const { data, error } = await supabase
     .from("notificaciones")
     .select("id, tipo, titulo, cuerpo, enlace, leida_en, creado_en, id_referencia")
+    .eq("id_usuario", sesion.id)
     .order("creado_en", { ascending: false })
     .limit(50);
   if (error) throw new Error(`No se pudieron consultar las notificaciones: ${error.message}`);
@@ -27,6 +30,13 @@ export default async function PaginaNotificaciones() {
       ])
     : [{ data: [] }, { data: [] }];
   const perfilPor = new Map((perfiles.data ?? []).map((p) => [p.id, p]));
+
+  // Registros de empresa: su estado actual (para mostrar Aprobar/Rechazar solo si sigue pendiente)
+  const idsEmpresa = [...new Set((data ?? []).filter((n) => n.tipo === "solicitud_empresa" && n.id_referencia).map((n) => n.id_referencia!))];
+  const { data: solicitudesEmpresa } = idsEmpresa.length
+    ? await supabase.from("solicitudes_empresa").select("id, estado").in("id", idsEmpresa)
+    : { data: [] };
+  const estadoEmpresa = new Map((solicitudesEmpresa ?? []).map((s) => [s.id, s.estado]));
   const solicitudPor = new Map((solicitudes.data ?? []).map((s) => [s.id_perfil, s.estado]));
 
   const formato = new Intl.DateTimeFormat("es-CO", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Bogota" });
@@ -43,6 +53,10 @@ export default async function PaginaNotificaciones() {
               estadoAcceso: perfil?.estado_acceso ?? null,
               solicitud: solicitudPor.get(id_referencia) ?? null,
             }
+          : null,
+      empresa:
+        n.tipo === "solicitud_empresa" && id_referencia
+          ? { solicitud: id_referencia, estado: estadoEmpresa.get(id_referencia) ?? null }
           : null,
     };
   });

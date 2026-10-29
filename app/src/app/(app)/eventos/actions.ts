@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { cambiosInvitados, TIPOS_EVENTO } from "@/lib/eventos";
+import { cambiosInvitados, esRolCde, leerQrAsistencia, TIPOS_EVENTO } from "@/lib/eventos";
 import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
@@ -27,6 +27,8 @@ const esquemaEvento = z
     lugar: z.string().trim().max(200).optional().default(""),
     descripcion: z.string().trim().max(4000).optional().default(""),
     cupo: z.number().int().positive().max(10000).nullable().optional(),
+    // Puntos de gamificación al asistir: solo los fija el CDE (la base los pone en 0 para los demás)
+    puntos: z.number().int().min(0).max(500).optional(),
     invitados: z.array(z.uuid()).max(500).default([]),
   })
   .refine((d) => Date.parse(d.fin) > Date.parse(d.inicio), { message: "La hora de fin debe ser posterior al inicio", path: ["fin"] });
@@ -47,6 +49,7 @@ export async function guardarEvento(entrada: z.input<typeof esquemaEvento>): Pro
     lugar: d.lugar || null,
     descripcion: d.descripcion || null,
     cupo: d.cupo ?? null,
+    ...(d.puntos !== undefined && esRolCde(sesion.rol) ? { puntos_gamificacion: d.puntos } : {}),
   };
   const guardado = d.id
     ? await supabase.from("eventos").update(fila).eq("id", d.id).select("id, creado_por").maybeSingle()
@@ -136,4 +139,48 @@ export async function responderEvento(entrada: z.input<typeof esquemaRespuesta>)
   }
   revalidatePath("/eventos");
   return { id };
+}
+
+// ---------------------------------------------------------------------
+// Asistencia real: la marca el CDE (a mano o escaneando el QR del participante).
+// Al marcarla, la base suma los puntos del evento y revisa insignias (puntos_por_asistencia).
+// ---------------------------------------------------------------------
+export type ResultadoAsistencia = { error?: string; nombre?: string; evento?: string; puntos?: number; yaEstaba?: boolean };
+
+const esquemaAsistencia = z.object({ idInscripcion: z.uuid(), asistio: z.boolean() });
+
+export async function marcarAsistencia(entrada: z.input<typeof esquemaAsistencia>): Promise<ResultadoAsistencia> {
+  const datos = esquemaAsistencia.safeParse(entrada);
+  if (!datos.success) return { error: "Datos no válidos." };
+  const sesion = await obtenerSesion();
+  if (!sesion || sesion.estadoAcceso !== "aprobado" || !esRolCde(sesion.rol)) return { error: "Solo el equipo del CDE registra la asistencia." };
+  const { idInscripcion, asistio } = datos.data;
+  const supabase = await crearClienteServidor();
+
+  const { data: antes } = await supabase
+    .from("inscripciones_eventos")
+    .select("asistio, id_usuario, eventos (nombre, puntos_gamificacion)")
+    .eq("id", idInscripcion)
+    .maybeSingle();
+  if (!antes) return { error: "No encontramos esa inscripción." };
+
+  const { error } = await supabase.from("inscripciones_eventos").update({ asistio }).eq("id", idInscripcion);
+  if (error) return { error: traducir(error.message) };
+  const { data: persona } = await supabase.rpc("directorio").eq("id", antes.id_usuario).maybeSingle();
+
+  revalidatePath("/eventos", "layout");
+  revalidatePath("/formacion");
+  return {
+    nombre: persona?.nombre ?? "Participante",
+    evento: antes.eventos?.nombre ?? "Evento",
+    puntos: asistio ? (antes.eventos?.puntos_gamificacion ?? 0) : 0,
+    yaEstaba: antes.asistio === asistio,
+  };
+}
+
+/** Lo que lee la cámara del CDE: el QR que el participante muestra en su teléfono. */
+export async function registrarAsistenciaQr(texto: string): Promise<ResultadoAsistencia> {
+  const idInscripcion = leerQrAsistencia(texto);
+  if (!idInscripcion) return { error: "Este código no es un QR de asistencia de CDE Conecta." };
+  return marcarAsistencia({ idInscripcion, asistio: true });
 }

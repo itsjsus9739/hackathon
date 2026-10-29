@@ -56,3 +56,51 @@ export async function actualizarMiEmpresa(_: EstadoMiEmpresa, formulario: FormDa
   revalidatePath(`/empresas/${d.empresa}`);
   return { ok: "Datos actualizados. El CDE recibió un aviso." };
 }
+
+// ---------------------------------------------------------------------
+// Registrar una empresa (nueva o ya existente): la confirma un administrador del CDE
+// (solicitar_empresa, 0027_solicitudes_empresa.sql)
+// ---------------------------------------------------------------------
+export type EstadoSolicitud = { error?: string; ok?: string; valores?: Record<string, string> } | undefined;
+
+const esquemaSolicitud = z.object({
+  nombre: z.string().min(2, "Escribe el nombre de la empresa.").max(200),
+  nit: z
+    .string()
+    .regex(/^[\d.\s-]{6,20}$/, "El NIT solo lleva números")
+    .nullable(),
+  sector: z.string().max(120).nullable(),
+  tamano: z.enum(Constants.public.Enums.tamano_empresa).nullable(),
+  municipio: z.string().max(120).nullable(),
+  cargo: z.string().max(120).nullable(),
+  descripcion: z.string().max(2000).nullable(),
+});
+
+const MENSAJES_SOLICITUD = /Ya enviaste|ya está vinculada|Solo los emprendedores|Sector no válido/;
+
+export async function solicitarEmpresa(_: EstadoSolicitud, formulario: FormData): Promise<EstadoSolicitud> {
+  const valores = Object.fromEntries(
+    ["nombre", "nit", "sector", "tamano", "municipio", "cargo", "descripcion"].map((k) => [k, String(formulario.get(k) ?? "")]),
+  );
+  const datos = esquemaSolicitud.safeParse(Object.fromEntries(Object.keys(valores).map((k) => [k, vacio(formulario.get(k))])));
+  if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Revisa los datos.", valores };
+  const d = datos.data;
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("solicitar_empresa", {
+    nombre: d.nombre,
+    nit: d.nit ?? undefined,
+    sector: d.sector ?? undefined,
+    tamano: d.tamano ?? undefined,
+    municipio: d.municipio ?? undefined,
+    cargo: d.cargo ?? undefined,
+    descripcion: d.descripcion ?? undefined,
+  });
+  if (error) {
+    const conocido = error.message.match(MENSAJES_SOLICITUD);
+    if (conocido) return { error: `${error.message}.`, valores };
+    if (error.message.includes("nit_check")) return { error: "El NIT debe tener entre 6 y 15 dígitos.", valores };
+    return { error: "No se pudo enviar la solicitud. Inténtalo de nuevo.", valores };
+  }
+  revalidatePath("/mi-empresa");
+  return { ok: "Solicitud enviada. Un administrador del CDE la confirmará y te avisará en la campana." };
+}

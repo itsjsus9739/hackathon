@@ -9,7 +9,8 @@ import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import type { DateSelectArg, EventDropArg, EventInput, EventSourceFuncArg } from "@fullcalendar/core";
 import type { EventResizeDoneArg } from "@fullcalendar/interaction";
-import { CalendarPlus, Clock, Loader2, MapPin, Tag, Trash2, User, X } from "lucide-react";
+import Link from "next/link";
+import { CalendarPlus, CheckCircle2, Clock, Coins, Loader2, MapPin, QrCode, Tag, Trash2, User, X } from "lucide-react";
 
 import { AvatarRol, EtiquetaRol } from "@/components/personas/rol";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ import { COLOR_ROL, ORDEN_ROL } from "@/lib/roles";
 import type { Enums } from "@/lib/supabase/database.types";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { borrarEvento, guardarEvento, moverEvento, responderEvento } from "./actions";
+import { CasillaAsistencia, QrAsistencia } from "./asistencia-controles";
 import "./calendario.css";
 
 type Rol = Enums<"rol_usuario">;
@@ -48,7 +50,8 @@ type Actividad = {
   cupo: number | null;
   creado_por: string | null;
   es_ejemplo: boolean;
-  asistentes: { id_usuario: string; estado: EstadoRespuesta; invitado_por: string | null }[];
+  puntos_gamificacion: number;
+  asistentes: { id: string; id_usuario: string; estado: EstadoRespuesta; invitado_por: string | null; asistio: boolean }[];
 };
 
 type Props = {
@@ -100,7 +103,9 @@ export default function Calendario({ yo, personas, etiquetasRol, eventoInicial }
       const desde = new Date(info.start.getTime() - 86_400_000).toISOString();
       const { data, error } = await supabase
         .from("eventos")
-        .select("id, nombre, tipo, fecha, fin, lugar, descripcion, cupo, creado_por, es_ejemplo, inscripciones_eventos(id_usuario, estado, invitado_por)")
+        .select(
+          "id, nombre, tipo, fecha, fin, lugar, descripcion, cupo, creado_por, es_ejemplo, puntos_gamificacion, inscripciones_eventos(id, id_usuario, estado, invitado_por, asistio)",
+        )
         .gte("fecha", desde)
         .lte("fecha", info.end.toISOString())
         .order("fecha");
@@ -323,6 +328,7 @@ export default function Calendario({ yo, personas, etiquetasRol, eventoInicial }
           miEstado={miEstado(detalle)}
           cerrar={() => setDetalle(null)}
           responder={responder}
+          alCambiarAsistencia={refrescar}
           editar={() => {
             setFormulario({ actividad: detalle });
             setDetalle(null);
@@ -401,6 +407,7 @@ function Detalle(p: {
   miEstado: EstadoRespuesta | null;
   cerrar: () => void;
   responder: (id: string, estado: "confirmado" | "rechazado") => Promise<void>;
+  alCambiarAsistencia: () => void;
   editar: () => void;
   borrar: () => Promise<void>;
 }) {
@@ -415,6 +422,9 @@ function Detalle(p: {
   const soyOrganizador = a.creado_por === yo.id;
   const gestiono = puedeGestionar(yo, a);
   const lleno = a.cupo !== null && conteo.confirmado + conteo.pendiente >= a.cupo;
+  const cde = esRolCde(yo.rol);
+  const miInscripcion = a.asistentes.find((x) => x.id_usuario === yo.id);
+  const asistieron = a.asistentes.filter((x) => x.asistio).length;
   const textoRespuesta =
     miEstado === "confirmado"
       ? "Confirmaste tu asistencia"
@@ -447,6 +457,12 @@ function Detalle(p: {
           Organiza {organizador ? `${organizador.nombre} (${etiquetasRol[organizador.rol]})` : "el CDE"}
           {a.cupo !== null && <span className="text-muted-foreground"> · Cupo {a.cupo}</span>}
         </dd>
+        {a.puntos_gamificacion > 0 && (
+          <>
+            <Coins className="mt-0.5 size-4 text-[var(--primario-texto)]" />
+            <dd className="font-medium text-[var(--primario-texto)]">Asistir vale {a.puntos_gamificacion} puntos</dd>
+          </>
+        )}
       </dl>
       {a.descripcion && <p className="mt-3 text-sm whitespace-pre-wrap">{a.descripcion}</p>}
 
@@ -470,12 +486,31 @@ function Detalle(p: {
         </div>
       )}
 
+      {/* Asistencia real: el participante muestra su QR; si ya la registraron, lo confirma */}
+      {miInscripcion?.asistio ? (
+        <p className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-sm font-medium text-emerald-800">
+          <CheckCircle2 className="size-4" aria-hidden /> Asistencia registrada
+          {a.puntos_gamificacion > 0 && ` · +${a.puntos_gamificacion} puntos`}
+        </p>
+      ) : (
+        miInscripcion?.estado === "confirmado" && <QrAsistencia idInscripcion={miInscripcion.id} puntos={a.puntos_gamificacion} />
+      )}
+
       <h3 className="mt-5 mb-1 text-sm font-semibold">
         Asistentes{" "}
         <span className="text-muted-foreground font-normal">
           · {conteo.confirmado} confirmados, {conteo.pendiente} pendientes, {conteo.rechazado} no asisten
+          {asistieron > 0 && `, ${asistieron} asistieron`}
         </span>
       </h3>
+      {cde && a.asistentes.length > 0 && (
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[var(--verde-suave)] p-2 text-xs">
+          <span>Marca «Asistió» o escanea el QR de cada persona: la base le suma los puntos del evento.</span>
+          <Link href={`/eventos/asistencia?e=${a.id}`} className="inline-flex items-center gap-1 font-semibold text-[var(--primario-texto)] underline underline-offset-4">
+            <QrCode className="size-3.5" aria-hidden /> Escanear QR
+          </Link>
+        </div>
+      )}
       {a.asistentes.length === 0 ? (
         <p className="text-muted-foreground text-sm">Aún no hay asistentes.</p>
       ) : (
@@ -493,8 +528,17 @@ function Detalle(p: {
                   <span className="block">{persona?.nombre ?? "Miembro"}</span>
                   {persona && <EtiquetaRol rol={persona.rol} />}
                 </span>
+                {cde ? (
+                  <span className="ml-auto">
+                    <CasillaAsistencia idInscripcion={x.id} asistio={x.asistio} alCambiar={p.alCambiarAsistencia} />
+                  </span>
+                ) : (
+                  x.asistio && (
+                    <span className="ml-auto rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">Asistió</span>
+                  )
+                )}
                 <span
-                  className={`ml-auto rounded-full px-2 py-0.5 text-xs ${
+                  className={`${cde || x.asistio ? "" : "ml-auto "}rounded-full px-2 py-0.5 text-xs ${
                     x.estado === "confirmado"
                       ? "bg-green-100 text-green-800"
                       : x.estado === "rechazado"
@@ -568,6 +612,7 @@ function Formulario(p: {
     const fin = new Date(String(form.get("fin")));
     if (Number.isNaN(inicio.getTime()) || Number.isNaN(fin.getTime())) return setError("Revisa las fechas.");
     const cupoTexto = String(form.get("cupo") ?? "").trim();
+    const puntosTexto = String(form.get("puntos") ?? "").trim();
     iniciar(async () => {
       const r = await guardarEvento({
         id: a?.id,
@@ -578,6 +623,7 @@ function Formulario(p: {
         lugar: String(form.get("lugar") ?? ""),
         descripcion: String(form.get("descripcion") ?? ""),
         cupo: cupoTexto ? Number(cupoTexto) : null,
+        puntos: esRolCde(yo.rol) && puntosTexto ? Number(puntosTexto) : undefined,
         invitados: [...elegidos],
       });
       if (r.error) setError(r.error);
@@ -641,6 +687,16 @@ function Formulario(p: {
             <Input name="cupo" type="number" min={1} max={10000} defaultValue={a?.cupo ?? ""} placeholder="Sin límite" />
           </label>
         </div>
+
+        {esRolCde(yo.rol) && (
+          <label className="block space-y-1.5">
+            <span className="font-medium">Puntos por asistir</span>
+            <Input name="puntos" type="number" min={0} max={500} defaultValue={a?.puntos_gamificacion ?? 20} className="w-32" />
+            <span className="text-muted-foreground block text-xs">
+              Se suman al marcar la asistencia (recomendado 10 a 30; con 0 no da puntos).
+            </span>
+          </label>
+        )}
 
         <label className="block space-y-1.5">
           <span className="font-medium">Descripción</span>

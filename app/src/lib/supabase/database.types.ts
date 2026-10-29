@@ -1,4 +1,4 @@
-// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0018; helpers Tables/TablesInsert/Enums simplificados.
+// Generado desde Supabase (proyecto dgubdqszyxrlpcfatqvl) tras la migración 0018 (+ tablas y funciones hasta la 0027); helpers Tables/TablesInsert/Enums simplificados.
 // Regenerar con: npx supabase gen types typescript --project-id dgubdqszyxrlpcfatqvl > src/lib/supabase/database.types.ts
 export type Json =
   | string
@@ -2005,6 +2005,120 @@ export type Database = {
           },
         ]
       }
+      solicitudes_empresa: {
+        Row: {
+          cargo: string | null
+          comentario_revision: string | null
+          creado_en: string
+          descripcion: string | null
+          estado: string
+          id: string
+          id_empresa_existente: string | null
+          id_empresa_resultante: string | null
+          id_solicitante: string
+          municipio: string | null
+          nit: string | null
+          nombre: string
+          revisado_en: string | null
+          revisado_por: string | null
+          sector: string | null
+          tamano: Database["public"]["Enums"]["tamano_empresa"] | null
+        }
+        Insert: {
+          cargo?: string | null
+          comentario_revision?: string | null
+          creado_en?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          id_empresa_existente?: string | null
+          id_empresa_resultante?: string | null
+          id_solicitante?: string
+          municipio?: string | null
+          nit?: string | null
+          nombre: string
+          revisado_en?: string | null
+          revisado_por?: string | null
+          sector?: string | null
+          tamano?: Database["public"]["Enums"]["tamano_empresa"] | null
+        }
+        Update: {
+          cargo?: string | null
+          comentario_revision?: string | null
+          creado_en?: string
+          descripcion?: string | null
+          estado?: string
+          id?: string
+          id_empresa_existente?: string | null
+          id_empresa_resultante?: string | null
+          id_solicitante?: string
+          municipio?: string | null
+          nit?: string | null
+          nombre?: string
+          revisado_en?: string | null
+          revisado_por?: string | null
+          sector?: string | null
+          tamano?: Database["public"]["Enums"]["tamano_empresa"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitudes_empresa_id_empresa_existente_fkey"
+            columns: ["id_empresa_existente"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_empresa_id_empresa_existente_fkey"
+            columns: ["id_empresa_existente"]
+            isOneToOne: false
+            referencedRelation: "posibles_duplicados"
+            referencedColumns: ["id_empresa_a"]
+          },
+          {
+            foreignKeyName: "solicitudes_empresa_id_empresa_existente_fkey"
+            columns: ["id_empresa_existente"]
+            isOneToOne: false
+            referencedRelation: "posibles_duplicados"
+            referencedColumns: ["id_empresa_b"]
+          },
+          {
+            foreignKeyName: "solicitudes_empresa_id_empresa_resultante_fkey"
+            columns: ["id_empresa_resultante"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_empresa_id_empresa_resultante_fkey"
+            columns: ["id_empresa_resultante"]
+            isOneToOne: false
+            referencedRelation: "posibles_duplicados"
+            referencedColumns: ["id_empresa_a"]
+          },
+          {
+            foreignKeyName: "solicitudes_empresa_id_empresa_resultante_fkey"
+            columns: ["id_empresa_resultante"]
+            isOneToOne: false
+            referencedRelation: "posibles_duplicados"
+            referencedColumns: ["id_empresa_b"]
+          },
+          {
+            foreignKeyName: "solicitudes_empresa_id_solicitante_fkey"
+            columns: ["id_solicitante"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitudes_empresa_revisado_por_fkey"
+            columns: ["revisado_por"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tipos_actividad: {
         Row: {
           nombre: string
@@ -2285,6 +2399,26 @@ export type Database = {
         Returns: undefined
       }
       buscar_empresas_para_vincular: { Args: { texto: string }; Returns: { id: string; nombre: string; municipio: string | null }[] }
+      circulo_gamificacion: { Args: never; Returns: string[] }
+      empresas_de_mis_planes: { Args: never; Returns: string[] }
+      es_admin_cde: { Args: never; Returns: boolean }
+      plan_creado_por_mi: { Args: { plan: string }; Returns: boolean }
+      resolver_solicitud_empresa: {
+        Args: { aprobar: boolean; comentario?: string; solicitud: string }
+        Returns: string
+      }
+      solicitar_empresa: {
+        Args: {
+          cargo?: string
+          descripcion?: string
+          municipio?: string
+          nit?: string
+          nombre: string
+          sector?: string
+          tamano?: string
+        }
+        Returns: string
+      }
       vincular_empresa_asignatura: { Args: { asignatura: string; sem: string; empresa: string }; Returns: string }
       empresas_para_planes: { Args: never; Returns: { id: string; nombre: string }[] }
       es_docente: { Args: never; Returns: boolean }
