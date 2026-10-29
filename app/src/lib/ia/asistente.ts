@@ -1,6 +1,6 @@
 import "server-only";
 
-import { MODELO_PREDETERMINADO, preguntarAModeloAbierto } from "./abierto";
+import { modeloActivo, preguntarAModeloAbierto } from "./abierto";
 import { preguntarAClaude } from "./claude";
 import type { RespuestaAsistente } from "./comun";
 
@@ -26,7 +26,7 @@ export const asistenteConfigurado = () => variablesFaltantes().length === 0;
 
 /** Nombre del modelo en uso, para mostrarlo en la interfaz. */
 export const modeloEnUso = () =>
-  proveedor() === "claude" ? "Claude Opus 5.5" : (process.env.IA_MODELO || MODELO_PREDETERMINADO);
+  proveedor() === "claude" ? "Claude Opus 5.5" : modeloActivo();
 
 /** Responde una pregunta en lenguaje natural consultando la base con el rol ia_lectura. */
 export function preguntarAlAsistente(pregunta: string): Promise<RespuestaAsistente> {
