@@ -73,7 +73,7 @@ export function CabeceraEmpresa({
       <CardContent className="space-y-6">
         {empresa.descripcion && <p className="text-muted-foreground line-clamp-3 max-w-3xl text-sm">{empresa.descripcion}</p>}
 
-        <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           <Dato icono={Factory} etiqueta="Sector" valor={empresa.sector} estimado={empresa.datos_estimados.includes("sector")} />
           <Dato icono={Ruler} etiqueta="Tamaño" valor={empresa.tamano} estimado={empresa.datos_estimados.includes("tamano")} />
           <Dato icono={Landmark} etiqueta="Formalización" valor={empresa.formalizacion} />

@@ -62,8 +62,8 @@ export default async function PaginaEmpresas({ searchParams }: { searchParams: P
         <p className="text-muted-foreground text-sm">Busca una empresa para abrir su Ficha 360°.</p>
       </div>
 
-      <form data-recorrido="empresas-buscador" className="grid gap-3 sm:grid-cols-[1fr_12rem_10rem_auto]" role="search">
-        <div className="relative">
+      <form data-recorrido="empresas-buscador" className="grid grid-cols-2 gap-3 sm:grid-cols-[1fr_12rem_10rem_auto]" role="search">
+        <div className="relative col-span-2 sm:col-span-1">
           <Search className="text-muted-foreground absolute top-2.5 left-3 size-4" aria-hidden />
           <Input name="q" defaultValue={q} placeholder="Nombre o NIT" className="pl-9" aria-label="Buscar por nombre o NIT" />
         </div>
@@ -83,7 +83,9 @@ export default async function PaginaEmpresas({ searchParams }: { searchParams: P
             </option>
           ))}
         </NativeSelect>
-        <Button type="submit">Buscar</Button>
+        <Button type="submit" className="col-span-2 sm:col-span-1">
+          Buscar
+        </Button>
       </form>
 
       <Card>
@@ -106,7 +108,7 @@ export default async function PaginaEmpresas({ searchParams }: { searchParams: P
             <ul className="divide-y">
               {empresas.map((e) => (
                 <li key={e.id}>
-                  <Link href={`/empresas/${e.id}`} className="hover:bg-muted flex flex-wrap items-center gap-x-4 gap-y-1 px-6 py-3">
+                  <Link href={`/empresas/${e.id}`} className="hover:bg-muted flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 sm:px-6">
                     <Building2 className="text-muted-foreground size-4 shrink-0" aria-hidden />
                     <span className="min-w-0 flex-1 truncate font-medium">{e.nombre}</span>
                     <span className="flex flex-wrap gap-1.5">

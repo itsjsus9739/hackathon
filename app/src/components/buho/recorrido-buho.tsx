@@ -84,7 +84,8 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
       const r = el?.getBoundingClientRect();
       return r && r.width > 0 && r.height > 0 ? el : null;
     };
-    const buscar = () => selectores.map((s) => visible(document.querySelector(s))).find(Boolean) ?? null;
+    // El mismo destino puede estar en el menú lateral (escritorio) y en la barra inferior (celular): el primero visible
+    const buscar = () => selectores.flatMap((s) => [...document.querySelectorAll(s)]).find((el) => visible(el)) ?? null;
 
     let elemento: Element | null = null;
     setVentana({ ancho: window.innerWidth, alto: window.innerHeight });
@@ -148,7 +149,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
         type="button"
         data-recorrido="boton-ayuda"
         onClick={() => setIndice(0)}
-        className="fixed right-4 bottom-4 z-40 flex size-16 items-center justify-center overflow-hidden rounded-full border bg-white shadow-lg transition hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-[var(--primario)]/40 focus-visible:outline-none"
+        className="fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex size-14 md:bottom-4 md:size-16 items-center justify-center overflow-hidden rounded-full border bg-white shadow-lg transition hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-[var(--primario)]/40 focus-visible:outline-none"
         aria-label={`Ver el recorrido guiado con ${NOMBRE_MASCOTA}`}
         title={`¿Necesitas ayuda? ${NOMBRE_MASCOTA} te guía`}
       >
