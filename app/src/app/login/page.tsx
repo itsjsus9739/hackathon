@@ -31,7 +31,7 @@ export default async function PaginaLogin({ searchParams }: { searchParams: Prom
             CDE Conecta
             <span className="block">Sistema de Gestión Empresarial</span>
           </h1>
-          <LogoCde className="h-16 shrink-0 text-[9px] sm:h-20 sm:text-[11px]" />
+          <LogoCde priority className="w-44 sm:w-52" />
         </header>
 
         <p className="mt-6 text-center text-sm text-foreground sm:text-base">
