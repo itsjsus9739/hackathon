@@ -16,6 +16,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      accesos_portal: {
+        Row: {
+          creado_en: string
+          estado: string
+          id: string
+          id_empresa: string
+          id_estudiante: string
+          motivo: string | null
+          resuelto_en: string | null
+          resuelto_por: string | null
+        }
+        Insert: {
+          creado_en?: string
+          estado?: string
+          id?: string
+          id_empresa: string
+          id_estudiante?: string
+          motivo?: string | null
+          resuelto_en?: string | null
+          resuelto_por?: string | null
+        }
+        Update: {
+          creado_en?: string
+          estado?: string
+          id?: string
+          id_empresa?: string
+          id_estudiante?: string
+          motivo?: string | null
+          resuelto_en?: string | null
+          resuelto_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accesos_portal_id_empresa_fkey"
+            columns: ["id_empresa"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solicitudes_empresa: {
         Row: {
           cargo: string | null
@@ -2329,6 +2370,16 @@ export type Database = {
       }
     }
     Functions: {
+      otorgar_acceso_portal: { Args: { empresa: string; estudiante: string }; Returns: undefined }
+      portal_datos: { Args: { empresa: string }; Returns: Json }
+      portal_empresas: {
+        Args: { texto?: string | null }
+        Returns: { id: string; nombre: string; municipio: string | null; representante: string | null; motivo: string }[]
+      }
+      puede_ver_portal: { Args: { empresa: string }; Returns: boolean }
+      resolver_acceso_portal: { Args: { acceso: string; aprobar: boolean }; Returns: undefined }
+      revocar_acceso_portal: { Args: { acceso: string }; Returns: undefined }
+      solicitar_acceso_portal: { Args: { empresa: string; motivo?: string | null }; Returns: string }
       es_admin_cde: { Args: never; Returns: boolean }
       resolver_solicitud_empresa: { Args: { solicitud: string; aprobar: boolean; comentario?: string | null }; Returns: string }
       solicitar_empresa: {

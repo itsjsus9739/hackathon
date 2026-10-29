@@ -154,10 +154,10 @@ const pasosCde = (esAdmin: boolean): PasoRecorrido[] => [
   {
     id: "portal",
     titulo: "Portal del emprendedor",
-    texto: "Así verá el emprendedor su etapa, sus compromisos y la oferta del CDE que le conviene.",
+    texto:
+      "Abre el portal de cualquier emprendimiento tal como lo ve su emprendedor: etapa, compromisos y oportunidades. Aquí también das acceso a estudiantes.",
     sprite: "revisando-cuenta",
     ruta: "/portal",
-    proximamente: true,
   },
   ayuda,
   despedida(
@@ -251,10 +251,11 @@ const pasosEmprendedor: PasoRecorrido[] = [
   {
     id: "portal",
     titulo: "Tu portal",
-    texto: "Aquí verás en qué etapa de la ruta de acompañamiento estás, tus compromisos pendientes y los eventos que te convienen.",
+    texto:
+      "Tu tablero: en qué etapa de la ruta vas, tu diagnóstico, tus compromisos pendientes y las capacitaciones recomendadas para lo que necesitas mejorar.",
     sprite: "revisando-cuenta",
     ruta: "/portal",
-    proximamente: true,
+    objetivo: "portal-indicadores",
   },
   {
     id: "empresas",
