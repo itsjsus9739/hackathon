@@ -31,13 +31,31 @@ const herramienta: OpenAI.Chat.Completions.ChatCompletionTool = {
 
 let cliente: OpenAI | null = null;
 
+// Groq gratuito limita los tokens por minuto y cuenta el máximo de salida pedido: se pide poco y, si avisa
+// que esperemos, se espera lo que indica (sin pasar el tiempo de la función en Vercel, 60 s).
+const MAX_SALIDA = 1500;
+const ESPERA_MAXIMA_MS = 20_000;
+const PRESUPUESTO_MS = 45_000;
+const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Segundos que pide esperar el proveedor (cabecera retry-after o "try again in 7.5s" en el mensaje). */
+export function esperaSugerida(e: { headers?: Headers | Record<string, string> | null; message?: string }): number {
+  const h = e.headers;
+  const valor = h instanceof Headers ? h.get("retry-after") : h?.["retry-after"];
+  const segundos = Number(valor);
+  if (Number.isFinite(segundos) && segundos > 0) return segundos * 1000;
+  const m = e.message?.match(/try again in ([\d.]+)\s*(ms|s)/i);
+  if (m) return Number(m[1]) * (m[2].toLowerCase() === "ms" ? 1 : 1000);
+  return 8000;
+}
+
 export async function preguntarAModeloAbierto(pregunta: string): Promise<RespuestaAsistente> {
   const consultas: ConsultaHecha[] = [];
   cliente ??= new OpenAI({
     baseURL: process.env.IA_BASE_URL || BASE_URL_PREDETERMINADA,
     apiKey: process.env.IA_API_KEY || "sin-clave", // Ollama local no pide clave
     timeout: 45_000,
-    maxRetries: 1,
+    maxRetries: 0, // los reintentos por límite los maneja crear() con la espera que pide el proveedor
   });
   const modelo = process.env.IA_MODELO || MODELO_PREDETERMINADO;
   const mensajes: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -45,16 +63,32 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
     { role: "user", content: pregunta },
   ];
 
+  const inicio = Date.now();
+  const api = cliente;
+  const crear = async () => {
+    for (;;) {
+      try {
+        return await api.chat.completions.create({
+          model: modelo,
+          messages: mensajes,
+          tools: [herramienta],
+          tool_choice: "auto",
+          temperature: 0.1, // SQL y cifras: poca creatividad
+          max_completion_tokens: MAX_SALIDA,
+          // Modelos con razonamiento (gpt-oss): pensar poco ahorra tokens y tiempo
+          ...(modelo.includes("gpt-oss") ? { reasoning_effort: "low" as const } : {}),
+        });
+      } catch (e) {
+        const espera = e instanceof OpenAI.RateLimitError ? esperaSugerida(e) : Infinity;
+        if (espera > ESPERA_MAXIMA_MS || Date.now() - inicio + espera > PRESUPUESTO_MS) throw e;
+        await dormir(espera + 250);
+      }
+    }
+  };
+
   try {
     for (let paso = 0; paso < MAX_PASOS; paso++) {
-      const r = await cliente.chat.completions.create({
-        model: modelo,
-        messages: mensajes,
-        tools: [herramienta],
-        tool_choice: "auto",
-        temperature: 0.1, // SQL y cifras: poca creatividad
-        max_completion_tokens: 4096,
-      });
+      const r = await crear();
       const eleccion = r.choices[0];
       if (!eleccion) return { ok: false, error: SIN_RESPUESTA, consultas };
       const mensaje = eleccion.message;
@@ -85,7 +119,13 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
     return { ok: false, error: SIN_RESPUESTA, consultas };
   } catch (e) {
     if (e instanceof OpenAI.RateLimitError) {
-      return { ok: false, error: "Se alcanzó el límite de preguntas por minuto del proveedor de IA. Espera un momento.", consultas };
+      return {
+        ok: false,
+        error: consultas.length
+          ? "El proveedor de IA llegó a su límite por minuto antes de terminar. Abajo están los datos que alcancé a consultar; vuelve a preguntar en un minuto para la respuesta completa."
+          : "Se alcanzó el límite de preguntas por minuto del proveedor de IA (plan gratuito). Vuelve a intentarlo en un minuto.",
+        consultas,
+      };
     }
     if (e instanceof OpenAI.AuthenticationError) {
       return { ok: false, error: "La clave del proveedor de IA (IA_API_KEY) no es válida.", consultas };

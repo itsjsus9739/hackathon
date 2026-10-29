@@ -53,12 +53,30 @@ export const HERRAMIENTA = {
 
 export const MAX_PASOS = 8;
 
+/** Lo que se le reenvía al modelo por consulta (la interfaz muestra todas las filas): ahorra tokens por minuto. */
+export const MAX_CARACTERES_AL_MODELO = 6000;
+
+/** Filas en JSON recortadas para el modelo; avisa cuántas quedaron fuera para que agregue en SQL si las necesita. */
+export function resultadoParaModelo(filas: Record<string, unknown>[], truncado: boolean, maximo = MAX_CARACTERES_AL_MODELO): string {
+  let n = filas.length;
+  let texto = JSON.stringify({ filas, truncado });
+  while (texto.length > maximo && n > 1) {
+    n = Math.max(1, Math.floor(n * 0.7));
+    texto = JSON.stringify({
+      filas: filas.slice(0, n),
+      truncado: true,
+      nota: `Solo ves ${n} de ${filas.length} filas (el usuario las ve todas en la tabla). Si necesitas el total, agrega en SQL.`,
+    });
+  }
+  return texto.length > maximo ? texto.slice(0, maximo) : texto;
+}
+
 /** Ejecuta la herramienta, registra la consulta y devuelve el texto que recibe el modelo. */
 export async function ejecutarHerramienta(proposito: string, sql: string, consultas: ConsultaHecha[]): Promise<string> {
   try {
     const r = await ejecutarConsulta(sql);
     consultas.push({ proposito, sql, ...r, error: null });
-    return JSON.stringify({ filas: r.filas, truncado: r.truncado });
+    return resultadoParaModelo(r.filas, r.truncado);
   } catch (e) {
     const error = e instanceof Error ? e.message : "Error desconocido";
     consultas.push({ proposito, sql, columnas: [], filas: [], truncado: false, error });
