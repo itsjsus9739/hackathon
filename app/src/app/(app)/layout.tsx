@@ -8,6 +8,7 @@ import { BarraNivel } from "@/components/gamificacion/barra-nivel";
 import { Celebraciones } from "@/components/gamificacion/celebraciones";
 import { BarraMovil } from "@/components/navegacion/barra-movil";
 import { MarcaCde } from "@/components/marca/logo-cde";
+import { PieCde } from "@/components/marca/pie-cde";
 import { MenuLateral } from "@/components/navegacion/menu-lateral";
 import { Campana } from "@/components/notificaciones/campana";
 import { BotonTema } from "@/components/tema/boton-tema";
@@ -79,7 +80,9 @@ export default async function LayoutAplicacion({ children }: { children: React.R
           <BotonTema className="border bg-card" />
           <Campana className="rounded-full border bg-card" />
         </div>
-        <main className="min-w-0 flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:pt-0 md:pb-6">{children}</main>
+        <main className="min-w-0 flex-1 p-4 md:px-6 md:pt-0">{children}</main>
+        {/* En celular el pie deja espacio para la barra inferior de módulos */}
+        <PieCde className="mx-4 mt-6 border-t pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:mx-6 md:pb-6" />
       </div>
       <BarraMovil nombre={sesion.nombre} rol={sesion.rol} etiquetaRol={ETIQUETA_ROL[sesion.rol]} nivel={<BarraNivel puntos={puntos} className="mb-3" />} />
       <RecorridoBuho idUsuario={sesion.id} rol={sesion.rol} nombre={sesion.nombre} />

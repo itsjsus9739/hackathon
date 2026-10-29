@@ -3,6 +3,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 
 import { LogoCde } from "@/components/marca/logo-cde";
+import { PieCde } from "@/components/marca/pie-cde";
 import { BotonTema } from "@/components/tema/boton-tema";
 import { obtenerSesion } from "@/lib/sesion";
 import { FormularioIngreso, FormularioRegistro } from "./formulario-acceso";
@@ -60,6 +61,7 @@ export default async function PaginaLogin({ searchParams }: { searchParams: Prom
             {registro ? <FormularioRegistro /> : <FormularioIngreso />}
           </div>
         </div>
+        <PieCde className="mt-6 border-t pt-4 text-center" />
       </div>
     </main>
   );
