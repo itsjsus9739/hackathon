@@ -2,8 +2,7 @@ import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
-// Logo oficial del CDE UNAB (extraído del archivo que envió el CDE). Las líneas de la torre son
-// transparentes en el original: aquí se rellenaron de blanco para que se vea igual en modo oscuro.
+// Logo oficial del CDE UNAB, tal como lo envió el CDE (las líneas de la torre son transparentes).
 
 /** Solo el símbolo (cuadrado verde con la torre): menú y barra del celular. */
 export function MarcaCde({ className }: { className?: string }) {
