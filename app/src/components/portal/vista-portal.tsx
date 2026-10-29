@@ -97,7 +97,7 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
           </p>
         </div>
         {hayEjemplos && (
-          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900">
+          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-500/15">
             Incluye datos de ejemplo del CDE
           </Badge>
         )}
@@ -159,7 +159,7 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
                   <span
                     className={cn(
                       "absolute top-4 left-[calc(50%+1.25rem)] hidden h-0.5 w-[calc(100%-2.5rem)] sm:block",
-                      paso.estado === "completada" ? "bg-[var(--primario)]" : "bg-black/10",
+                      paso.estado === "completada" ? "bg-[var(--primario)]" : "bg-foreground/10",
                     )}
                     aria-hidden
                   />
@@ -168,8 +168,8 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
                   className={cn(
                     "relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold",
                     paso.estado === "completada" && "border-[var(--primario)] bg-[var(--primario)] text-white",
-                    paso.estado === "actual" && "border-[var(--primario)] bg-white text-[var(--primario-texto)] ring-4 ring-[var(--primario)]/15",
-                    paso.estado === "pendiente" && "text-muted-foreground border-black/15 bg-white",
+                    paso.estado === "actual" && "border-[var(--primario)] bg-card text-[var(--primario-texto)] ring-4 ring-[var(--primario)]/15",
+                    paso.estado === "pendiente" && "text-muted-foreground border-foreground/15 bg-card",
                   )}
                 >
                   {paso.estado === "completada" ? <Check className="size-4" aria-hidden /> : i + 1}
@@ -262,7 +262,7 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
                       <p className="text-xs font-semibold text-amber-800">Áreas de mejora</p>
                       <ul className="mt-1 flex flex-wrap gap-1.5">
                         {ejes.map((eje) => (
-                          <li key={eje} className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-900">
+                          <li key={eje} className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-900 dark:bg-amber-500/15">
                             {nombreEje(eje)}
                           </li>
                         ))}
@@ -346,7 +346,7 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
                       </p>
                     </div>
                     <div className="w-24 sm:ml-0">
-                      <div className="h-1.5 overflow-hidden rounded-full bg-black/10" role="progressbar" aria-valuenow={c.avance} aria-valuemin={0} aria-valuemax={100} aria-label={`Avance: ${c.avance} %`}>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-foreground/10" role="progressbar" aria-valuenow={c.avance} aria-valuemin={0} aria-valuemax={100} aria-label={`Avance: ${c.avance} %`}>
                         <div className="h-full rounded-full bg-[var(--primario)]" style={{ width: `${c.avance}%` }} />
                       </div>
                       <p className="text-muted-foreground mt-0.5 text-right text-xs tabular-nums">{c.avance} %</p>
@@ -354,7 +354,7 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-xs font-semibold",
-                        c.vencido ? "bg-red-100 text-red-800" : "bg-amber-50 text-amber-900",
+                        c.vencido ? "bg-red-100 text-red-800" : "bg-amber-50 text-amber-900 dark:bg-amber-500/15",
                       )}
                     >
                       {c.vencido ? "Vencido · " : ""}
@@ -411,7 +411,7 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
         {oportunidades.length ? (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {oportunidades.map((o) => (
-              <li key={o.id} className={cn("flex flex-col rounded-2xl border bg-white p-4", o.recomendada && "border-[var(--primario)]/50 ring-1 ring-[var(--primario)]/20")}>
+              <li key={o.id} className={cn("flex flex-col rounded-2xl border bg-card p-4", o.recomendada && "border-[var(--primario)]/50 ring-1 ring-[var(--primario)]/20")}>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Badge variant="secondary">{o.tipo}</Badge>
                   {o.recomendada ? (
@@ -465,7 +465,7 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
                     <p className="font-semibold">
                       {nivel.actual.nombre} · {datos.progreso.puntos} puntos
                     </p>
-                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/10" role="progressbar" aria-valuenow={nivel.progreso} aria-valuemin={0} aria-valuemax={100} aria-label="Progreso hacia el siguiente nivel">
+                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-foreground/10" role="progressbar" aria-valuenow={nivel.progreso} aria-valuemin={0} aria-valuemax={100} aria-label="Progreso hacia el siguiente nivel">
                       <div className="h-full rounded-full bg-[var(--primario)]" style={{ width: `${nivel.progreso}%` }} />
                     </div>
                     <p className="text-muted-foreground mt-0.5 text-xs">
@@ -476,7 +476,7 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
                 {datos.progreso.insignias.length ? (
                   <ul className="flex flex-wrap gap-2">
                     {datos.progreso.insignias.slice(0, 6).map((i) => (
-                      <li key={i.nombre} title={i.nombre} className="flex items-center gap-1.5 rounded-full border bg-white py-0.5 pr-2 pl-0.5 text-xs">
+                      <li key={i.nombre} title={i.nombre} className="flex items-center gap-1.5 rounded-full border bg-card py-0.5 pr-2 pl-0.5 text-xs">
                         <Medalla nivel={i.nivel} criterio={i.criterio} tamano="sm" className="size-6" /> {i.nombre}
                       </li>
                     ))}
@@ -529,22 +529,22 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
 }
 
 const TONO = {
-  rojo: { caja: "border-red-100 bg-red-50/60", icono: "bg-red-100 text-red-700" },
-  ambar: { caja: "border-amber-100 bg-amber-50/60", icono: "bg-amber-100 text-amber-800" },
-  azul: { caja: "border-sky-100 bg-sky-50/60", icono: "bg-sky-100 text-sky-800" },
-  violeta: { caja: "border-violet-100 bg-violet-50/60", icono: "bg-violet-100 text-violet-800" },
+  rojo: { caja: "border-red-100 bg-red-50/60 dark:border-red-500/25 dark:bg-red-500/10", icono: "bg-red-100 text-red-700" },
+  ambar: { caja: "border-amber-100 bg-amber-50/60 dark:border-amber-500/25 dark:bg-amber-500/10", icono: "bg-amber-100 text-amber-800" },
+  azul: { caja: "border-sky-100 bg-sky-50/60 dark:border-sky-500/25 dark:bg-sky-500/10", icono: "bg-sky-100 text-sky-800" },
+  violeta: { caja: "border-violet-100 bg-violet-50/60 dark:border-violet-500/25 dark:bg-violet-500/10", icono: "bg-violet-100 text-violet-800" },
 };
 
 const COLORES = {
   verde: "bg-[var(--verde-suave)] text-[var(--primario-texto)]",
-  azul: "bg-sky-50 text-sky-700",
-  ambar: "bg-amber-50 text-amber-700",
-  violeta: "bg-violet-50 text-violet-700",
+  azul: "bg-sky-50 text-sky-700 dark:bg-sky-500/15",
+  ambar: "bg-amber-50 text-amber-700 dark:bg-amber-500/15",
+  violeta: "bg-violet-50 text-violet-700 dark:bg-violet-500/15",
 };
 
 function Indicador({ icono: Icono, titulo, valor, pie, color }: { icono: LucideIcon; titulo: string; valor: string; pie: React.ReactNode; color: keyof typeof COLORES }) {
   return (
-    <div className="flex items-start justify-between gap-2 rounded-2xl border bg-white p-4">
+    <div className="flex items-start justify-between gap-2 rounded-2xl border bg-card p-4">
       <div className="min-w-0">
         <p className="text-muted-foreground text-xs sm:text-sm">{titulo}</p>
         <p className="mt-1 truncate text-lg font-bold text-[var(--tinta)] sm:text-xl">{valor}</p>

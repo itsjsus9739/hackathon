@@ -101,7 +101,7 @@ export default async function PaginaPortal({ searchParams }: { searchParams: Pro
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {!propio && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm text-sky-900">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm text-sky-900 dark:bg-sky-500/10 dark:text-sky-100">
           <span className="flex items-center gap-2">
             <Eye className="size-4" aria-hidden /> Estás viendo el portal de <b>{datos.empresa.nombre}</b> como {ETIQUETA_ROL[sesion.rol]} · solo lectura
           </span>
@@ -119,7 +119,7 @@ export default async function PaginaPortal({ searchParams }: { searchParams: Pro
               key={e.id}
               href={`/portal?empresa=${e.id}`}
               aria-current={e.id === empresa ? "page" : undefined}
-              className={`rounded-full border px-3 py-1 text-sm ${e.id === empresa ? "border-[var(--primario)] bg-[var(--verde-suave)] font-semibold" : "bg-white"}`}
+              className={`rounded-full border px-3 py-1 text-sm ${e.id === empresa ? "border-[var(--primario)] bg-[var(--verde-suave)] font-semibold" : "bg-card"}`}
             >
               {e.nombre}
             </Link>
@@ -167,7 +167,7 @@ function Selector({ cde, lista, q, rol }: { cde: boolean; lista: EmpresaPermitid
         <ul className="grid gap-2 sm:grid-cols-2">
           {lista.map((e) => (
             <li key={e.id}>
-              <Link href={`/portal?empresa=${e.id}`} className="flex flex-col rounded-xl border bg-white p-3 transition hover:border-[var(--primario)]">
+              <Link href={`/portal?empresa=${e.id}`} className="flex flex-col rounded-xl border bg-card p-3 transition hover:border-[var(--primario)]">
                 <span className="font-semibold">{e.nombre}</span>
                 <span className="text-muted-foreground text-xs">
                   {[e.municipio, e.representante ? `Emprendedor: ${e.representante}` : "Sin emprendedor con cuenta"].filter(Boolean).join(" · ")}
@@ -213,7 +213,7 @@ async function PortalEstudiante({ sinAcceso, lista }: { sinAcceso: boolean; list
         <ul className="grid gap-2">
           {lista.map((e) => (
             <li key={e.id}>
-              <Link href={`/portal?empresa=${e.id}`} className="block rounded-xl border bg-white p-3 font-semibold hover:border-[var(--primario)]">
+              <Link href={`/portal?empresa=${e.id}`} className="block rounded-xl border bg-card p-3 font-semibold hover:border-[var(--primario)]">
                 {e.nombre}
               </Link>
             </li>
