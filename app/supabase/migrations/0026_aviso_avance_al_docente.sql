@@ -1,5 +1,5 @@
 -- =====================================================================
--- CDE UNAB · Avances de los planes: también avisan a quien creó el plan (el docente)
+-- CDE UNAB · Avances de los planes (0026): también avisan a quien creó el plan (el docente)
 --   Así, cuando un estudiante del equipo reporta un avance, su docente se entera.
 -- =====================================================================
 
