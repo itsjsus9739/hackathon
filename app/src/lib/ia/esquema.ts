@@ -19,7 +19,13 @@ TABLAS PRINCIPALES
 - atenciones(id, id_empresa, tipo_actividad, semestre ('2026-1'…), fecha date, notas)   -- acompañamientos del CDE
 - diagnosticos(id, id_empresa, fecha, tipo_iniciativa, estrategia, mercadeo_ventas, financiera, normativa_legal,
   productividad, transformacion_digital (cada área de 1 a 5), promedio, nivel ('Bajo','Medio','Alto'),
-  es_ejemplo boolean (true = diagnóstico inventado para la demo))
+  es_ejemplo boolean (true = diagnóstico inventado para la demo))   -- una empresa puede tener varios: el primero es su línea base
+- catalogo_brechas(id, area ('Productividad','Transformación digital','Gestión financiera','Gestión de mercadeo y ventas',
+  'Legal - Normativo','Gestión estratégica','Seguridad y salud en el trabajo','Sostenibilidad',
+  'Comercio exterior e internacionalización','Organización de estructura','Comunicación y clima organizacional','Otro'),
+  eje_diagnostico (columna del diagnóstico relacionada o null), descripcion)
+- brechas_empresa(id, id_empresa, id_brecha → catalogo_brechas.id, id_proyecto → proyectos_aula.id, semestre ('2026-1'…),
+  detectada_en date, cerrada_en date (null = sigue abierta; con fecha = impacto logrado), evidencia, es_ejemplo boolean)
 - planes_accion(id, id_empresa, id_diagnostico, titulo, objetivo,
   area ('estrategia','mercadeo_ventas','financiera','normativa_legal','productividad','transformacion_digital','otra'),
   id_responsable → perfiles.id, estado ('Pendiente','En curso','Completado','Cancelado'), fecha_inicio, fecha_limite,
@@ -46,6 +52,10 @@ VISTAS ÚTILES
 - historial_empresa(id_empresa, tipo ('atencion','proyecto_aula','cita','diagnostico','evento','plan_accion'), fecha, titulo, detalle, estado)
 - resumen_proyectos(id, nombre, asignatura, semestre, estado, empresa, estudiantes)
 - asistencia_eventos(id, nombre, fecha, inscritos, asistentes, tasa_asistencia)
+- cierre_brechas(area, semestre, detectadas, cerradas, porcentaje_cerradas, empresas)   -- impacto por área y semestre
+- evolucion_diagnosticos(id_empresa, diagnosticos, fecha_inicial, fecha_final, promedio_inicial, promedio_final, cambio_promedio,
+  cambio_estrategia, cambio_mercadeo_ventas, cambio_financiera, cambio_normativa_legal, cambio_productividad,
+  cambio_transformacion_digital, nivel_inicial, nivel_final, es_ejemplo)   -- solo empresas con 2+ diagnósticos
 - atenciones_por_semestre(semestre, atenciones, empresas_unicas)
 - cronograma(… de actividades_cronograma, duracion_dias, situacion)
 - posibles_duplicados(id_empresa_a, nombre_a, nit_a, id_empresa_b, nombre_b, nit_b, similitud)

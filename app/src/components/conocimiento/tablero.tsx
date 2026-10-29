@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Info, TriangleAlert } from "lucide-react";
+import { Info, TrendingUp, TriangleAlert } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Barra, Calidad, contarPor } from "@/lib/conocimiento";
@@ -23,6 +23,12 @@ export type DatosTablero = {
   postulaciones: number;
   proyectos: number;
   atenciones: number;
+  impacto: {
+    brechas: { detectadas: number; cerradas: number; porcentaje: number };
+    cerradasPorArea: Barra[];
+    avance: { empresas: number; cambioPromedio: number; ejes: Barra[] };
+    ejemplo: boolean;
+  };
 };
 
 export function Tablero({ datos: d }: { datos: DatosTablero }) {
@@ -119,6 +125,8 @@ export function Tablero({ datos: d }: { datos: DatosTablero }) {
           </CardContent>
         </Card>
 
+        <Impacto impacto={d.impacto} />
+
         <Distribucion titulo="Empresas por sector" datos={d.porSector} />
         <Distribucion titulo="Empresas por tamaño" datos={d.porTamano} anchoEtiquetas={110} />
         <Distribucion
@@ -163,6 +171,59 @@ function Distribucion({
           <p className="text-muted-foreground flex gap-2 text-xs">
             <Info className="size-4 shrink-0" aria-hidden />
             {nota}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+const decimal = (v: number) => v.toLocaleString("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** ¿Qué cambió en las empresas después del acompañamiento? Brechas cerradas y avance entre diagnósticos. */
+function Impacto({ impacto: i }: { impacto: DatosTablero["impacto"] }) {
+  return (
+    <Card className="lg:col-span-2">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <TrendingUp className="size-4" aria-hidden /> Impacto del acompañamiento
+        </CardTitle>
+        <CardDescription>
+          Qué cambió en las empresas: brechas cerradas sobre la misma lista con que se detectaron y avance entre el primer y el
+          último autodiagnóstico.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { etiqueta: "Brechas detectadas", valor: i.brechas.detectadas.toLocaleString("es-CO") },
+            { etiqueta: "Brechas cerradas", valor: `${i.brechas.cerradas.toLocaleString("es-CO")} (${i.brechas.porcentaje} %)` },
+            { etiqueta: "Empresas con 2+ diagnósticos", valor: i.avance.empresas.toLocaleString("es-CO") },
+            {
+              etiqueta: "Avance promedio",
+              valor: i.avance.empresas ? `${i.avance.cambioPromedio > 0 ? "+" : ""}${decimal(i.avance.cambioPromedio)} / 5` : "—",
+            },
+          ].map((x) => (
+            <div key={x.etiqueta} className="rounded-lg border p-3">
+              <p className="text-muted-foreground text-xs">{x.etiqueta}</p>
+              <p className="text-xl font-semibold tabular-nums">{x.valor}</p>
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div>
+            <h3 className="mb-2 text-sm font-medium">% de brechas cerradas por área</h3>
+            <GraficaBarras datos={i.cerradasPorArea} medida="% cerradas" maximo={100} anchoEtiquetas={170} />
+          </div>
+          <div>
+            <h3 className="mb-2 text-sm font-medium">Avance promedio por eje del diagnóstico</h3>
+            <GraficaBarras datos={i.avance.ejes} medida="puntos de avance sobre 5" decimales={2} anchoEtiquetas={170} />
+          </div>
+        </div>
+        {i.ejemplo && (
+          <p className="flex gap-2 text-xs text-amber-700">
+            <TriangleAlert className="size-4 shrink-0" aria-hidden />
+            Incluye brechas y diagnósticos de línea base de ejemplo para la demostración.
           </p>
         )}
       </CardContent>

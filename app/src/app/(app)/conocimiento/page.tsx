@@ -9,6 +9,7 @@ import {
   type DiagnosticoFila,
   type EmpresaResumen,
 } from "@/lib/conocimiento";
+import { avancePorEje, resumenBrechas } from "@/lib/impacto";
 import { Constants } from "@/lib/supabase/database.types";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
@@ -16,7 +17,7 @@ export const metadata: Metadata = { title: "Conocimiento · CDE Conecta" };
 
 export default async function PaginaConocimiento() {
   const supabase = await crearClienteServidor();
-  const [empresas, diagnosticos, postulaciones, proyectos, atenciones] = await Promise.all([
+  const [empresas, diagnosticos, postulaciones, proyectos, atenciones, brechasEmpresas, evolucion] = await Promise.all([
     supabase
       .from("empresas")
       .select("nit, sector, tamano, formalizacion, municipio, vinculo_unab, id_representante, datos_estimados, contactos_empresa (count)"),
@@ -28,8 +29,10 @@ export default async function PaginaConocimiento() {
     supabase.from("postulaciones").select("estado"),
     supabase.from("proyectos_aula").select("*", { count: "exact", head: true }),
     supabase.from("atenciones").select("*", { count: "exact", head: true }),
+    supabase.from("brechas_empresa").select("cerrada_en, es_ejemplo, catalogo_brechas (area, descripcion)"),
+    supabase.from("evolucion_diagnosticos").select("*"),
   ]);
-  for (const r of [empresas, diagnosticos, postulaciones, proyectos, atenciones]) {
+  for (const r of [empresas, diagnosticos, postulaciones, proyectos, atenciones, brechasEmpresas, evolucion]) {
     if (r.error) throw new Error(`No se pudo consultar el tablero: ${r.error.message}`);
   }
 
@@ -53,6 +56,15 @@ export default async function PaginaConocimiento() {
     null,
   );
 
+  // Impacto: brechas cerradas sobre la misma lista con que se detectaron, y avance entre diagnósticos
+  const filasBrechas = (brechasEmpresas.data ?? [])
+    .filter((b) => b.catalogo_brechas)
+    .map((b) => ({ area: b.catalogo_brechas!.area, descripcion: b.catalogo_brechas!.descripcion, cerrada_en: b.cerrada_en }));
+  const cierre = resumenBrechas(filasBrechas);
+  const avance = avancePorEje(evolucion.data ?? []);
+  const impactoEjemplo =
+    (brechasEmpresas.data ?? []).some((b) => b.es_ejemplo) || (evolucion.data ?? []).some((e) => e.es_ejemplo);
+
   return (
     <Tablero
       datos={{
@@ -74,6 +86,12 @@ export default async function PaginaConocimiento() {
         postulaciones: postulaciones.data?.length ?? 0,
         proyectos: proyectos.count ?? 0,
         atenciones: atenciones.count ?? 0,
+        impacto: {
+          brechas: cierre,
+          cerradasPorArea: cierre.areas.map((a) => ({ etiqueta: a.area, valor: a.porcentaje })),
+          avance,
+          ejemplo: impactoEjemplo,
+        },
       }}
     />
   );

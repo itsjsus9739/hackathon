@@ -11,12 +11,17 @@ import type { ConsultaHecha, RespuestaAsistente } from "@/lib/ia/asistente";
 import { elegirGrafica, formatearCelda } from "@/lib/ia/presentacion";
 import { preguntar } from "./actions";
 
+// Las preguntas que el propio CDE quiere poder responder sin trabajo manual
+// (documento "Los datos del CDE y la caracterización del emprendedor", sección 10)
 const SUGERENCIAS = [
-  "¿Cuántas empresas hay por sector y cuál es el sector más grande?",
+  "¿Cómo está compuesto el tejido empresarial que atiende el CDE por sector, tamaño y municipio?",
+  "¿Cuáles son las brechas más frecuentes en cada sector según el diagnóstico?",
+  "¿Qué parte de las empresas atendidas es comunidad UNAB (estudiantes, graduados y colaboradores)?",
+  "¿Cuántos inscritos a cada evento asistieron realmente?",
+  "¿Qué nivel promedio tienen las empresas en cada eje del diagnóstico y cuánto mejoraron entre el primero y el último?",
+  "¿Qué brechas se cerraron, en qué empresas y en qué semestre?",
+  "¿Qué asignaturas participan más en proyectos de aula y con cuántas empresas?",
   "¿Qué empresas tienen compromisos vencidos y quién es el responsable?",
-  "¿Cuál es la brecha más común en las microempresas según el diagnóstico?",
-  "¿Cuántas postulaciones están seleccionadas y de qué municipios son?",
-  "¿Qué asignaturas tienen más proyectos de aula este semestre?",
 ];
 
 type Turno = { pregunta: string; resultado: RespuestaAsistente | null };
@@ -43,7 +48,7 @@ export function Asistente() {
     <div className="space-y-6">
       {turnos.length === 0 && (
         <div className="space-y-2">
-          <p className="text-muted-foreground text-sm">Prueba con una de estas preguntas:</p>
+          <p className="text-muted-foreground text-sm">Prueba con una de las preguntas que el CDE quiere responder:</p>
           <div className="flex flex-wrap gap-2">
             {SUGERENCIAS.map((s) => (
               <Button key={s} variant="outline" size="sm" className="h-auto py-1.5 text-left whitespace-normal" onClick={() => enviar(s)}>

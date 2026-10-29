@@ -35,6 +35,17 @@ export type Diagnostico = Pick<
   | "nivel"
 >;
 
+export type BrechaEmpresa = {
+  id: string;
+  semestre: string;
+  detectada_en: string;
+  cerrada_en: string | null;
+  evidencia: string | null;
+  es_ejemplo: boolean;
+  area: string;
+  descripcion: string;
+};
+
 export type Postulacion = Pick<Tables<"postulaciones">, "id" | "estado" | "origen" | "origen_registro">;
 
 // Cada área del catálogo debe ser una columna del diagnóstico
@@ -66,7 +77,7 @@ export const obtenerFicha = cache(async (id: string) => {
   if (!esUuid(id)) return null;
   const supabase = await crearClienteServidor();
 
-  const [empresa, historial, diagnostico, postulaciones] = await Promise.all([
+  const [empresa, historial, diagnosticos, postulaciones, brechas] = await Promise.all([
     supabase
       .from("empresas")
       .select("id, nombre, nit, nit_dv, sector, tamano, formalizacion, municipio, departamento, vinculo_unab, descripcion, datos_estimados")
@@ -84,16 +95,20 @@ export const obtenerFicha = cache(async (id: string) => {
       )
       .eq("id_empresa", id)
       .order("fecha", { ascending: false })
-      .order("creado_en", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .order("creado_en", { ascending: false }),
     // Docentes y estudiantes no ven postulaciones (RLS): reciben una lista vacía
     supabase.from("postulaciones").select("id, estado, origen, origen_registro").eq("id_empresa", id),
+    supabase
+      .from("brechas_empresa")
+      .select("id, semestre, detectada_en, cerrada_en, evidencia, es_ejemplo, catalogo_brechas (area, descripcion, orden)")
+      .eq("id_empresa", id)
+      .order("detectada_en", { ascending: true }),
   ]);
 
   if (empresa.error) throw new Error(`No se pudo consultar la empresa: ${empresa.error.message}`);
   if (historial.error) throw new Error(`No se pudo consultar el historial: ${historial.error.message}`);
-  if (diagnostico.error) throw new Error(`No se pudo consultar el diagnóstico: ${diagnostico.error.message}`);
+  if (diagnosticos.error) throw new Error(`No se pudo consultar el diagnóstico: ${diagnosticos.error.message}`);
+  if (brechas.error) throw new Error(`No se pudo consultar las brechas: ${brechas.error.message}`);
   if (postulaciones.error) throw new Error(`No se pudo consultar las postulaciones: ${postulaciones.error.message}`);
   if (!empresa.data) return null;
 
@@ -111,7 +126,12 @@ export const obtenerFicha = cache(async (id: string) => {
   return {
     empresa: empresa.data as EmpresaFicha,
     hitos,
-    diagnostico: diagnostico.data as Diagnostico | null,
+    // El más reciente primero: [0] es el diagnóstico actual; con dos o más se compara contra la línea base
+    diagnostico: (diagnosticos.data?.[0] ?? null) as Diagnostico | null,
+    diagnosticos: (diagnosticos.data ?? []) as Diagnostico[],
+    brechas: (brechas.data ?? [])
+      .filter((b) => b.catalogo_brechas)
+      .map(({ catalogo_brechas: c, ...b }) => ({ ...b, area: c!.area, descripcion: c!.descripcion })) as BrechaEmpresa[],
     postulaciones: (postulaciones.data ?? []) as Postulacion[],
   };
 });

@@ -16,6 +16,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      brechas_empresa: {
+        Row: {
+          cerrada_en: string | null
+          cerrada_por: string | null
+          creado_en: string
+          detectada_en: string
+          es_ejemplo: boolean
+          evidencia: string | null
+          id: string
+          id_brecha: string
+          id_empresa: string
+          id_proyecto: string | null
+          registrada_por: string | null
+          semestre: string
+        }
+        Insert: {
+          cerrada_en?: string | null
+          cerrada_por?: string | null
+          creado_en?: string
+          detectada_en?: string
+          es_ejemplo?: boolean
+          evidencia?: string | null
+          id?: string
+          id_brecha: string
+          id_empresa: string
+          id_proyecto?: string | null
+          registrada_por?: string | null
+          semestre: string
+        }
+        Update: {
+          cerrada_en?: string | null
+          cerrada_por?: string | null
+          creado_en?: string
+          detectada_en?: string
+          es_ejemplo?: boolean
+          evidencia?: string | null
+          id?: string
+          id_brecha?: string
+          id_empresa?: string
+          id_proyecto?: string | null
+          registrada_por?: string | null
+          semestre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brechas_empresa_id_brecha_fkey"
+            columns: ["id_brecha"]
+            isOneToOne: false
+            referencedRelation: "catalogo_brechas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brechas_empresa_id_empresa_fkey"
+            columns: ["id_empresa"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      catalogo_brechas: {
+        Row: {
+          activa: boolean
+          area: string
+          descripcion: string
+          eje_diagnostico: string | null
+          id: string
+          orden: number
+        }
+        Insert: {
+          activa?: boolean
+          area: string
+          descripcion: string
+          eje_diagnostico?: string | null
+          id?: string
+          orden?: number
+        }
+        Update: {
+          activa?: boolean
+          area?: string
+          descripcion?: string
+          eje_diagnostico?: string | null
+          id?: string
+          orden?: number
+        }
+        Relationships: []
+      }
       actividades_cronograma: {
         Row: {
           actividad: string
@@ -1881,6 +1968,38 @@ export type Database = {
       }
     }
     Views: {
+      cierre_brechas: {
+        Row: {
+          area: string | null
+          cerradas: number | null
+          detectadas: number | null
+          empresas: number | null
+          porcentaje_cerradas: number | null
+          semestre: string | null
+        }
+        Relationships: []
+      }
+      evolucion_diagnosticos: {
+        Row: {
+          cambio_estrategia: number | null
+          cambio_financiera: number | null
+          cambio_mercadeo_ventas: number | null
+          cambio_normativa_legal: number | null
+          cambio_productividad: number | null
+          cambio_promedio: number | null
+          cambio_transformacion_digital: number | null
+          diagnosticos: number | null
+          es_ejemplo: boolean | null
+          fecha_final: string | null
+          fecha_inicial: string | null
+          id_empresa: string | null
+          nivel_final: string | null
+          nivel_inicial: string | null
+          promedio_final: number | null
+          promedio_inicial: number | null
+        }
+        Relationships: []
+      }
       asistencia_eventos: {
         Row: {
           asistentes: number | null
@@ -2102,6 +2221,8 @@ export type Database = {
       }
     }
     Functions: {
+      puede_registrar_brechas: { Args: { empresa: string }; Returns: boolean }
+      semestre_de: { Args: { fecha: string }; Returns: string }
       acceso_aprobado: { Args: never; Returns: boolean }
       asignaturas_del_docente: { Args: never; Returns: string[] }
       avatares: {
