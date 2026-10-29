@@ -86,7 +86,7 @@ export default async function PaginaGestion() {
             {manuales.data?.length ? (
               <FormularioInsignia personas={personas} insignias={manuales.data} />
             ) : (
-              <p className="text-muted-foreground text-sm">No hay insignias manuales activas. Aplica la migración 0023.</p>
+              <p className="text-muted-foreground text-sm">No hay insignias manuales activas. Aplica la migración 0025.</p>
             )}
           </CardContent>
         </Card>

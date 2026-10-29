@@ -130,21 +130,25 @@ export async function resolverSolicitud(entrada: z.input<typeof esquemaSolicitud
   refrescar();
 }
 
-const esquemaEmpresa = z.object({ solicitud: z.uuid(), aprobar: z.boolean(), comentario: z.string().trim().max(1000).optional() });
+const esquemaEmpresa = z.object({
+  idSolicitud: z.uuid(),
+  aprobar: z.boolean(),
+  comentario: z.string().max(1000).optional(),
+});
 
-/**
- * Aprobar o rechazar el registro de una empresa (solo el administrador del CDE: lo valida la base).
- * Al aprobar, la base crea la empresa o la vincula al emprendedor, y le avisa.
- */
+/** El admin confirma (vincula o crea la empresa) o rechaza la empresa que registró un emprendedor. */
 export async function resolverSolicitudEmpresa(entrada: z.input<typeof esquemaEmpresa>): Promise<Resultado> {
   const datos = esquemaEmpresa.safeParse(entrada);
   if (!datos.success) return { error: "Datos no válidos." };
-  const { solicitud, aprobar, comentario } = datos.data;
   const supabase = await crearClienteServidor();
-  const { error } = await supabase.rpc("resolver_solicitud_empresa", { solicitud, aprobar, comentario: comentario || undefined });
+  const { error } = await supabase.rpc("resolver_solicitud_empresa", {
+    solicitud: datos.data.idSolicitud,
+    aprobar: datos.data.aprobar,
+    comentario: datos.data.comentario ?? null,
+  });
   if (error) {
     if (error.message.includes("Solo un administrador")) return { error: "Solo un administrador del CDE confirma empresas." };
-    if (error.message.includes("ya fue revisada")) return { error: "Otra persona ya revisó esta solicitud." };
+    if (error.message.includes("ya fue revisada")) return { error: "Otra persona del CDE ya revisó esta solicitud." };
     return { error: "No se pudo resolver la solicitud." };
   }
   refrescar();

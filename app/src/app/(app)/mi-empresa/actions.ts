@@ -57,14 +57,8 @@ export async function actualizarMiEmpresa(_: EstadoMiEmpresa, formulario: FormDa
   return { ok: "Datos actualizados. El CDE recibió un aviso." };
 }
 
-// ---------------------------------------------------------------------
-// Registrar una empresa (nueva o ya existente): la confirma un administrador del CDE
-// (solicitar_empresa, 0027_solicitudes_empresa.sql)
-// ---------------------------------------------------------------------
-export type EstadoSolicitud = { error?: string; ok?: string; valores?: Record<string, string> } | undefined;
-
 const esquemaSolicitud = z.object({
-  nombre: z.string().min(2, "Escribe el nombre de la empresa.").max(200),
+  nombre: z.string().trim().min(2, "Escribe el nombre de tu empresa").max(200),
   nit: z
     .string()
     .regex(/^[\d.\s-]{6,20}$/, "El NIT solo lleva números")
@@ -72,35 +66,31 @@ const esquemaSolicitud = z.object({
   sector: z.string().max(120).nullable(),
   tamano: z.enum(Constants.public.Enums.tamano_empresa).nullable(),
   municipio: z.string().max(120).nullable(),
-  cargo: z.string().max(120).nullable(),
   descripcion: z.string().max(2000).nullable(),
+  cargo: z.string().max(120).nullable(),
 });
 
-const MENSAJES_SOLICITUD = /Ya enviaste|ya está vinculada|Solo los emprendedores|Sector no válido/;
-
-export async function solicitarEmpresa(_: EstadoSolicitud, formulario: FormData): Promise<EstadoSolicitud> {
-  const valores = Object.fromEntries(
-    ["nombre", "nit", "sector", "tamano", "municipio", "cargo", "descripcion"].map((k) => [k, String(formulario.get(k) ?? "")]),
-  );
-  const datos = esquemaSolicitud.safeParse(Object.fromEntries(Object.keys(valores).map((k) => [k, vacio(formulario.get(k))])));
-  if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Revisa los datos.", valores };
-  const d = datos.data;
-  const supabase = await crearClienteServidor();
-  const { error } = await supabase.rpc("solicitar_empresa", {
-    nombre: d.nombre,
-    nit: d.nit ?? undefined,
-    sector: d.sector ?? undefined,
-    tamano: d.tamano ?? undefined,
-    municipio: d.municipio ?? undefined,
-    cargo: d.cargo ?? undefined,
-    descripcion: d.descripcion ?? undefined,
+/** El emprendedor registra su empresa: queda pendiente hasta que un admin del CDE confirme que le pertenece. */
+export async function solicitarEmpresa(_: EstadoMiEmpresa, formulario: FormData): Promise<EstadoMiEmpresa> {
+  const datos = esquemaSolicitud.safeParse({
+    nombre: formulario.get("nombre") ?? "",
+    nit: vacio(formulario.get("nit")),
+    sector: vacio(formulario.get("sector")),
+    tamano: vacio(formulario.get("tamano")),
+    municipio: vacio(formulario.get("municipio")),
+    descripcion: vacio(formulario.get("descripcion")),
+    cargo: vacio(formulario.get("cargo")),
   });
+  if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Revisa los datos." };
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("solicitar_empresa", datos.data);
   if (error) {
-    const conocido = error.message.match(MENSAJES_SOLICITUD);
-    if (conocido) return { error: `${error.message}.`, valores };
-    if (error.message.includes("nit_check")) return { error: "El NIT debe tener entre 6 y 15 dígitos.", valores };
-    return { error: "No se pudo enviar la solicitud. Inténtalo de nuevo.", valores };
+    if (error.message.includes("Ya enviaste")) return { error: "Ya enviaste una solicitud para esta empresa: el CDE la está revisando." };
+    if (error.message.includes("ya está vinculada")) return { error: "Esa empresa ya está vinculada a tu cuenta." };
+    if (error.message.includes("Solo los emprendedores")) return { error: "Solo los emprendedores registran su empresa." };
+    if (error.message.includes("solicitudes_empresa_nit_check")) return { error: "El NIT debe tener entre 6 y 15 dígitos." };
+    return { error: "No se pudo enviar la solicitud. Inténtalo de nuevo." };
   }
   revalidatePath("/mi-empresa");
-  return { ok: "Solicitud enviada. Un administrador del CDE la confirmará y te avisará en la campana." };
+  return { ok: "Enviamos tu empresa al CDE. Un administrador confirmará que te pertenece y te avisaremos en la campana." };
 }

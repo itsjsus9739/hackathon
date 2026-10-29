@@ -6,7 +6,6 @@ import { Building2, Check, CheckCheck, GraduationCap, Loader2, Trash2, UserPlus 
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   borrarNotificacion,
@@ -29,8 +28,8 @@ export type NotificacionVista = {
   fecha: string;
   /** Persona a la que se refiere (registro como docente o solicitud de acceso), con su estado actual */
   docente: { idPerfil: string; rol: string | null; estadoAcceso: string | null; solicitud: string | null } | null;
-  /** Registro de una empresa por un emprendedor, con su estado actual */
-  empresa: { solicitud: string; estado: string | null } | null;
+  /** Empresa que registró un emprendedor, pendiente de confirmar por el admin */
+  empresa: { idSolicitud: string; estado: string; existente: boolean } | null;
 };
 
 export function ListaNotificaciones({ notificaciones, esAdmin }: { notificaciones: NotificacionVista[]; esAdmin: boolean }) {
@@ -211,6 +210,7 @@ function AccionesSolicitud({
   );
 }
 
+/** Empresa registrada por un emprendedor: el admin confirma si le pertenece (o la crea, si es nueva). */
 function AccionesEmpresa({
   n,
   esAdmin,
@@ -222,39 +222,32 @@ function AccionesEmpresa({
   ejecutar: (a: () => Promise<Resultado>) => void;
   pendiente: boolean;
 }) {
-  const [comentario, setComentario] = useState("");
   const e = n.empresa!;
-  const estado =
-    e.estado === "pendiente" ? "Por confirmar." : e.estado === "aprobada" ? "Confirmada: ya está vinculada." : e.estado === "rechazada" ? "No aprobada." : "La solicitud ya no existe.";
-
+  const estado = e.estado === "aprobada" ? "Confirmada." : e.estado === "rechazada" ? "Rechazada." : "Pendiente de confirmación.";
   return (
     <div className="space-y-2 pt-1">
       <Badge variant="outline">{estado}</Badge>
-      {e.estado === "pendiente" && esAdmin && (
-        <>
-          <Input
-            value={comentario}
-            onChange={(ev) => setComentario(ev.target.value)}
-            maxLength={1000}
-            placeholder="Comentario para el emprendedor (opcional)"
-            aria-label="Comentario de la revisión"
-            className="h-8 text-sm"
-          />
+      {e.estado === "pendiente" &&
+        (esAdmin ? (
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" disabled={pendiente} onClick={() => ejecutar(() => resolverSolicitudEmpresa({ solicitud: e.solicitud, aprobar: true, comentario }))}>
-              <Check aria-hidden /> Confirmar empresa
+            <Button size="sm" disabled={pendiente} onClick={() => ejecutar(() => resolverSolicitudEmpresa({ idSolicitud: e.idSolicitud, aprobar: true }))}>
+              <Check aria-hidden /> {e.existente ? "Sí, le pertenece" : "Aprobar y crear empresa"}
             </Button>
             <Button
               size="sm"
               variant="outline"
               disabled={pendiente}
-              onClick={() => ejecutar(() => resolverSolicitudEmpresa({ solicitud: e.solicitud, aprobar: false, comentario }))}
+              onClick={() => {
+                const motivo = window.prompt("¿Por qué no se aprueba? (opcional, el emprendedor lo verá)") ?? undefined;
+                ejecutar(() => resolverSolicitudEmpresa({ idSolicitud: e.idSolicitud, aprobar: false, comentario: motivo }));
+              }}
             >
-              Rechazar
+              {e.existente ? "No le pertenece" : "Rechazar"}
             </Button>
           </div>
-        </>
-      )}
+        ) : (
+          <p className="text-muted-foreground text-xs">Un administrador del CDE confirma las empresas.</p>
+        ))}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { ejecutarHerramienta, HERRAMIENTA, MAX_PASOS, SIN_RESPUESTA, SISTEMA, ty
 // Proveedor de modelos abiertos con API compatible con OpenAI (IA_PROVEEDOR=abierto, el predeterminado).
 // Groq por defecto (plan gratuito); también sirve OpenRouter, Together u Ollama local cambiando IA_BASE_URL.
 export const BASE_URL_PREDETERMINADA = "https://api.groq.com/openai/v1";
-export const MODELO_PREDETERMINADO = "openai/gpt-oss-120b";
+export const MODELO_PREDETERMINADO = "qwen/qwen3-32b";
 
 const argumentos = z.object({ proposito: z.string().default("Consulta"), sql: z.string().min(1) });
 
@@ -38,6 +38,20 @@ const ESPERA_MAXIMA_MS = 20_000;
 const PRESUPUESTO_MS = 45_000;
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Cuánto razona cada familia: gpt-oss poco; Qwen3 nada (su modo «pensar» gasta tokens y tiempo en SQL simple). */
+function razonamiento(modelo: string): { reasoning_effort?: "low" | "none" } {
+  if (modelo.includes("gpt-oss")) return { reasoning_effort: "low" };
+  if (/qwen3/i.test(modelo)) return { reasoning_effort: "none" };
+  return {};
+}
+
+/** Quita el razonamiento que algunos modelos (Qwen3, DeepSeek) dejan en el texto entre <think>…</think>. */
+export const limpiarRespuesta = (texto: string) =>
+  texto
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/^[\s\S]*?<\/think>/i, "") // etiqueta de cierre sin apertura
+    .trim();
+
 /** Segundos que pide esperar el proveedor (cabecera retry-after o "try again in 7.5s" en el mensaje). */
 export function esperaSugerida(e: { headers?: Headers | Record<string, string> | null; message?: string }): number {
   const h = e.headers;
@@ -65,6 +79,7 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
 
   const inicio = Date.now();
   const api = cliente;
+  let extra = razonamiento(modelo);
   const crear = async () => {
     for (;;) {
       try {
@@ -75,10 +90,14 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
           tool_choice: "auto",
           temperature: 0.1, // SQL y cifras: poca creatividad
           max_completion_tokens: MAX_SALIDA,
-          // Modelos con razonamiento (gpt-oss): pensar poco ahorra tokens y tiempo
-          ...(modelo.includes("gpt-oss") ? { reasoning_effort: "low" as const } : {}),
+          ...extra,
         });
       } catch (e) {
+        // Si el proveedor no acepta el parámetro de razonamiento para este modelo, se pide sin él
+        if (e instanceof OpenAI.BadRequestError && "reasoning_effort" in extra && /reasoning/i.test(e.message)) {
+          extra = {};
+          continue;
+        }
         const espera = e instanceof OpenAI.RateLimitError ? esperaSugerida(e) : Infinity;
         if (espera > ESPERA_MAXIMA_MS || Date.now() - inicio + espera > PRESUPUESTO_MS) throw e;
         await dormir(espera + 250);
@@ -95,13 +114,13 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
       const llamadas = (mensaje.tool_calls ?? []).filter((t) => t.type === "function");
 
       if (llamadas.length === 0) {
-        const respuesta = (mensaje.content ?? "").trim();
+        const respuesta = limpiarRespuesta(mensaje.content ?? "");
         if (!respuesta || eleccion.finish_reason === "length") return { ok: false, error: SIN_RESPUESTA, consultas };
         return { ok: true, respuesta, consultas };
       }
 
       // Se reenvía solo lo necesario (sin campos propios del proveedor, como el razonamiento)
-      mensajes.push({ role: "assistant", content: mensaje.content ?? null, tool_calls: llamadas });
+      mensajes.push({ role: "assistant", content: mensaje.content ? limpiarRespuesta(mensaje.content) : null, tool_calls: llamadas });
       for (const llamada of llamadas) {
         let contenido: string;
         try {

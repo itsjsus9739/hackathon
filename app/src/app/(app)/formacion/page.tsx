@@ -37,7 +37,7 @@ export default async function PaginaFormacion() {
   if (!sesion) return null;
   const supabase = await crearClienteServidor();
 
-  // RLS: cada quien recibe lo suyo; las insignias ajenas solo de su círculo (0023)
+  // RLS: cada quien recibe lo suyo; las insignias ajenas solo de su círculo (0025)
   const [resumen, catalogo, ganadas, aportesOk, progreso, recompensas, canjes, movimientos, ranking, directorio] = await Promise.all([
     supabase.from("puntos_usuario").select("puntos, saldo, eventos_asistidos, insignias").eq("id_usuario", sesion.id).maybeSingle(),
     supabase

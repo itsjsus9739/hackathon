@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 const { resultadoParaModelo } = await import("../ia/comun");
-const { esperaSugerida } = await import("../ia/abierto");
+const { esperaSugerida, limpiarRespuesta } = await import("../ia/abierto");
 
 describe("límite de tokens del proveedor de IA", () => {
   it("recorta las filas que se le reenvían al modelo y avisa cuántas quedaron fuera", () => {
@@ -20,5 +20,13 @@ describe("límite de tokens del proveedor de IA", () => {
     expect(esperaSugerida({ headers: null, message: "Rate limit reached ... Please try again in 7.25s." })).toBe(7250);
     expect(esperaSugerida({ headers: null, message: "try again in 450ms" })).toBe(450);
     expect(esperaSugerida({ headers: null, message: "otro" })).toBe(8000);
+  });
+});
+
+describe("respuesta de modelos con razonamiento", () => {
+  it("quita el bloque <think> de Qwen3 y deja solo la respuesta", () => {
+    expect(limpiarRespuesta("<think>\nPrimero cuento las empresas…\n</think>\n\nHay 180 empresas.")).toBe("Hay 180 empresas.");
+    expect(limpiarRespuesta("razonamiento suelto</think>Hay 180 empresas.")).toBe("Hay 180 empresas.");
+    expect(limpiarRespuesta("  Hay 180 empresas.  ")).toBe("Hay 180 empresas.");
   });
 });
