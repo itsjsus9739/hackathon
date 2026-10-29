@@ -16,6 +16,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      certificados: {
+        Row: {
+          anulado_en: string | null
+          codigo: string
+          datos: Json
+          emitido_en: string
+          emitido_por: string | null
+          id: string
+          id_canje: string
+          id_usuario: string
+          motivo_anulacion: string | null
+        }
+        Insert: {
+          anulado_en?: string | null
+          codigo: string
+          datos: Json
+          emitido_en?: string
+          emitido_por?: string | null
+          id?: string
+          id_canje: string
+          id_usuario: string
+          motivo_anulacion?: string | null
+        }
+        Update: {
+          anulado_en?: string | null
+          codigo?: string
+          datos?: Json
+          emitido_en?: string
+          emitido_por?: string | null
+          id?: string
+          id_canje?: string
+          id_usuario?: string
+          motivo_anulacion?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificados_id_canje_fkey"
+            columns: ["id_canje"]
+            isOneToOne: true
+            referencedRelation: "canjes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accesos_portal: {
         Row: {
           creado_en: string
@@ -2373,6 +2417,20 @@ export type Database = {
       }
     }
     Functions: {
+      anular_certificado: { Args: { certificado: string; motivo: string }; Returns: undefined }
+      verificar_certificado: {
+        Args: { codigo: string }
+        Returns: {
+          valido: boolean
+          codigo_certificado: string
+          nombre: string
+          rol: string
+          emitido_en: string
+          datos: Json
+          anulado_en: string | null
+          motivo_anulacion: string | null
+        }[]
+      }
       buscar_empresa_registro: {
         Args: { texto: string }
         Returns: {

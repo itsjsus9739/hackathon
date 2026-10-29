@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { Coins, Info, Medal, Trophy, TrendingUp } from "lucide-react";
 
 import { BotonCanjear } from "@/components/gamificacion/boton-canjear";
@@ -53,7 +54,7 @@ export default async function PaginaFormacion() {
     supabase.from("recompensas").select("id, nombre, descripcion, costo_puntos, stock").eq("activa", true).order("costo_puntos"),
     supabase
       .from("canjes")
-      .select("id, estado, puntos, creado_en, comentario, recompensas (nombre)")
+      .select("id, estado, puntos, creado_en, comentario, recompensas (nombre), certificados (codigo, anulado_en)")
       .eq("id_usuario", sesion.id)
       .order("creado_en", { ascending: false })
       .limit(5),
@@ -264,7 +265,15 @@ export default async function PaginaFormacion() {
                       {c.recompensas?.nombre ?? "Recompensa"} <span className="text-muted-foreground">· {FECHA.format(new Date(c.creado_en))}</span>
                       {c.comentario && <span className="text-muted-foreground block text-xs">{c.comentario}</span>}
                     </span>
-                    <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", ESTADO_CANJE[c.estado])}>{c.estado}</span>
+                    <span className="flex items-center gap-2">
+                      {/* Certificado entregado: la base lo emitió al entregarlo (0033) */}
+                      {c.certificados && !c.certificados.anulado_en && (
+                        <Link href={`/certificado/${c.certificados.codigo}`} className="text-xs font-semibold text-[var(--primario-texto)] underline underline-offset-4">
+                          Descargar certificado
+                        </Link>
+                      )}
+                      <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", ESTADO_CANJE[c.estado])}>{c.estado}</span>
+                    </span>
                   </li>
                 ))}
               </ul>
