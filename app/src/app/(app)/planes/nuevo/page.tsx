@@ -6,8 +6,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { esUuid, mayorBrecha, type Diagnostico } from "@/lib/empresas";
 import { hoyBogota } from "@/lib/planes";
-import { ETIQUETA_ROL, obtenerSesion } from "@/lib/sesion";
+import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
+import { opcionesFormularioPlan, puedeCrearPlanes } from "../opciones";
 import { FormularioPlan } from "./formulario-plan";
 
 export const metadata: Metadata = { title: "Nuevo plan de acción · CDE Conecta" };
@@ -15,21 +16,20 @@ export const metadata: Metadata = { title: "Nuevo plan de acción · CDE Conecta
 export default async function PaginaNuevoPlan({ searchParams }: { searchParams: Promise<{ empresa?: string }> }) {
   const { empresa } = await searchParams;
   const sesion = await obtenerSesion();
-  if (!sesion || !["cde", "admin_cde"].includes(sesion.rol)) {
+  if (!sesion || !puedeCrearPlanes(sesion.rol)) {
     return (
       <Alert className="mx-auto max-w-xl">
         <ShieldAlert aria-hidden />
-        <AlertTitle>Solo para el equipo del CDE</AlertTitle>
-        <AlertDescription>Los planes de acción los crea el CDE con la empresa.</AlertDescription>
+        <AlertTitle>Solo para el CDE y los docentes</AlertTitle>
+        <AlertDescription>Los planes de acción los crean el CDE y los docentes con la empresa.</AlertDescription>
       </Alert>
     );
   }
 
   const idEmpresa = empresa && esUuid(empresa) ? empresa : null;
   const supabase = await crearClienteServidor();
-  const [empresas, personas, diagnostico] = await Promise.all([
-    supabase.from("empresas").select("id, nombre").order("nombre"),
-    supabase.rpc("directorio"),
+  const [opciones, diagnostico] = await Promise.all([
+    opcionesFormularioPlan(sesion),
     idEmpresa
       ? supabase
           .from("diagnosticos")
@@ -42,9 +42,7 @@ export default async function PaginaNuevoPlan({ searchParams }: { searchParams: 
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
   ]);
-  for (const r of [empresas, personas, diagnostico]) {
-    if (r.error) throw new Error(`No se pudo preparar el formulario: ${r.error.message}`);
-  }
+  if (diagnostico.error) throw new Error(`No se pudo preparar el formulario: ${diagnostico.error.message}`);
 
   const diag = diagnostico.data as (Diagnostico & { id: string }) | null;
   const brecha = diag ? mayorBrecha(diag) : null;
@@ -68,8 +66,10 @@ export default async function PaginaNuevoPlan({ searchParams }: { searchParams: 
         </CardHeader>
         <CardContent>
           <FormularioPlan
-            empresas={empresas.data ?? []}
-            personas={(personas.data ?? []).map((p) => ({ id: p.id, etiqueta: `${p.nombre} · ${ETIQUETA_ROL[p.rol]}` }))}
+            empresas={opciones.empresas}
+            personas={opciones.personas}
+            estudiantes={opciones.estudiantes}
+            responsableFijo={opciones.responsableFijo}
             inicial={{
               idEmpresa,
               idResponsable: sesion.id,

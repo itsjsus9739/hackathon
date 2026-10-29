@@ -7,7 +7,8 @@ import { LayoutGrid, LogOut, X } from "lucide-react";
 
 import { cerrarSesion } from "@/app/login/actions";
 import { Button } from "@/components/ui/button";
-import { MODULOS, type RutaModulo } from "@/lib/navegacion";
+import { MODULOS, modulosPara, type RutaModulo } from "@/lib/navegacion";
+import type { Enums } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 import { estaActivo, ICONO_MODULO } from "./iconos";
 
@@ -16,7 +17,7 @@ import { estaActivo, ICONO_MODULO } from "./iconos";
 const PRINCIPALES: RutaModulo[] = ["/", "/empresas", "/eventos", "/coworking"];
 const CORTOS: Partial<Record<RutaModulo, string>> = { "/": "Inicio" };
 
-export function BarraMovil({ nombre, rol }: { nombre: string; rol: string }) {
+export function BarraMovil({ nombre, rol, etiquetaRol }: { nombre: string; rol: Enums<"rol_usuario">; etiquetaRol: string }) {
   const ruta = usePathname();
   const [abierto, setAbierto] = useState(false);
 
@@ -95,14 +96,14 @@ export function BarraMovil({ nombre, rol }: { nombre: string; rol: string }) {
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-semibold">{nombre}</p>
-                <p className="text-muted-foreground text-xs">{rol}</p>
+                <p className="text-muted-foreground text-xs">{etiquetaRol}</p>
               </div>
               <button type="button" className="text-muted-foreground p-2" onClick={() => setAbierto(false)} aria-label="Cerrar">
                 <X className="size-5" />
               </button>
             </div>
             <ul className="grid grid-cols-3 gap-2">
-              {MODULOS.map((m) => {
+              {modulosPara(rol).map((m) => {
                 const Icono = ICONO_MODULO[m.href];
                 const activo = estaActivo(ruta, m.href);
                 return (

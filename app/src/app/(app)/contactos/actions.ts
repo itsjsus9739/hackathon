@@ -78,3 +78,71 @@ export async function dejarAsignatura(entrada: z.input<typeof esquemaDejar>): Pr
   revalidatePath("/contactos");
   return {};
 }
+
+// ---------------------------------------------------------------------
+// Empresas vinculadas a la asignatura (proyectos de aula) y su equipo de estudiantes
+// ---------------------------------------------------------------------
+
+/** Búsqueda acotada (mínimo 3 letras, máximo 8 resultados): el docente no lista todo el directorio. */
+export async function buscarEmpresas(texto: string): Promise<{ id: string; nombre: string; municipio: string | null }[]> {
+  const limpio = texto.trim().slice(0, 80);
+  if (limpio.length < 3) return [];
+  const supabase = await crearClienteServidor();
+  const { data } = await supabase.rpc("buscar_empresas_para_vincular", { texto: limpio });
+  return data ?? [];
+}
+
+const esquemaVinculo = z.object({ id_asignatura: z.uuid(), semestre, id_empresa: z.uuid("Elige una empresa") });
+
+export async function vincularEmpresa(entrada: z.input<typeof esquemaVinculo>): Promise<ResultadoContactos> {
+  const datos = esquemaVinculo.safeParse(entrada);
+  if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Datos no válidos." };
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("vincular_empresa_asignatura", {
+    asignatura: datos.data.id_asignatura,
+    sem: datos.data.semestre,
+    empresa: datos.data.id_empresa,
+  });
+  if (error) {
+    return { error: error.message.includes("Solo el docente") ? "Solo el docente que dicta la asignatura puede vincular empresas." : "No se pudo vincular la empresa." };
+  }
+  revalidatePath("/contactos");
+  return {};
+}
+
+/** Quitar la empresa de la asignatura: el proyecto queda cancelado (se conserva su historia). */
+export async function desvincularEmpresa(idProyecto: string): Promise<ResultadoContactos> {
+  if (!z.uuid().safeParse(idProyecto).success) return { error: "Proyecto no válido." };
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase.from("proyectos_aula").update({ estado: "Cancelado" }).eq("id", idProyecto).select("id");
+  if (error || !data?.length) return { error: "Solo el docente del proyecto puede quitar la empresa." };
+  revalidatePath("/contactos");
+  return {};
+}
+
+const esquemaEquipo = z.object({ id_proyecto: z.uuid(), id_estudiante: z.uuid("Elige un estudiante") });
+
+export async function asignarEstudianteProyecto(entrada: z.input<typeof esquemaEquipo>): Promise<ResultadoContactos> {
+  const datos = esquemaEquipo.safeParse(entrada);
+  if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Datos no válidos." };
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.from("proyecto_estudiantes").insert(datos.data);
+  if (error) return { error: traducir(error.message) };
+  revalidatePath("/contactos");
+  return {};
+}
+
+export async function retirarEstudianteProyecto(entrada: z.input<typeof esquemaEquipo>): Promise<ResultadoContactos> {
+  const datos = esquemaEquipo.safeParse(entrada);
+  if (!datos.success) return { error: "Datos no válidos." };
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase
+    .from("proyecto_estudiantes")
+    .delete()
+    .eq("id_proyecto", datos.data.id_proyecto)
+    .eq("id_estudiante", datos.data.id_estudiante)
+    .select("id_estudiante");
+  if (error || !data?.length) return { error: "Solo el docente del proyecto puede retirar estudiantes." };
+  revalidatePath("/contactos");
+  return {};
+}

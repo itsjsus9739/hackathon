@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, Coins, PlayCircle, X } from "lucide-react";
 
 import { completarRecorrido } from "@/app/(app)/formacion/actions";
 import { Button } from "@/components/ui/button";
-import { NOMBRE_MASCOTA, llaveRecorrido, pasosRecorrido, rutaSprite } from "@/lib/recorrido";
+import { NOMBRE_MASCOTA, TUTORIALES, esTutorial, llaveRecorrido, pasosRecorrido, rutaSprite, type IdTutorial } from "@/lib/recorrido";
 import type { Enums } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 
@@ -35,8 +35,10 @@ export function BotonIniciarRecorrido({ etiqueta = "Hacer el recorrido" }: { eti
 
 // Recorrido guiado por el búho: se abre solo la primera vez y se repite con el botón flotante.
 // Lleva al usuario a cada módulo y resalta el elemento del que habla (atributo data-recorrido).
+// Con ?tutorial=<id> en la URL (tarjetas de «Tutoriales» del inicio) muestra ese tutorial paso a paso.
 export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
-  const pasos = useMemo(() => pasosRecorrido(rol, nombre), [rol, nombre]);
+  const [tutorial, setTutorial] = useState<IdTutorial | null>(null);
+  const pasos = useMemo(() => (tutorial ? TUTORIALES[tutorial].pasos : pasosRecorrido(rol, nombre)), [tutorial, rol, nombre]);
   const llave = llaveRecorrido(idUsuario);
   const router = useRouter();
   const pathname = usePathname();
@@ -97,24 +99,40 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
     };
   }, [menuAbierto]);
 
+  // Tutorial pedido en la URL: se abre y se quita el parámetro (al recargar no vuelve a empezar)
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const pedido = url.searchParams.get("tutorial");
+    if (!esTutorial(pedido)) return;
+    url.searchParams.delete("tutorial");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    setTutorial(pedido);
+    setIndice(0);
+  }, [pathname]);
+
   const terminar = useCallback(() => {
     setIndice(null);
     setCaja(null);
+    if (tutorial) {
+      setTutorial(null); // un tutorial no cuenta como el recorrido general visto
+      return;
+    }
     try {
       localStorage.setItem(llave, new Date().toISOString());
     } catch {
       // ignorar
     }
-  }, [llave]);
+  }, [llave, tutorial]);
 
   const avanzar = useCallback(() => {
     if (indice === null) return;
     if (indice >= pasos.length - 1) {
-      // Recorrido completo: la base suma 20 puntos y la insignia Bienvenida (solo la primera vez)
-      completarRecorrido(pasos.map((p) => p.id));
+      // Recorrido general completo: la base suma 20 puntos y la insignia Bienvenida (solo la primera vez).
+      // Los tutoriales de un módulo no cuentan.
+      if (!tutorial) completarRecorrido(pasos.map((p) => p.id));
       terminar();
     } else setIndice(indice + 1);
-  }, [indice, pasos, terminar]);
+  }, [indice, pasos, terminar, tutorial]);
 
   const retroceder = useCallback(() => {
     if (indice !== null && indice > 0) setIndice(indice - 1);
@@ -208,6 +226,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
               role="menuitem"
               onClick={() => {
                 setMenuAbierto(false);
+                setTutorial(null); // el menú siempre repite el recorrido general
                 setIndice(0);
               }}
               className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-black/5"

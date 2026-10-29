@@ -24,6 +24,7 @@ export type PlanEditable = {
   fecha_inicio: string;
   fecha_limite: string | null;
   compromisos: { id: string; descripcion: string; id_responsable: string | null; fecha_limite: string | null }[];
+  estudiantes: string[];
 };
 
 const sugeridas = (area: string | null, hoy: string): Fila[] =>
@@ -38,11 +39,17 @@ const sugeridas = (area: string | null, hoy: string): Fila[] =>
 export function FormularioPlan({
   empresas,
   personas,
+  estudiantes,
+  responsableFijo = false,
   inicial,
   plan,
 }: {
   empresas: { id: string; nombre: string }[];
   personas: Opcion[];
+  /** Estudiantes que se pueden asignar al equipo del plan */
+  estudiantes: { id: string; nombre: string }[];
+  /** El docente queda como responsable de los planes que crea */
+  responsableFijo?: boolean;
   inicial: { idEmpresa: string | null; idResponsable: string; area: string | null; idDiagnostico: string | null; hoy: string };
   /** Con un plan, el formulario edita en vez de crear */
   plan?: PlanEditable;
@@ -61,6 +68,9 @@ export function FormularioPlan({
         }))
       : sugeridas(inicial.area, inicial.hoy),
   );
+  const [equipo, setEquipo] = useState<Set<string>>(new Set(plan?.estudiantes ?? []));
+  const [buscarEstudiante, setBuscarEstudiante] = useState("");
+  const filtro = buscarEstudiante.trim().toLowerCase();
   // Al editar, nada se reemplaza solo al cambiar el área
   const [editado, setEditado] = useState(Boolean(plan));
 
@@ -88,7 +98,7 @@ export function FormularioPlan({
         </>
       )}
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2 sm:col-span-2">
+        <div className="space-y-2 sm:col-span-2" data-recorrido="plan-empresa">
           <Label htmlFor="id_empresa">Empresa</Label>
           <NativeSelect
             id="id_empresa"
@@ -120,13 +130,21 @@ export function FormularioPlan({
         </div>
         <div className="space-y-2">
           <Label htmlFor="id_responsable">Responsable del plan</Label>
-          <NativeSelect id="id_responsable" name="id_responsable" defaultValue={plan?.id_responsable ?? inicial.idResponsable} required>
-            {personas.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.etiqueta}
-              </option>
-            ))}
-          </NativeSelect>
+          {responsableFijo ? (
+            <>
+              <input type="hidden" name="id_responsable" value={plan?.id_responsable ?? inicial.idResponsable} />
+              <Input id="id_responsable" value={personas.find((p) => p.id === (plan?.id_responsable ?? inicial.idResponsable))?.etiqueta ?? "Tú"} disabled />
+              <p className="text-muted-foreground text-xs">Quedas como responsable; reparte los compromisos con tus estudiantes.</p>
+            </>
+          ) : (
+            <NativeSelect id="id_responsable" name="id_responsable" defaultValue={plan?.id_responsable ?? inicial.idResponsable} required>
+              {personas.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.etiqueta}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
         </div>
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="titulo">Título</Label>
@@ -168,7 +186,58 @@ export function FormularioPlan({
         </div>
       </div>
 
-      <fieldset className="space-y-3">
+      <fieldset className="space-y-2" data-recorrido="plan-estudiantes">
+        <legend className="text-sm font-medium">
+          Estudiantes del plan {equipo.size > 0 && <span className="text-muted-foreground font-normal">({equipo.size} asignados)</span>}
+        </legend>
+        <p className="text-muted-foreground text-xs">
+          Verán el plan, podrán reportar avances y recibir compromisos. Cada uno recibe un aviso al ser asignado.
+        </p>
+        {[...equipo].map((id) => (
+          <input key={id} type="hidden" name="estudiantes" value={id} />
+        ))}
+        {estudiantes.length === 0 ? (
+          <p className="text-muted-foreground rounded-md border border-dashed p-3 text-xs">
+            Aún no hay estudiantes registrados en CDE Conecta. Cuando se registren como estudiantes podrás asignarlos.
+          </p>
+        ) : (
+          <>
+            {estudiantes.length > 6 && (
+              <Input
+                type="search"
+                value={buscarEstudiante}
+                onChange={(e) => setBuscarEstudiante(e.target.value)}
+                placeholder="Buscar estudiante…"
+                aria-label="Buscar estudiante"
+              />
+            )}
+            <div className="max-h-48 overflow-auto rounded-md border">
+              {estudiantes
+                .filter((e) => !filtro || e.nombre.toLowerCase().includes(filtro))
+                .map((e) => (
+                  <label key={e.id} className="hover:bg-muted flex cursor-pointer items-center gap-3 px-3 py-1.5 text-sm">
+                    <input
+                      type="checkbox"
+                      className="size-4"
+                      checked={equipo.has(e.id)}
+                      onChange={(ev) =>
+                        setEquipo((s) => {
+                          const n = new Set(s);
+                          if (ev.target.checked) n.add(e.id);
+                          else n.delete(e.id);
+                          return n;
+                        })
+                      }
+                    />
+                    {e.nombre}
+                  </label>
+                ))}
+            </div>
+          </>
+        )}
+      </fieldset>
+
+      <fieldset className="space-y-3" data-recorrido="plan-compromisos">
         <legend className="text-sm font-medium">Compromisos</legend>
         {filas.map((f, i) => (
           <div key={f.clave} className="grid gap-2 rounded-md border p-3 sm:grid-cols-[minmax(0,1fr)_11rem_9.5rem_auto] sm:items-end">

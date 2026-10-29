@@ -54,7 +54,7 @@ export default async function FichaEmpresaPage({ params }: Props) {
               <ListChecks aria-hidden /> Ver planes de acción
             </Link>
           )}
-          {esCde && (
+          {(esCde || sesion?.rol === "docente") && (
             <Link href={`/planes/nuevo?empresa=${id}`} className={buttonVariants({ size: "sm" })}>
               <Plus aria-hidden /> Nuevo plan de acción
             </Link>

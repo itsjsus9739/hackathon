@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CircleCheck, CircleDashed, Clock, Pencil, TriangleAlert, UserRound } from "lucide-react";
+import { CircleCheck, CircleDashed, Clock, Pencil, TriangleAlert, UserRound, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -22,8 +22,10 @@ export type PlanVista = {
   vencidos: number;
   es_ejemplo: boolean;
   editableEstado: boolean;
-  /** Solo el CDE edita responsables, fechas y compromisos */
+  /** El CDE o el docente que creó el plan editan responsables, fechas y compromisos */
   editablePlan: boolean;
+  /** Estudiantes asignados al plan */
+  equipo: string[];
   /** CDE, responsables y el docente/estudiante del proyecto de aula de la empresa */
   puedeReportar: boolean;
   avances: AvanceVista[];
@@ -97,6 +99,11 @@ export function TarjetaPlan({ plan, hoy }: { plan: PlanVista; hoy: string }) {
                 <UserRound className="size-3.5" aria-hidden /> {plan.responsable ?? "Responsable sin nombre visible"}
               </span>
               {area && <span>Brecha: {area}</span>}
+              {plan.equipo.length > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <Users className="size-3.5" aria-hidden /> Estudiantes: {plan.equipo.join(", ")}
+                </span>
+              )}
               {plan.fecha_limite && <span>Cierre: {textoPlazo(plan.fecha_limite, plan.estado, hoy)}</span>}
               {plan.es_ejemplo && <Badge variant="outline">Ejemplo</Badge>}
             </p>

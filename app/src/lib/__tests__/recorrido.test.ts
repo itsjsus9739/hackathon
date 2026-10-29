@@ -45,3 +45,49 @@ describe("Recorrido del búho por rol", () => {
     expect(pasosRecorrido("emprendedor", "ana@correo.com")[0].titulo).not.toContain("@");
   });
 });
+
+describe("Tutoriales paso a paso", () => {
+  it("Importar y depurar es solo del CDE; los demás ven el del coworking", async () => {
+    const { tutorialesPara } = await import("../recorrido");
+    for (const rol of ["cde", "admin_cde"] as const) expect(tutorialesPara(rol).map((t) => t.id)).toContain("importar");
+    for (const rol of ["docente", "estudiante", "emprendedor"] as const) {
+      const ids = tutorialesPara(rol).map((t) => t.id);
+      expect(ids).not.toContain("importar");
+      if (rol !== "docente") expect(ids).toContain("coworking");
+    }
+  });
+
+  it("crear un plan es para el CDE y los docentes", async () => {
+    const { tutorialesPara } = await import("../recorrido");
+    expect(tutorialesPara("docente").map((t) => t.id)).toContain("crear-plan");
+    expect(tutorialesPara("emprendedor").map((t) => t.id)).not.toContain("crear-plan");
+  });
+
+  it("cada tutorial empieza en su página y termina con la despedida", async () => {
+    const { TUTORIALES, enlaceTutorial, esTutorial } = await import("../recorrido");
+    for (const [id, t] of Object.entries(TUTORIALES)) {
+      expect(t.pasos[0].ruta).toBe(t.inicio);
+      expect(t.pasos.at(-1)?.id).toBe("fin");
+      expect(new Set(t.pasos.map((p) => p.id)).size).toBe(t.pasos.length);
+      expect(esTutorial(id)).toBe(true);
+      expect(enlaceTutorial(id as keyof typeof TUTORIALES)).toBe(`${t.inicio}?tutorial=${id}`);
+    }
+    expect(esTutorial("otro")).toBe(false);
+    expect(esTutorial(null)).toBe(false);
+  });
+});
+
+describe("Menú por rol", () => {
+  it("Importar y el asistente son del CDE; el emprendedor actualiza su empresa", async () => {
+    const { modulosPara } = await import("../navegacion");
+    const rutas = (rol: (typeof ROLES)[number]) => modulosPara(rol).map((m) => m.href);
+    expect(rutas("cde")).toContain("/importar");
+    expect(rutas("cde")).not.toContain("/mi-empresa");
+    for (const rol of ["docente", "estudiante"] as const) {
+      expect(rutas(rol)).not.toContain("/importar");
+      expect(rutas(rol)).not.toContain("/mi-empresa");
+    }
+    expect(rutas("emprendedor")).toContain("/mi-empresa");
+    expect(rutas("emprendedor")).not.toContain("/importar");
+  });
+});

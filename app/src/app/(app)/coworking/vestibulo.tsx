@@ -26,7 +26,7 @@ export function Vestibulo({ salas, error }: { salas: SalaLista[]; error?: string
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-3">
         {error && <p className="text-destructive text-sm">{error}</p>}
-        <Card>
+        <Card data-recorrido="coworking-principal">
           <CardContent className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-medium">Sala principal</p>
@@ -47,7 +47,7 @@ export function Vestibulo({ salas, error }: { salas: SalaLista[]; error?: string
         ))}
       </div>
 
-      <Card className="h-fit">
+      <Card className="h-fit" data-recorrido="coworking-crear">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Plus className="size-4" aria-hidden /> Crear sala

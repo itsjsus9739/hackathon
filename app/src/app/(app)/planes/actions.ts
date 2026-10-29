@@ -75,6 +75,7 @@ const esquemaPlan = z
       )
       .min(1, "Agrega al menos un compromiso")
       .max(20),
+    estudiantes: z.array(z.uuid()).max(50),
   })
   .refine((p) => !p.fecha_limite || p.fecha_limite >= p.fecha_inicio, {
     message: "La fecha límite no puede ser anterior al inicio",
@@ -104,6 +105,7 @@ function leerFormulario(formulario: FormData) {
     id_responsable: vacio(formulario.get("id_responsable")),
     fecha_inicio: vacio(formulario.get("fecha_inicio")),
     fecha_limite: vacio(formulario.get("fecha_limite")),
+    estudiantes: [...new Set(formulario.getAll("estudiantes").filter((v): v is string => typeof v === "string" && v !== ""))],
     compromisos: descripciones
       .map((d, i) => ({
         id: vacio(ids[i]),
@@ -115,11 +117,34 @@ function leerFormulario(formulario: FormData) {
   });
 }
 
+/** Deja el equipo del plan igual a la lista pedida (agrega y quita estudiantes). Devuelve el error, si hubo. */
+async function sincronizarEquipo(
+  supabase: Awaited<ReturnType<typeof crearClienteServidor>>,
+  idPlan: string,
+  estudiantes: string[],
+): Promise<string | null> {
+  const { data: actuales, error } = await supabase.from("plan_estudiantes").select("id_estudiante").eq("id_plan", idPlan);
+  if (error) return "no se pudo leer el equipo de estudiantes.";
+  const ya = new Set((actuales ?? []).map((a) => a.id_estudiante));
+  const pedidos = new Set(estudiantes);
+  const nuevos = estudiantes.filter((id) => !ya.has(id));
+  const quitados = [...ya].filter((id) => !pedidos.has(id));
+  if (nuevos.length) {
+    const { error: e } = await supabase.from("plan_estudiantes").insert(nuevos.map((id_estudiante) => ({ id_plan: idPlan, id_estudiante })));
+    if (e) return "no se pudo asignar a todos los estudiantes.";
+  }
+  if (quitados.length) {
+    const { error: e } = await supabase.from("plan_estudiantes").delete().eq("id_plan", idPlan).in("id_estudiante", quitados);
+    if (e) return "no se pudo quitar a todos los estudiantes.";
+  }
+  return null;
+}
+
 export async function crearPlan(_: EstadoAccion, formulario: FormData): Promise<EstadoAccion> {
   const datos = leerFormulario(formulario);
   if (!datos.success) return { error: datos.error.issues[0].message };
 
-  const { compromisos, ...plan } = datos.data;
+  const { compromisos, estudiantes, ...plan } = datos.data;
   const supabase = await crearClienteServidor();
   const { data: creado, error } = await supabase.from("planes_accion").insert(plan).select("id").single();
   if (error) return { error: traducir(error.message) };
@@ -132,6 +157,8 @@ export async function crearPlan(_: EstadoAccion, formulario: FormData): Promise<
     await supabase.from("planes_accion").delete().eq("id", creado.id);
     return { error: traducir(errorCompromisos.message) };
   }
+  const errorEquipo = await sincronizarEquipo(supabase, creado.id, estudiantes);
+  if (errorEquipo) return { error: `El plan se creó, pero ${errorEquipo}` };
 
   revalidatePath("/planes");
   revalidatePath(`/empresas/${plan.id_empresa}`);
@@ -150,7 +177,7 @@ export async function editarPlan(_: EstadoAccion, formulario: FormData): Promise
   if (!datos.success) return { error: datos.error.issues[0].message };
 
   // La empresa y el diagnóstico de origen no cambian al editar
-  const { compromisos, titulo, objetivo, area, id_responsable, fecha_inicio, fecha_limite } = datos.data;
+  const { compromisos, estudiantes, titulo, objetivo, area, id_responsable, fecha_inicio, fecha_limite } = datos.data;
   const cambios = { titulo, objetivo, area, id_responsable, fecha_inicio, fecha_limite };
   const supabase = await crearClienteServidor();
   const { data: actual, error: errorPlan } = await supabase
@@ -187,6 +214,9 @@ export async function editarPlan(_: EstadoAccion, formulario: FormData): Promise
     const { error } = await supabase.from("compromisos").delete().in("id", quitados).eq("id_plan", idPlan.data);
     if (error) return { error: traducir(error.message) };
   }
+
+  const errorEquipo = await sincronizarEquipo(supabase, idPlan.data, estudiantes);
+  if (errorEquipo) return { error: `Los cambios se guardaron, pero ${errorEquipo}` };
 
   revalidatePath("/planes");
   revalidatePath(`/empresas/${actual.id_empresa}`);

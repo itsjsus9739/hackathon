@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -11,6 +12,8 @@ export const metadata: Metadata = { title: "Importar y depurar · CDE Conecta" }
 
 export default async function PaginaImportar() {
   const sesion = await obtenerSesion();
+  // El emprendedor no importa bases: actualiza los datos de su propia empresa
+  if (sesion?.rol === "emprendedor") redirect("/mi-empresa");
   if (!sesion || !["cde", "admin_cde"].includes(sesion.rol)) {
     return (
       <Alert className="mx-auto max-w-xl">

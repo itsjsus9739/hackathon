@@ -43,7 +43,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
             <span className="text-muted-foreground block text-xs leading-snug">Centro de Desarrollo Empresarial</span>
           </span>
         </Link>
-        <MenuLateral />
+        <MenuLateral rol={sesion.rol} />
         <div className="mt-auto flex items-center gap-2.5 rounded-2xl border p-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7ed8a9] to-[var(--primario)] text-sm font-bold text-white">
             {iniciales(sesion.nombre)}
@@ -75,7 +75,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
         </div>
         <main className="min-w-0 flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:pt-0 md:pb-6">{children}</main>
       </div>
-      <BarraMovil nombre={sesion.nombre} rol={ETIQUETA_ROL[sesion.rol]} />
+      <BarraMovil nombre={sesion.nombre} rol={sesion.rol} etiquetaRol={ETIQUETA_ROL[sesion.rol]} />
       <RecorridoBuho idUsuario={sesion.id} rol={sesion.rol} nombre={sesion.nombre} />
       <Celebraciones idUsuario={sesion.id} />
     </div>

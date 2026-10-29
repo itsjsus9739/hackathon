@@ -34,21 +34,22 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
   let consultaPlanes = supabase.from("avance_planes").select("*").order("fecha_limite", { ascending: true, nullsFirst: false });
   if (empresa) consultaPlanes = consultaPlanes.eq("id_empresa", empresa);
   const esAcademia = sesion?.rol === "docente" || sesion?.rol === "estudiante";
-  const [planes, compromisos, ejemplos, editables, directorio, avances, comunidad, misProyectos] = await Promise.all([
+  const [planes, compromisos, ejemplos, editables, directorio, avances, comunidad, misProyectos, equipos] = await Promise.all([
     consultaPlanes,
     supabase
       .from("compromisos")
       .select("id, id_plan, descripcion, id_responsable, fecha_limite, estado, avance")
       .order("fecha_limite", { ascending: true, nullsFirst: false }),
-    supabase.from("planes_accion").select("id").eq("es_ejemplo", true),
+    supabase.from("planes_accion").select("id, es_ejemplo, creado_por"),
     supabase.rpc("compromisos_editables"),
     supabase.rpc("directorio"),
     supabase.from("avances_plan").select("id, id_plan, id_autor, texto, creado_en").order("creado_en", { ascending: false }),
     supabase.rpc("personas_comunidad"),
     // Docentes y estudiantes reportan avances en los planes de las empresas de sus proyectos de aula
     esAcademia ? supabase.from("proyectos_aula").select("id_empresa") : Promise.resolve({ data: [], error: null }),
+    supabase.from("plan_estudiantes").select("id_plan, id_estudiante"),
   ]);
-  for (const r of [planes, compromisos, ejemplos, editables, directorio, avances, comunidad, misProyectos]) {
+  for (const r of [planes, compromisos, ejemplos, editables, directorio, avances, comunidad, misProyectos, equipos]) {
     if (r.error) throw new Error(`No se pudieron consultar los planes: ${r.error.message}`);
   }
 
@@ -58,7 +59,9 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
   const empresasDeMisProyectos = new Set((misProyectos.data ?? []).map((p) => p.id_empresa));
   const formatoAvance = new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "America/Bogota" });
   const puedeEditar = new Set(editables.data ?? []);
-  const esEjemplo = new Set((ejemplos.data ?? []).map((p) => p.id));
+  const esEjemplo = new Set((ejemplos.data ?? []).filter((p) => p.es_ejemplo).map((p) => p.id));
+  const creador = new Map((ejemplos.data ?? []).map((p) => [p.id, p.creado_por]));
+  const puedeCrear = esCde || sesion?.rol === "docente";
 
   const todos: (PlanVista & { esMio: boolean })[] = (planes.data ?? [])
     .filter((p) => p.id && p.id_empresa)
@@ -79,7 +82,10 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
         es_ejemplo: esEjemplo.has(p.id!),
         esMio: p.id_responsable === sesion?.id || propios.some((c) => c.id_responsable === sesion?.id),
         editableEstado: esCde || p.id_responsable === sesion?.id,
-        editablePlan: esCde,
+        editablePlan: esCde || (creador.get(p.id!) ?? null) === sesion?.id,
+        equipo: (equipos.data ?? [])
+          .filter((e) => e.id_plan === p.id)
+          .map((e) => personas.get(e.id_estudiante)?.nombre ?? "Estudiante"),
         puedeReportar:
           esCde ||
           p.id_responsable === sesion?.id ||
@@ -155,7 +161,7 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
             )}
           </p>
         </div>
-        {esCde && (
+        {puedeCrear && (
           <Link href={empresa ? `/planes/nuevo?empresa=${empresa}` : "/planes/nuevo"} className={buttonVariants()}>
             <Plus aria-hidden /> Nuevo plan
           </Link>
@@ -198,7 +204,7 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
       ) : (
         <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
           No hay planes en esta vista.
-          {esCde && " Crea uno desde la Ficha 360° de una empresa o con «Nuevo plan»."}
+          {puedeCrear && " Crea uno con «Nuevo plan»."}
         </p>
       )}
     </div>

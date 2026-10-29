@@ -10,28 +10,26 @@ import {
   Sparkles,
   Ticket,
   Upload,
+  Contact,
+  PenLine,
 } from "lucide-react";
 
 import { tipoEvento } from "@/lib/eventos";
+import { modulosPara } from "@/lib/navegacion";
+import { NOMBRE_MASCOTA, enlaceTutorial, tutorialesPara } from "@/lib/recorrido";
 import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
 const ACCESOS = [
   { href: "/empresas", icono: Building2, titulo: "Empresas", texto: "Ficha única e historial de cada empresa" },
   { href: "/importar", icono: Upload, titulo: "Importar Excel", texto: "Valida NIT con DV y fusiona duplicados" },
+  { href: "/mi-empresa", icono: PenLine, titulo: "Mis datos empresariales", texto: "Actualiza sector, tamaño y lo que vendes" },
   { href: "/planes", icono: Flag, titulo: "Planes de acción", texto: "Compromisos, responsables y avance" },
-  { href: "/eventos", icono: CalendarPlus, titulo: "Agendar una cita", texto: "Elige fecha y avisa a la empresa" },
-  { href: "/eventos", icono: Ticket, titulo: "Eventos", texto: "Inscripción y asistencia con QR" },
+  { href: "/eventos", icono: CalendarPlus, titulo: "Agendar una cita", texto: "Elige fecha e invita a quien necesites" },
+  { href: "/eventos", icono: Ticket, titulo: "Eventos", texto: "Inscríbete y confirma tu asistencia" },
+  { href: "/contactos", icono: Contact, titulo: "Mis contactos", texto: "Docentes, estudiantes y empresas" },
   { href: "/asistente", icono: Sparkles, titulo: "Preguntar a la IA", texto: "Consulta tus datos en lenguaje natural" },
-];
-
-// Guías cortas de la plataforma; se completan con las próximas capacitaciones del calendario
-const TUTORIALES = [
-  { href: "/importar", titulo: "Importar y depurar un Excel", texto: "Del archivo del CDE a fichas sin duplicados" },
-  { href: "/planes/nuevo", titulo: "Crear un plan de acción", texto: "Compromisos, responsables y fechas" },
-  { href: "/eventos", titulo: "Agendar citas y eventos", texto: "Invita, confirma y toma asistencia" },
-  { href: "/conocimiento", titulo: "Leer el tablero de conocimiento", texto: "Brechas por sector e impacto" },
-];
+] as const;
 
 const ZONA = "America/Bogota";
 const FECHA = new Intl.DateTimeFormat("es-CO", { weekday: "long", day: "numeric", month: "long", timeZone: ZONA });
@@ -109,6 +107,10 @@ export default async function Inicio() {
   ];
 
   const primerNombre = sesion.nombre.includes("@") ? "" : sesion.nombre.split(" ")[0];
+  // Cada rol ve sus accesos (Importar es del CDE; el emprendedor actualiza su empresa) y sus tutoriales
+  const permitidas = new Set<string>(modulosPara(sesion.rol).map((m) => m.href));
+  const accesos = ACCESOS.filter((a) => permitidas.has(a.href)).slice(0, 6);
+  const tutoriales = tutorialesPara(sesion.rol);
   const n = pendientes.length;
 
   return (
@@ -210,7 +212,7 @@ export default async function Inicio() {
         <section>
           <h2 className="font-semibold text-[var(--tinta)]">Accesos rápidos</h2>
           <div className="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-3">
-            {ACCESOS.map(({ href, icono: Icono, titulo, texto }) => (
+            {accesos.map(({ href, icono: Icono, titulo, texto }) => (
               <Link
                 key={titulo}
                 href={href}
@@ -241,7 +243,8 @@ export default async function Inicio() {
           {(capacitaciones.data ?? []).map((c) => (
             <Link
               key={c.id}
-              href={`/eventos?e=${c.id}`}
+              // Abre el evento y el búho explica cómo inscribirse
+              href={`/eventos?e=${c.id}&tutorial=inscribirse-evento`}
               className="flex flex-col rounded-2xl border bg-white p-5 transition hover:border-[var(--primario)]"
             >
               <span className="flex items-center justify-between">
@@ -260,10 +263,11 @@ export default async function Inicio() {
               <span className="mt-auto pt-4 text-sm font-semibold text-[var(--primario-texto)]">Inscribirme</span>
             </Link>
           ))}
-          {TUTORIALES.slice(0, 4 - (capacitaciones.data?.length ?? 0)).map((t) => (
+          {tutoriales.slice(0, 4 - (capacitaciones.data?.length ?? 0)).map((t) => (
             <Link
-              key={t.titulo}
-              href={t.href}
+              key={t.id}
+              // El búho guía el tutorial paso a paso en la página
+              href={enlaceTutorial(t.id)}
               className="flex flex-col rounded-2xl border bg-white p-5 transition hover:border-[var(--primario)]"
             >
               <span className="flex items-center justify-between">
@@ -275,8 +279,8 @@ export default async function Inicio() {
                 </span>
               </span>
               <span className="mt-4 font-semibold text-[var(--tinta)]">{t.titulo}</span>
-              <span className="text-muted-foreground mt-1 text-sm">{t.texto}</span>
-              <span className="mt-auto pt-4 text-sm font-semibold text-[var(--primario-texto)]">Empezar</span>
+              <span className="text-muted-foreground mt-1 text-sm">{t.resumen}</span>
+              <span className="mt-auto pt-4 text-sm font-semibold text-[var(--primario-texto)]">Empezar con {NOMBRE_MASCOTA}</span>
             </Link>
           ))}
         </div>
