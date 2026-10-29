@@ -25,6 +25,7 @@ import {
   type Presencia,
 } from "@/lib/coworking/tipos";
 import { crearTransporteLocal, crearTransporteSupabase, type Movimiento, type Transporte } from "@/lib/coworking/transporte";
+import { recorrer, segundosEntre, VELOCIDAD_BUHO, VELOCIDAD_PERSONA } from "@/lib/coworking/movimiento";
 import { hayTurn, Voz, type EstadoPar } from "@/lib/coworking/voz";
 import { NOMBRE_MASCOTA } from "@/lib/recorrido";
 import { crearClienteNavegador } from "@/lib/supabase/client";
@@ -33,8 +34,6 @@ type Punto = { x: number; y: number };
 /** Presencia + estado de la animación local (px/py = posición dibujada, ruta = baldosas por recorrer) */
 type Movil = Presencia & { px: number; py: number; ruta: Punto[]; pose: Pose; sentado: Objeto | null; ultimoMovimiento?: number };
 
-const VELOCIDAD = 0.08; // baldosas por cuadro
-const VELOCIDAD_BUHO = 0.03;
 // Lo que dice Banu al hacerle clic (en orden, y vuelve a empezar)
 const CONSEJOS = [
   "¡Hola! Soy Banu, el búho del CDE. Haz clic en mí cuando necesites una idea.",
@@ -71,24 +70,12 @@ const aPresencia = (m: Movil): Presencia => ({
   silenciado: m.silenciado,
 });
 
-/** Avanza un cuadro por la ruta; al llegar a una silla elegida, se sienta. Devuelve si se movió. */
-function avanzar(u: Movil, vel: number): boolean {
-  const destino = u.ruta[0];
-  if (!destino) return false;
-  const dx = destino.x - u.px;
-  const dy = destino.y - u.py;
-  const d = Math.hypot(dx, dy);
-  if (d > 0.001) u.pose = poseDesde(dx, dy);
-  if (d < vel + 0.005) {
-    u.px = destino.x;
-    u.py = destino.y;
-    u.ruta.shift();
-    if (!u.ruta.length && u.silla) u.sentado = sillaPorClave(u.silla);
-  } else {
-    u.px += (dx / d) * vel;
-    u.py += (dy / d) * vel;
-  }
-  return true;
+/** Avanza por la ruta lo que corresponde a `segundos`; al llegar a una silla elegida, se sienta. Devuelve si se movió. */
+function avanzar(u: Movil, segundos: number): boolean {
+  const { movio, direccion, termino } = recorrer(u, VELOCIDAD_PERSONA * segundos);
+  if (direccion) u.pose = poseDesde(direccion.x, direccion.y);
+  if (termino && u.silla) u.sentado = sillaPorClave(u.silla);
+  return movio;
 }
 
 type Props = {
@@ -274,25 +261,17 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
       silenciado: m.silenciado,
     });
 
-    const moverBuho = () => {
+    const moverBuho = (segundos: number) => {
       const b = buho.current;
       if (b.mensaje && Date.now() > b.ocultar) b.mensaje = null;
-      const destino = b.ruta[0];
-      if (destino) {
-        const dx = destino.x - b.px;
-        const dy = destino.y - b.py;
-        const d = Math.hypot(dx, dy);
-        if (d < VELOCIDAD_BUHO + 0.005) {
-          b.px = destino.x;
-          b.py = destino.y;
-          b.ruta.shift();
-          if (!b.ruta.length) b.quieto = Date.now();
-        } else {
-          b.px += (dx / d) * VELOCIDAD_BUHO;
-          b.py += (dy / d) * VELOCIDAD_BUHO;
+      if (b.ruta.length) {
+        const { direccion, termino } = recorrer(b, VELOCIDAD_BUHO * segundos);
+        if (direccion) {
+          const { x: dx, y: dy } = direccion;
           b.pose = `${dx + dy >= 0 ? "frente" : "espalda"}${dx - dy < 0 ? "_izq" : "_der"}` as PoseBuho;
         }
-        return true;
+        if (termino) b.quieto = Date.now();
+        return !termino;
       }
       b.pose = "sentado";
       // Cada 7 s, si nadie le habla, camina a otro punto libre de la sala
@@ -306,13 +285,17 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
       return false;
     };
 
-    const bucle = () => {
+    // Tiempo real entre cuadros: la velocidad no depende de los hercios del monitor
+    let anterior: number | null = null;
+    const bucle = (ahora: number = performance.now()) => {
+      const segundos = anterior === null ? 0 : segundosEntre(anterior, ahora);
+      anterior = ahora;
       const e = escena.current;
       if (e) {
         const lista: Personaje[] = [];
-        for (const o of otros.current.values()) lista.push(personajeDe(o, false, avanzar(o, VELOCIDAD)));
-        lista.push(personajeDe(yo.current, true, avanzar(yo.current, VELOCIDAD)));
-        const moviendose = moverBuho();
+        for (const o of otros.current.values()) lista.push(personajeDe(o, false, avanzar(o, segundos)));
+        lista.push(personajeDe(yo.current, true, avanzar(yo.current, segundos)));
+        const moviendose = moverBuho(segundos);
         const b = buho.current;
         const mascota: Mascota = { px: b.px, py: b.py, pose: b.pose, moviendose, mensaje: b.mensaje };
         e.dibujar(lista, mascota);
