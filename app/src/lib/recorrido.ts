@@ -7,7 +7,7 @@ import type { Enums } from "@/lib/supabase/database.types";
 export const NOMBRE_MASCOTA = "Banu";
 
 // Cambiar la versión hace que todos vuelvan a ver el recorrido al entrar.
-export const VERSION_RECORRIDO = 1;
+export const VERSION_RECORRIDO = 2;
 
 export type SpriteRecorrido =
   | "bienvenido"
@@ -62,7 +62,6 @@ const eventos = (texto: string): PasoRecorrido => ({
   texto,
   sprite: "puntos-ganados",
   ruta: "/eventos",
-  proximamente: true,
 });
 
 const formacion = (texto: string): PasoRecorrido => ({
@@ -71,13 +70,13 @@ const formacion = (texto: string): PasoRecorrido => ({
   texto,
   sprite: "nueva-insignia",
   ruta: "/formacion",
-  proximamente: true,
+  objetivo: "formacion-progreso",
 });
 
 const ayuda: PasoRecorrido = {
   id: "ayuda",
   titulo: "¿Me necesitas otra vez?",
-  texto: `Cuando quieras repetir el recorrido, toca este botón y ${NOMBRE_MASCOTA} vuelve a explicarte todo.`,
+  texto: `Toca este botón cuando quieras: repito el recorrido o te explico cómo ganar puntos. Y al terminar este recorrido ganas tus primeros 20 puntos.`,
   sprite: "necesitas-ayuda",
   objetivo: "boton-ayuda",
 };
@@ -131,7 +130,9 @@ const pasosCde = (esAdmin: boolean): PasoRecorrido[] => [
     ruta: "/contactos",
   },
   eventos("Publica eventos y capacitaciones, y confirma la asistencia escaneando el código QR de cada participante."),
-  formacion("Crea microcursos y recompensas: los emprendedores ganan puntos y completan sus datos a cambio."),
+  formacion(
+    "Tu nivel y tus puntos. En «Aportes por validar» y «Gestión del CDE» validas aportes, entregas canjes, otorgas insignias y ajustas puntos.",
+  ),
   {
     id: "conocimiento",
     titulo: "Conocimiento",
@@ -197,7 +198,9 @@ const pasosDocente: PasoRecorrido[] = [
     ruta: "/conocimiento",
   },
   eventos("Inscríbete en conversatorios y capacitaciones, y lleva a tus estudiantes a los eventos del CDE."),
-  formacion("Recomienda microcursos a tus estudiantes y sigue su progreso en puntos y niveles."),
+  formacion(
+    "Valida los aportes de tus estudiantes en «Aportes por validar»: cada aporte validado les suma puntos. Tú también ganas puntos e insignias en los eventos.",
+  ),
   ayuda,
   despedida("Ya sabes dónde seguir tus proyectos de aula. ¡Éxitos con tus estudiantes!"),
 ];
@@ -223,7 +226,9 @@ const pasosEstudiante: PasoRecorrido[] = [
     objetivo: "planes-filtros",
   },
   eventos("Inscríbete en eventos y capacitaciones. Al asistir escaneas el QR y ganas puntos."),
-  formacion("Haz microcursos, gana puntos, sube de nivel y desbloquea insignias. ¡Entra al ranking!"),
+  formacion(
+    "Registra tus aportes al proyecto: cuando tu docente los valida ganas puntos, subes de nivel y desbloqueas insignias. ¡Entra al ranking!",
+  ),
   ayuda,
   despedida("¡Todo listo! Cumple tus compromisos y acumula puntos en el camino."),
 ];
@@ -268,7 +273,9 @@ const pasosEmprendedor: PasoRecorrido[] = [
     ruta: "/contactos",
   },
   eventos("Inscríbete en capacitaciones y networking. Al asistir escaneas el QR y ganas puntos."),
-  formacion("Completa microcursos y los datos de tu empresa para ganar puntos y canjearlos por recompensas reales del CDE."),
+  formacion(
+    "Gana puntos en capacitaciones y eventos, sube de nivel, colecciona insignias y canjéalas por mentorías o un día de coworking.",
+  ),
   ayuda,
   despedida("¡Bienvenido a la ruta del CDE! Cada paso que das suma puntos."),
 ];

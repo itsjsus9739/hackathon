@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Coins, PlayCircle, X } from "lucide-react";
 
+import { completarRecorrido } from "@/app/(app)/formacion/actions";
 import { Button } from "@/components/ui/button";
 import { NOMBRE_MASCOTA, llaveRecorrido, pasosRecorrido, rutaSprite } from "@/lib/recorrido";
 import type { Enums } from "@/lib/supabase/database.types";
@@ -16,6 +18,20 @@ type Caja = { top: number; left: number; width: number; height: number };
 const ANCHO_BURBUJA = 360;
 const MARGEN = 16;
 const HOLGURA = 6; // espacio alrededor del elemento resaltado
+const EVENTO_INICIAR = "recorrido:iniciar";
+export const EVENTO_FIN_RECORRIDO = "recorrido:fin";
+
+/** Mientras el recorrido está abierto, otras ventanas (p. ej. las celebraciones) esperan. */
+export const recorridoAbierto = () => document.documentElement.dataset.recorrido === "abierto";
+
+/** Botón para abrir el recorrido desde cualquier pantalla (p. ej. el estado vacío de Formación). */
+export function BotonIniciarRecorrido({ etiqueta = "Hacer el recorrido" }: { etiqueta?: string }) {
+  return (
+    <Button size="sm" onClick={() => window.dispatchEvent(new Event(EVENTO_INICIAR))}>
+      <PlayCircle aria-hidden /> {etiqueta}
+    </Button>
+  );
+}
 
 // Recorrido guiado por el búho: se abre solo la primera vez y se repite con el botón flotante.
 // Lleva al usuario a cada módulo y resalta el elemento del que habla (atributo data-recorrido).
@@ -29,6 +45,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
   const [caja, setCaja] = useState<Caja | null>(null);
   const [ventana, setVentana] = useState({ ancho: 1280, alto: 800 });
   const [altoBurbuja, setAltoBurbuja] = useState(280);
+  const [menuAbierto, setMenuAbierto] = useState(false);
   const burbuja = useRef<HTMLDivElement>(null);
   const botonSiguiente = useRef<HTMLButtonElement>(null);
 
@@ -43,8 +60,42 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
     } catch {
       // sin almacenamiento (modo privado): no se abre solo, queda el botón
     }
-    if (!visto) setIndice(0);
+    if (!visto) {
+      document.documentElement.dataset.recorrido = "abierto";
+      setIndice(0);
+    }
   }, [llave]);
+
+  // Marca global de recorrido abierto; al cerrarse, avisa a quien estaba esperando
+  useEffect(() => {
+    if (indice === null) return;
+    document.documentElement.dataset.recorrido = "abierto";
+    return () => {
+      delete document.documentElement.dataset.recorrido;
+      window.dispatchEvent(new Event(EVENTO_FIN_RECORRIDO));
+    };
+  }, [indice === null]); // eslint-disable-line react-hooks/exhaustive-deps -- solo al abrir y cerrar
+
+  // Otros componentes lo abren con un evento (BotonIniciarRecorrido)
+  useEffect(() => {
+    const iniciar = () => setIndice(0);
+    window.addEventListener(EVENTO_INICIAR, iniciar);
+    return () => window.removeEventListener(EVENTO_INICIAR, iniciar);
+  }, []);
+
+  // Menú del búho flotante: se cierra con Esc o al tocar fuera
+  useEffect(() => {
+    if (!menuAbierto) return;
+    const cerrar = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !(e.target as Element).closest("[data-menu-buho]")) setMenuAbierto(false);
+    };
+    window.addEventListener("keydown", cerrar);
+    window.addEventListener("pointerdown", cerrar);
+    return () => {
+      window.removeEventListener("keydown", cerrar);
+      window.removeEventListener("pointerdown", cerrar);
+    };
+  }, [menuAbierto]);
 
   const terminar = useCallback(() => {
     setIndice(null);
@@ -58,9 +109,12 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
 
   const avanzar = useCallback(() => {
     if (indice === null) return;
-    if (indice >= pasos.length - 1) terminar();
-    else setIndice(indice + 1);
-  }, [indice, pasos.length, terminar]);
+    if (indice >= pasos.length - 1) {
+      // Recorrido completo: la base suma 20 puntos y la insignia Bienvenida (solo la primera vez)
+      completarRecorrido(pasos.map((p) => p.id));
+      terminar();
+    } else setIndice(indice + 1);
+  }, [indice, pasos, terminar]);
 
   const retroceder = useCallback(() => {
     if (indice !== null && indice > 0) setIndice(indice - 1);
@@ -145,16 +199,44 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
 
   return (
     <>
-      <button
-        type="button"
-        data-recorrido="boton-ayuda"
-        onClick={() => setIndice(0)}
-        className="fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex size-14 md:bottom-4 md:size-16 items-center justify-center overflow-hidden rounded-full border bg-white shadow-lg transition hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-[var(--primario)]/40 focus-visible:outline-none"
-        aria-label={`Ver el recorrido guiado con ${NOMBRE_MASCOTA}`}
-        title={`¿Necesitas ayuda? ${NOMBRE_MASCOTA} te guía`}
-      >
-        <Image src={rutaSprite("necesitas-ayuda")} alt="" width={397} height={382} className="h-auto w-14 translate-y-1" />
-      </button>
+      <div data-menu-buho className="fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 md:bottom-4">
+        {menuAbierto && (
+          <div className="absolute right-0 bottom-full mb-2 w-56 rounded-2xl border bg-white p-1.5 shadow-xl" role="menu">
+            <p className="text-muted-foreground px-2.5 pt-1 pb-1.5 text-xs">¿En qué te ayudo?</p>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuAbierto(false);
+                setIndice(0);
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-black/5"
+            >
+              <PlayCircle className="size-4 text-[var(--primario-texto)]" aria-hidden /> Repetir el recorrido
+            </button>
+            <Link
+              href="/formacion#como-gano"
+              role="menuitem"
+              onClick={() => setMenuAbierto(false)}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm hover:bg-black/5"
+            >
+              <Coins className="size-4 text-[var(--primario-texto)]" aria-hidden /> ¿Cómo gano puntos?
+            </Link>
+          </div>
+        )}
+        <button
+          type="button"
+          data-recorrido="boton-ayuda"
+          onClick={() => setMenuAbierto((v) => !v)}
+          aria-expanded={menuAbierto}
+          aria-haspopup="menu"
+          className="flex size-14 items-center justify-center overflow-hidden rounded-full border bg-white shadow-lg transition hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-[var(--primario)]/40 focus-visible:outline-none md:size-16"
+          aria-label={`Ayuda de ${NOMBRE_MASCOTA}: recorrido guiado y cómo ganar puntos`}
+          title={`¿Necesitas ayuda? ${NOMBRE_MASCOTA} te guía`}
+        >
+          <Image src={rutaSprite("necesitas-ayuda")} alt="" width={397} height={382} className="h-auto w-14 translate-y-1" />
+        </button>
+      </div>
 
       {paso && indice !== null && (
         <>
