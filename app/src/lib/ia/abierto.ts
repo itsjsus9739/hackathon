@@ -30,6 +30,21 @@ const herramienta: OpenAI.Chat.Completions.ChatCompletionTool = {
 };
 
 let cliente: OpenAI | null = null;
+// Modelo que de verdad respondió (si el configurado no existe en el proveedor, se elige otro y se recuerda)
+let modeloElegido: string | null = null;
+export const modeloActivo = () => modeloElegido ?? (process.env.IA_MODELO || MODELO_PREDETERMINADO);
+
+/** Si el proveedor no tiene el modelo pedido (404), elige entre los que sí ofrece: Qwen 32B, otro Qwen o gpt-oss. */
+export function elegirModelo(disponibles: string[], pedido: string): string | null {
+  if (disponibles.includes(pedido)) return pedido;
+  return (
+    disponibles.find((id) => /qwen/i.test(id) && /32b/i.test(id)) ??
+    disponibles.find((id) => /qwen/i.test(id) && !/guard|vl|audio|embed/i.test(id)) ??
+    disponibles.find((id) => id === "openai/gpt-oss-120b") ??
+    disponibles.find((id) => /gpt-oss|llama-3\.3-70b/i.test(id)) ??
+    null
+  );
+}
 
 // Groq gratuito limita los tokens por minuto y cuenta el máximo de salida pedido: se pide poco y, si avisa
 // que esperemos, se espera lo que indica (sin pasar el tiempo de la función en Vercel, 60 s).
@@ -71,7 +86,8 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
     timeout: 45_000,
     maxRetries: 0, // los reintentos por límite los maneja crear() con la espera que pide el proveedor
   });
-  const modelo = process.env.IA_MODELO || MODELO_PREDETERMINADO;
+  let modelo = modeloActivo();
+  let modeloBuscado = false;
   const mensajes: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: SISTEMA },
     { role: "user", content: pregunta },
@@ -97,6 +113,18 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
         if (e instanceof OpenAI.BadRequestError && "reasoning_effort" in extra && /reasoning/i.test(e.message)) {
           extra = {};
           continue;
+        }
+        // El modelo no existe en el proveedor (retirado o mal escrito): se busca uno disponible, una sola vez
+        if (e instanceof OpenAI.NotFoundError && !modeloBuscado) {
+          modeloBuscado = true;
+          const lista = await api.models.list().then((r) => r.data.map((m) => m.id)).catch(() => []);
+          const otro = elegirModelo(lista, modelo);
+          if (otro && otro !== modelo) {
+            console.warn(`[asistente] El modelo ${modelo} no está disponible en el proveedor; se usa ${otro}.`);
+            modelo = modeloElegido = otro;
+            extra = razonamiento(otro);
+            continue;
+          }
         }
         const espera = e instanceof OpenAI.RateLimitError ? esperaSugerida(e) : Infinity;
         if (espera > ESPERA_MAXIMA_MS || Date.now() - inicio + espera > PRESUPUESTO_MS) throw e;
@@ -151,6 +179,13 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
     }
     if (e instanceof OpenAI.APIConnectionError) {
       return { ok: false, error: "No se pudo conectar con el proveedor de IA.", consultas };
+    }
+    if (e instanceof OpenAI.NotFoundError) {
+      return {
+        ok: false,
+        error: `El proveedor de IA no tiene el modelo «${modelo}» ni uno parecido. Revisa IA_MODELO (y IA_BASE_URL) en las variables de entorno.`,
+        consultas,
+      };
     }
     if (e instanceof OpenAI.APIError) {
       return { ok: false, error: `Error del proveedor de IA (${e.status ?? "sin estado"}).`, consultas };

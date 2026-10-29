@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 const { resultadoParaModelo } = await import("../ia/comun");
-const { esperaSugerida, limpiarRespuesta } = await import("../ia/abierto");
+const { elegirModelo, esperaSugerida, limpiarRespuesta } = await import("../ia/abierto");
 
 describe("límite de tokens del proveedor de IA", () => {
   it("recorta las filas que se le reenvían al modelo y avisa cuántas quedaron fuera", () => {
@@ -28,5 +28,15 @@ describe("respuesta de modelos con razonamiento", () => {
     expect(limpiarRespuesta("<think>\nPrimero cuento las empresas…\n</think>\n\nHay 180 empresas.")).toBe("Hay 180 empresas.");
     expect(limpiarRespuesta("razonamiento suelto</think>Hay 180 empresas.")).toBe("Hay 180 empresas.");
     expect(limpiarRespuesta("  Hay 180 empresas.  ")).toBe("Hay 180 empresas.");
+  });
+});
+
+describe("modelo no disponible en el proveedor (404)", () => {
+  it("usa el pedido si existe y, si no, el Qwen 32B, otro Qwen o gpt-oss", () => {
+    expect(elegirModelo(["qwen/qwen3-32b", "openai/gpt-oss-120b"], "qwen/qwen3-32b")).toBe("qwen/qwen3-32b");
+    expect(elegirModelo(["llama-guard-4", "qwen/qwen3.5-32b", "openai/gpt-oss-120b"], "qwen/qwen3-32b")).toBe("qwen/qwen3.5-32b");
+    expect(elegirModelo(["qwen/qwen3-guard", "qwen/qwen3.6-27b", "openai/gpt-oss-120b"], "qwen/qwen3-32b")).toBe("qwen/qwen3.6-27b");
+    expect(elegirModelo(["whisper-large-v3", "openai/gpt-oss-120b"], "qwen/qwen3-32b")).toBe("openai/gpt-oss-120b");
+    expect(elegirModelo([], "qwen/qwen3-32b")).toBeNull();
   });
 });
