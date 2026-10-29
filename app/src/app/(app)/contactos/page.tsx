@@ -5,6 +5,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { AsignaturasDocente, type AsignaturaDocente } from "./asignaturas-docente";
 import { ListaContactos } from "./lista-contactos";
+import { MisProyectos } from "./mis-proyectos";
 
 export const metadata: Metadata = { title: "Mis contactos · CDE Conecta" };
 
@@ -37,15 +38,27 @@ export default async function PaginaContactos() {
   const supabase = await crearClienteServidor();
   const esDocente = sesion.rol === "docente";
 
-  const [contactos, misAsignaturas, inscritos, comunidad] = await Promise.all([
+  const conProyectos = sesion.rol !== "cde" && sesion.rol !== "admin_cde";
+  const [contactos, misAsignaturas, inscritos, comunidad, proyectos, equipos, cursadas] = await Promise.all([
     supabase.rpc("mis_contactos"),
     esDocente
       ? supabase.from("asignatura_docentes").select("id_asignatura, semestre, asignaturas (nombre)").eq("id_docente", sesion.id)
       : Promise.resolve({ data: [], error: null }),
     esDocente ? supabase.from("asignatura_estudiantes").select("id_asignatura, semestre, id_estudiante") : Promise.resolve({ data: [], error: null }),
     esDocente ? supabase.rpc("personas_comunidad") : Promise.resolve({ data: [], error: null }),
+    // RLS: el docente ve sus proyectos; el estudiante, aquellos en los que está; el emprendedor, los de su empresa
+    conProyectos
+      ? supabase
+          .from("proyectos_aula")
+          .select("id, id_asignatura, semestre, estado, asignaturas (nombre), empresas (nombre)")
+          .neq("estado", "Cancelado")
+      : Promise.resolve({ data: [], error: null }),
+    conProyectos ? supabase.from("proyecto_estudiantes").select("id_proyecto, id_estudiante") : Promise.resolve({ data: [], error: null }),
+    sesion.rol === "estudiante"
+      ? supabase.from("asignatura_estudiantes").select("id_asignatura, semestre, asignaturas (nombre)").eq("id_estudiante", sesion.id)
+      : Promise.resolve({ data: [], error: null }),
   ]);
-  for (const r of [contactos, misAsignaturas, inscritos, comunidad]) {
+  for (const r of [contactos, misAsignaturas, inscritos, comunidad, proyectos, equipos, cursadas]) {
     if (r.error) throw new Error(`No se pudieron consultar los contactos: ${r.error.message}`);
   }
 
@@ -60,6 +73,16 @@ export default async function PaginaContactos() {
         .filter((i) => i.id_asignatura === a.id_asignatura && i.semestre === a.semestre)
         .map((i) => ({ id: i.id_estudiante, nombre: nombre.get(i.id_estudiante) ?? "Estudiante" }))
         .sort((x, y) => x.nombre.localeCompare(y.nombre)),
+      proyectos: (proyectos.data ?? [])
+        .filter((p) => p.id_asignatura === a.id_asignatura && p.semestre === a.semestre)
+        .map((p) => ({
+          id: p.id,
+          empresa: p.empresas?.nombre ?? "Empresa",
+          estudiantes: (equipos.data ?? [])
+            .filter((e) => e.id_proyecto === p.id)
+            .map((e) => ({ id: e.id_estudiante, nombre: nombre.get(e.id_estudiante) ?? "Estudiante" })),
+        }))
+        .sort((x, y) => x.empresa.localeCompare(y.empresa)),
     }))
     .sort((x, y) => y.semestre.localeCompare(x.semestre) || x.nombre.localeCompare(y.nombre));
 
@@ -72,6 +95,21 @@ export default async function PaginaContactos() {
       </header>
 
       {esDocente && <AsignaturasDocente asignaturas={asignaturas} estudiantes={estudiantes} semestres={semestres()} />}
+
+      {(sesion.rol === "estudiante" || sesion.rol === "emprendedor") && (
+        <MisProyectos
+          rol={sesion.rol}
+          proyectos={(proyectos.data ?? []).map((p) => ({
+            id: p.id,
+            asignatura: p.asignaturas?.nombre ?? "Proyecto de aula",
+            empresa: p.empresas?.nombre ?? "Empresa",
+            semestre: p.semestre,
+          }))}
+          sinProyecto={(cursadas.data ?? [])
+            .filter((c) => !(proyectos.data ?? []).some((p) => p.id_asignatura === c.id_asignatura && p.semestre === c.semestre))
+            .map((c) => `${c.asignaturas?.nombre ?? "Asignatura"} · ${c.semestre}`)}
+        />
+      )}
 
       <section className="space-y-3">
         {esDocente && <h2 className="text-lg font-semibold">Todos mis contactos</h2>}

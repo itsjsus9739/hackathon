@@ -2272,6 +2272,20 @@ export type Database = {
       }
     }
     Functions: {
+      actualizar_mi_empresa: {
+        Args: {
+          empresa: string
+          nuevo_sector: string | null
+          nuevo_tamano: string | null
+          nuevo_municipio: string | null
+          nueva_formalizacion: string | null
+          nueva_descripcion: string | null
+          nuevo_nit?: string | null
+        }
+        Returns: undefined
+      }
+      buscar_empresas_para_vincular: { Args: { texto: string }; Returns: { id: string; nombre: string; municipio: string | null }[] }
+      vincular_empresa_asignatura: { Args: { asignatura: string; sem: string; empresa: string }; Returns: string }
       empresas_para_planes: { Args: never; Returns: { id: string; nombre: string }[] }
       es_docente: { Args: never; Returns: boolean }
       gestiona_plan: { Args: { plan: string }; Returns: boolean }
