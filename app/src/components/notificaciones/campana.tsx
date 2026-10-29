@@ -1,16 +1,23 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 
+import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
-/** Campana con el número de notificaciones sin leer (RLS: cada quien cuenta solo las suyas). */
+/**
+ * Campana con el número de notificaciones sin leer del usuario. Se filtra por usuario porque
+ * RLS deja al CDE leer las de todos (cde_todo): sin el filtro, contaba las de toda la comunidad.
+ */
 export async function Campana({ className }: { className?: string }) {
-  const supabase = await crearClienteServidor();
-  const { count } = await supabase
-    .from("notificaciones")
-    .select("id", { count: "exact", head: true })
-    .is("leida_en", null);
+  const [sesion, supabase] = await Promise.all([obtenerSesion(), crearClienteServidor()]);
+  const { count } = sesion
+    ? await supabase
+        .from("notificaciones")
+        .select("id", { count: "exact", head: true })
+        .eq("id_usuario", sesion.id)
+        .is("leida_en", null)
+    : { count: 0 };
   const sinLeer = count ?? 0;
 
   return (

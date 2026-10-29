@@ -9,10 +9,13 @@ export const metadata: Metadata = { title: "Notificaciones · CDE Conecta" };
 
 export default async function PaginaNotificaciones() {
   const sesion = await obtenerSesion();
+  if (!sesion) return null; // el layout ya redirige a /login
   const supabase = await crearClienteServidor();
+  // Solo las propias: RLS deja al CDE leer las de todos
   const { data, error } = await supabase
     .from("notificaciones")
     .select("id, tipo, titulo, cuerpo, enlace, leida_en, creado_en, id_referencia")
+    .eq("id_usuario", sesion.id)
     .order("creado_en", { ascending: false })
     .limit(50);
   if (error) throw new Error(`No se pudieron consultar las notificaciones: ${error.message}`);

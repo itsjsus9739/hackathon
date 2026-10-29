@@ -84,3 +84,18 @@ export function cambiosInvitados(
     quitar: actuales.filter((a) => a.invitado_por && !pedidosSet.has(a.id_usuario)).map((a) => a.id_usuario),
   };
 }
+
+// ---------------------------------------------------------------------
+// QR de asistencia: el participante muestra su inscripción y el CDE la escanea
+// ---------------------------------------------------------------------
+const PREFIJO_QR = "cde-asistencia:";
+
+export const textoQrAsistencia = (idInscripcion: string) => `${PREFIJO_QR}${idInscripcion}`;
+
+/** Devuelve el id de la inscripción, o null si el texto no es un QR de asistencia. */
+export function leerQrAsistencia(texto: string): string | null {
+  const t = texto.trim();
+  if (!t.startsWith(PREFIJO_QR)) return null;
+  const id = t.slice(PREFIJO_QR.length);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? id.toLowerCase() : null;
+}

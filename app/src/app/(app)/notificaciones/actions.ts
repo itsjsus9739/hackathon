@@ -3,32 +3,45 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
 export type Resultado = { error?: string } | undefined;
 
 const refrescar = () => revalidatePath("/", "layout"); // la campana vive en el layout
 
+/**
+ * Las notificaciones que el usuario puede modificar: las suyas. RLS deja al CDE modificar
+ * las de todos, así que sin este filtro "marcar todas como leídas" afectaba a toda la comunidad.
+ */
+async function misNotificaciones() {
+  const [sesion, supabase] = await Promise.all([obtenerSesion(), crearClienteServidor()]);
+  return { idUsuario: sesion?.id ?? "00000000-0000-0000-0000-000000000000", supabase };
+}
+
 export async function marcarLeida(id: string): Promise<Resultado> {
   if (!z.uuid().safeParse(id).success) return { error: "Notificación no válida." };
-  const supabase = await crearClienteServidor();
-  const { error } = await supabase.from("notificaciones").update({ leida_en: new Date().toISOString() }).eq("id", id);
+  const { idUsuario, supabase } = await misNotificaciones();
+  const { error } = await supabase.from("notificaciones").update({ leida_en: new Date().toISOString() }).eq("id", id).eq("id_usuario", idUsuario);
   if (error) return { error: "No se pudo marcar como leída." };
   refrescar();
 }
 
 export async function marcarTodasLeidas(): Promise<Resultado> {
-  const supabase = await crearClienteServidor();
-  // RLS limita la actualización a las notificaciones del usuario
-  const { error } = await supabase.from("notificaciones").update({ leida_en: new Date().toISOString() }).is("leida_en", null);
+  const { idUsuario, supabase } = await misNotificaciones();
+  const { error } = await supabase
+    .from("notificaciones")
+    .update({ leida_en: new Date().toISOString() })
+    .eq("id_usuario", idUsuario)
+    .is("leida_en", null);
   if (error) return { error: "No se pudieron marcar como leídas." };
   refrescar();
 }
 
 export async function borrarNotificacion(id: string): Promise<Resultado> {
   if (!z.uuid().safeParse(id).success) return { error: "Notificación no válida." };
-  const supabase = await crearClienteServidor();
-  const { error } = await supabase.from("notificaciones").delete().eq("id", id);
+  const { idUsuario, supabase } = await misNotificaciones();
+  const { error } = await supabase.from("notificaciones").delete().eq("id", id).eq("id_usuario", idUsuario);
   if (error) return { error: "No se pudo borrar." };
   refrescar();
 }
@@ -71,7 +84,12 @@ export async function resolverRegistroDocente(entrada: z.input<typeof esquemaDoc
     if (error || !data?.length) return { error: "Solo un administrador del CDE puede cambiar el rol de una cuenta." };
   }
 
-  await supabase.from("notificaciones").update({ leida_en: new Date().toISOString() }).eq("id", d.idNotificacion);
+  const { idUsuario } = await misNotificaciones();
+  await supabase
+    .from("notificaciones")
+    .update({ leida_en: new Date().toISOString() })
+    .eq("id", d.idNotificacion)
+    .eq("id_usuario", idUsuario);
   refrescar();
 }
 
@@ -102,7 +120,13 @@ export async function resolverSolicitud(entrada: z.input<typeof esquemaSolicitud
     .select("id");
   if (error) return { error: "No se pudo actualizar la solicitud. Solo el equipo del CDE puede revisarla." };
   if (!data?.length) return { error: "La solicitud ya fue revisada por otra persona del CDE." };
-  await supabase.from("notificaciones").update({ leida_en: new Date().toISOString() }).eq("id_referencia", d.idPerfil).is("leida_en", null);
+  const { idUsuario } = await misNotificaciones();
+  await supabase
+    .from("notificaciones")
+    .update({ leida_en: new Date().toISOString() })
+    .eq("id_referencia", d.idPerfil)
+    .eq("id_usuario", idUsuario)
+    .is("leida_en", null);
   refrescar();
 }
 
