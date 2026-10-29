@@ -135,7 +135,7 @@ export default async function Inicio() {
             </h2>
             <Link
               href="/eventos"
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[var(--primario-texto)] transition hover:bg-white/90"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-semibold text-[var(--primario-texto)] transition hover:bg-card/90"
             >
               Ver calendario <ArrowRight className="size-4" aria-hidden />
             </Link>
@@ -144,7 +144,7 @@ export default async function Inicio() {
             <ul className="space-y-2">
               {pendientes.slice(0, 3).map((p) => (
                 <li key={p.id}>
-                  <Link href={p.href} className="flex items-center gap-3 rounded-2xl bg-white/95 px-4 py-3 text-[var(--tinta)] transition hover:bg-white">
+                  <Link href={p.href} className="flex items-center gap-3 rounded-2xl bg-card/95 px-4 py-3 text-[var(--tinta)] transition hover:bg-card">
                     <span className="size-2.5 shrink-0 rounded-full" style={{ background: p.color }} aria-hidden />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold">{p.titulo}</span>
@@ -166,7 +166,7 @@ export default async function Inicio() {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
         {/* Esta semana */}
-        <section className="rounded-2xl border bg-white p-5">
+        <section className="rounded-2xl border bg-card p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-[var(--tinta)]">Esta semana</h2>
             <Link href="/eventos" className="text-sm font-semibold text-[var(--primario-texto)] hover:underline">
@@ -176,7 +176,7 @@ export default async function Inicio() {
           {eventos.length === 0 ? (
             <p className="text-muted-foreground mt-6 text-sm">No hay actividades en los próximos 7 días.</p>
           ) : (
-            <ul className="mt-2 divide-y divide-[#eef6f1]">
+            <ul className="mt-2 divide-y divide-border">
               {eventos.slice(0, 5).map((e) => {
                 const fecha = new Date(e.fecha);
                 const color = tipoEvento(e.tipo).color;
@@ -216,7 +216,7 @@ export default async function Inicio() {
               <Link
                 key={titulo}
                 href={href}
-                className="flex flex-col gap-3 rounded-2xl border bg-white p-4 transition sm:p-5 hover:border-[var(--primario)] hover:shadow-sm"
+                className="flex flex-col gap-3 rounded-2xl border bg-card p-4 transition sm:p-5 hover:border-[var(--primario)] hover:shadow-sm"
               >
                 <span className="flex size-12 items-center justify-center rounded-2xl bg-[var(--verde-suave)] text-[var(--primario-texto)]">
                   <Icono className="size-6" strokeWidth={1.8} aria-hidden />
@@ -245,13 +245,13 @@ export default async function Inicio() {
               key={c.id}
               // Abre el evento y el búho explica cómo inscribirse
               href={`/eventos?e=${c.id}&tutorial=inscribirse-evento`}
-              className="flex flex-col rounded-2xl border bg-white p-5 transition hover:border-[var(--primario)]"
+              className="flex flex-col rounded-2xl border bg-card p-5 transition hover:border-[var(--primario)]"
             >
               <span className="flex items-center justify-between">
-                <span className="flex size-10 items-center justify-center rounded-xl bg-[var(--acento-calido)] text-[#8a5a00]">
+                <span className="flex size-10 items-center justify-center rounded-xl bg-[var(--acento-calido)] text-[var(--acento-calido-texto)]">
                   <GraduationCap className="size-5" strokeWidth={1.8} aria-hidden />
                 </span>
-                <span className="rounded-full bg-[var(--acento-calido)] px-2.5 py-1 text-[11px] font-semibold text-[#8a5a00]">
+                <span className="rounded-full bg-[var(--acento-calido)] px-2.5 py-1 text-[11px] font-semibold text-[var(--acento-calido-texto)]">
                   Capacitación
                 </span>
               </span>
@@ -268,7 +268,7 @@ export default async function Inicio() {
               key={t.id}
               // El búho guía el tutorial paso a paso en la página
               href={enlaceTutorial(t.id)}
-              className="flex flex-col rounded-2xl border bg-white p-5 transition hover:border-[var(--primario)]"
+              className="flex flex-col rounded-2xl border bg-card p-5 transition hover:border-[var(--primario)]"
             >
               <span className="flex items-center justify-between">
                 <span className="flex size-10 items-center justify-center rounded-xl bg-[var(--verde-suave)] text-[var(--primario-texto)]">

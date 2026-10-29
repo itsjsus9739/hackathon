@@ -53,7 +53,7 @@ export function AsignaturasDocente({
 
       <form
         data-recorrido="contactos-asignatura"
-        className="flex flex-col gap-2 rounded-xl border bg-white p-3 sm:flex-row sm:items-end"
+        className="flex flex-col gap-2 rounded-xl border bg-card p-3 sm:flex-row sm:items-end"
         onSubmit={(e) => {
           e.preventDefault();
           const semestre = String(new FormData(e.currentTarget).get("semestre"));
@@ -115,7 +115,7 @@ function TarjetaAsignatura({ asignatura: a, estudiantes }: { asignatura: Asignat
     });
 
   return (
-    <article className="space-y-3 rounded-xl border bg-white p-4">
+    <article className="space-y-3 rounded-xl border bg-card p-4">
       <header className="flex items-start justify-between gap-2">
         <div>
           <h3 className="font-semibold">{a.nombre}</h3>

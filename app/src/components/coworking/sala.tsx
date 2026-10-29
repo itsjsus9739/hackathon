@@ -382,7 +382,7 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
             aria-label="Sala de coworking. Haz clic en una baldosa o usa las flechas para moverte."
             onClick={clicEnSala}
             onKeyDown={teclado}
-            className="w-full cursor-pointer rounded-lg border bg-white focus-visible:ring-2 focus-visible:ring-[var(--serie-1)] focus-visible:outline-none"
+            className="w-full cursor-pointer rounded-lg border bg-card focus-visible:ring-2 focus-visible:ring-[var(--serie-1)] focus-visible:outline-none"
             style={{ aspectRatio: `${ANCHO} / ${ALTO}`, imageRendering: "pixelated" }}
           />
           {/* Editor de avatar */}
@@ -430,7 +430,7 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
         {/* Chat de la sala */}
         <div className="flex h-[28rem] flex-col overflow-hidden rounded-lg border lg:h-auto lg:max-h-[36rem]">
           <p className="bg-[var(--serie-1)] px-3 py-2 text-sm font-semibold text-white">Chat del coworking</p>
-          <div className="flex-1 space-y-2 overflow-y-auto bg-slate-50 p-3 text-sm" aria-live="polite">
+          <div className="flex-1 space-y-2 overflow-y-auto bg-muted p-3 text-sm" aria-live="polite">
             {mensajes.length === 0 && <p className="text-muted-foreground text-xs">Nadie ha escrito todavía. ¡Saluda!</p>}
             {mensajes.map((m) => (
               <p key={m.id} className="break-words">

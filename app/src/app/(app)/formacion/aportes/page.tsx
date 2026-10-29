@@ -138,7 +138,7 @@ type Aporte = {
 
 function TarjetaAporte({ aporte: a, autor, children }: { aporte: Aporte; autor?: string; children?: React.ReactNode }) {
   return (
-    <li className="grid gap-3 rounded-2xl border bg-white p-4 sm:grid-cols-[1fr_auto] sm:items-start">
+    <li className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-[1fr_auto] sm:items-start">
       <div className="min-w-0 space-y-1">
         <p className="text-muted-foreground text-xs">
           {autor && <b className="text-foreground">{autor} · </b>}

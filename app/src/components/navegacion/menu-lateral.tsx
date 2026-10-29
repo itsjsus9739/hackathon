@@ -30,7 +30,7 @@ export function MenuLateral({ rol }: { rol: Enums<"rol_usuario"> }) {
         .map((g) => (
         <div key={g.titulo ?? "inicio"} className="flex flex-col gap-0.5">
           {g.titulo && (
-            <p className="mt-4 mb-1 px-3 text-[11px] font-semibold tracking-wider text-[#8ba597] uppercase">{g.titulo}</p>
+            <p className="mt-4 mb-1 px-3 text-[11px] font-semibold tracking-wider text-[var(--tenue)] uppercase">{g.titulo}</p>
           )}
           {g.rutas.map((href) => {
             const Icono = ICONO_MODULO[href];

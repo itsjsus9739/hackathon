@@ -39,7 +39,7 @@ export function MisInsignias({ insignias }: { insignias: InsigniaVista[] }) {
         <p className="text-muted-foreground text-sm">
           Tienes <b className="text-foreground">{ganadas}</b> de {insignias.length}
         </p>
-        <div className="flex gap-1 rounded-lg border bg-white p-1" role="group" aria-label="Filtrar insignias">
+        <div className="flex gap-1 rounded-lg border bg-card p-1" role="group" aria-label="Filtrar insignias">
           {FILTROS.map((f) => (
             <button
               key={f.valor}
@@ -48,7 +48,7 @@ export function MisInsignias({ insignias }: { insignias: InsigniaVista[] }) {
               onClick={() => setFiltro(f.valor)}
               className={cn(
                 "rounded-md px-3 py-1 text-sm font-medium transition",
-                filtro === f.valor ? "bg-[var(--primario-texto)] text-white" : "text-muted-foreground hover:bg-black/5",
+                filtro === f.valor ? "bg-[var(--primario-texto)] text-white" : "text-muted-foreground hover:bg-foreground/5",
               )}
             >
               {f.etiqueta}
@@ -78,7 +78,7 @@ function TarjetaInsignia({ insignia: i }: { insignia: InsigniaVista }) {
     <li
       className={cn(
         "flex flex-col items-center rounded-xl border p-3 text-center",
-        ganada ? "bg-white shadow-sm" : "bg-[var(--muted)]/60",
+        ganada ? "bg-card shadow-sm" : "bg-[var(--muted)]/60",
       )}
     >
       <Medalla nivel={i.nivel} criterio={i.criterio} area={i.area} bloqueada={!ganada} />
@@ -95,7 +95,7 @@ function TarjetaInsignia({ insignia: i }: { insignia: InsigniaVista }) {
           i.progreso && (
             <div>
               <div
-                className="h-1.5 overflow-hidden rounded-full bg-black/10"
+                className="h-1.5 overflow-hidden rounded-full bg-foreground/10"
                 role="progressbar"
                 aria-valuenow={i.progreso.actual}
                 aria-valuemin={0}

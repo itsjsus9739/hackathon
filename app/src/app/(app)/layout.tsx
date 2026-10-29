@@ -8,6 +8,7 @@ import { Celebraciones } from "@/components/gamificacion/celebraciones";
 import { BarraMovil } from "@/components/navegacion/barra-movil";
 import { MenuLateral } from "@/components/navegacion/menu-lateral";
 import { Campana } from "@/components/notificaciones/campana";
+import { BotonTema } from "@/components/tema/boton-tema";
 import { Button } from "@/components/ui/button";
 import { ETIQUETA_ROL, obtenerSesion } from "@/lib/sesion";
 
@@ -54,7 +55,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
           </div>
           <form action={cerrarSesion}>
             <Button type="submit" variant="ghost" size="icon" aria-label="Cerrar sesión" title="Cerrar sesión">
-              <LogOut className="text-[#8ba597]" aria-hidden />
+              <LogOut className="text-[var(--tenue)]" aria-hidden />
             </Button>
           </form>
         </div>
@@ -68,10 +69,14 @@ export default async function LayoutAplicacion({ children }: { children: React.R
             </span>
             CDE Conecta
           </Link>
-          <Campana />
+          <div className="flex items-center gap-1">
+            <BotonTema />
+            <Campana />
+          </div>
         </header>
-        <div className="hidden justify-end px-6 pt-4 md:flex">
-          <Campana className="rounded-full border bg-white" />
+        <div className="hidden justify-end gap-2 px-6 pt-4 md:flex">
+          <BotonTema className="border bg-card" />
+          <Campana className="rounded-full border bg-card" />
         </div>
         <main className="min-w-0 flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:pt-0 md:pb-6">{children}</main>
       </div>

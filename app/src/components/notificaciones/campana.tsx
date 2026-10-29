@@ -25,7 +25,7 @@ export async function Campana({ className }: { className?: string }) {
       href="/notificaciones"
       data-recorrido="campana"
       aria-label={sinLeer ? `Notificaciones: ${sinLeer} sin leer` : "Notificaciones"}
-      className={cn("relative inline-flex size-9 items-center justify-center rounded-md hover:bg-black/5", className)}
+      className={cn("relative inline-flex size-9 items-center justify-center rounded-md hover:bg-foreground/5", className)}
     >
       <Bell className="size-5" aria-hidden />
       {sinLeer > 0 && (

@@ -219,7 +219,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
     <>
       <div data-menu-buho className="fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 md:bottom-4">
         {menuAbierto && (
-          <div className="absolute right-0 bottom-full mb-2 w-56 rounded-2xl border bg-white p-1.5 shadow-xl" role="menu">
+          <div className="absolute right-0 bottom-full mb-2 w-56 rounded-2xl border bg-card p-1.5 shadow-xl" role="menu">
             <p className="text-muted-foreground px-2.5 pt-1 pb-1.5 text-xs">¿En qué te ayudo?</p>
             <button
               type="button"
@@ -229,7 +229,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
                 setTutorial(null); // el menú siempre repite el recorrido general
                 setIndice(0);
               }}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-black/5"
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-foreground/5"
             >
               <PlayCircle className="size-4 text-[var(--primario-texto)]" aria-hidden /> Repetir el recorrido
             </button>
@@ -237,7 +237,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
               href="/formacion#como-gano"
               role="menuitem"
               onClick={() => setMenuAbierto(false)}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm hover:bg-black/5"
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm hover:bg-foreground/5"
             >
               <Coins className="size-4 text-[var(--primario-texto)]" aria-hidden /> ¿Cómo gano puntos?
             </Link>
@@ -249,7 +249,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
           onClick={() => setMenuAbierto((v) => !v)}
           aria-expanded={menuAbierto}
           aria-haspopup="menu"
-          className="flex size-14 items-center justify-center overflow-hidden rounded-full border bg-white shadow-lg transition hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-[var(--primario)]/40 focus-visible:outline-none md:size-16"
+          className="flex size-14 items-center justify-center overflow-hidden rounded-full border bg-card shadow-lg transition hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-[var(--primario)]/40 focus-visible:outline-none md:size-16"
           aria-label={`Ayuda de ${NOMBRE_MASCOTA}: recorrido guiado y cómo ganar puntos`}
           title={`¿Necesitas ayuda? ${NOMBRE_MASCOTA} te guía`}
         >
@@ -275,7 +275,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
             aria-modal="true"
             aria-labelledby="recorrido-titulo"
             aria-describedby="recorrido-texto"
-            className="fixed z-[60] rounded-2xl border bg-white p-4 shadow-2xl transition-[top,left,bottom] duration-300"
+            className="fixed z-[60] rounded-2xl border bg-card p-4 shadow-2xl transition-[top,left,bottom] duration-300"
             style={posicion}
           >
             <button
@@ -318,7 +318,7 @@ export function RecorridoBuho({ idUsuario, rol, nombre }: Props) {
                   <span
                     key={p.id}
                     className={cn(
-                      "size-1.5 rounded-full bg-black/15 transition-all",
+                      "size-1.5 rounded-full bg-foreground/15 transition-all",
                       i === indice && "w-4 bg-[var(--primario)]",
                     )}
                   />

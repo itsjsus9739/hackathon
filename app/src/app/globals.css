@@ -28,6 +28,37 @@
   --tinta: #0b3d2a; /* títulos */
   --tinta-suave: #36564a; /* texto del menú */
   --acento-calido: #fff4d6; /* solo alertas y fechas */
+  --acento-calido-texto: #8a5a00;
+  --tenue: #8ba597; /* rótulos del menú e íconos secundarios */
+  color-scheme: light;
+}
+
+/* Modo oscuro: mismos nombres de token, valores para fondo oscuro (verde casi negro) */
+.dark {
+  --background: #0c1512;
+  --foreground: #e3efe8;
+  --card: #13201b;
+  --card-foreground: #e3efe8;
+  --muted: #1a2a23;
+  --muted-foreground: #9db3a7;
+  --secondary: #1a2a23;
+  --secondary-foreground: #e3efe8;
+  --primary: #1fbf7a;
+  --primary-foreground: #04140d;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #24362d;
+  --ring: #1fbf7a;
+  --panel: #101b17;
+  --serie-1: #5b9cf0;
+  --primario: #00a862;
+  --primario-texto: #4fd59a;
+  --verde-suave: #143326;
+  --tinta: #e8f3ed;
+  --tinta-suave: #b4c9be;
+  --acento-calido: #3a2f12;
+  --acento-calido-texto: #f3cd6b;
+  --tenue: #6f897b;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -60,4 +91,53 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
   }
+}
+
+/* Etiquetas de color (estados, roles, avisos) en modo oscuro: fondo translúcido y texto claro del mismo tono.
+   Generado a partir de las clases que usa la app; sin capa para ganarle a las utilidades de Tailwind. */
+@layer overrides {
+  .dark .bg-amber-100 { background-color: color-mix(in oklab, oklch(76.9% 0.188 70.08) 16%, transparent); }
+  .dark .bg-amber-50\/50 { background-color: color-mix(in oklab, oklch(76.9% 0.188 70.08) 16%, transparent); }
+  .dark .bg-emerald-100 { background-color: color-mix(in oklab, oklch(69.6% 0.17 162.48) 16%, transparent); }
+  .dark .bg-emerald-50 { background-color: color-mix(in oklab, oklch(69.6% 0.17 162.48) 16%, transparent); }
+  .dark .bg-green-100 { background-color: color-mix(in oklab, oklch(72.3% 0.219 149.579) 16%, transparent); }
+  .dark .bg-pink-100 { background-color: color-mix(in oklab, oklch(65.6% 0.241 354.308) 16%, transparent); }
+  .dark .bg-pink-200 { background-color: color-mix(in oklab, oklch(65.6% 0.241 354.308) 24%, transparent); }
+  .dark .bg-red-100 { background-color: color-mix(in oklab, oklch(63.7% 0.237 25.331) 16%, transparent); }
+  .dark .bg-red-50 { background-color: color-mix(in oklab, oklch(63.7% 0.237 25.331) 16%, transparent); }
+  .dark .bg-rose-50 { background-color: color-mix(in oklab, oklch(64.5% 0.246 16.439) 16%, transparent); }
+  .dark .bg-sky-100 { background-color: color-mix(in oklab, oklch(68.5% 0.169 237.323) 16%, transparent); }
+  .dark .bg-violet-100 { background-color: color-mix(in oklab, oklch(60.6% 0.25 292.717) 16%, transparent); }
+  .dark .border-amber-200 { border-color: color-mix(in oklab, oklch(82.8% 0.189 84.429) 35%, transparent); }
+  .dark .border-amber-300 { border-color: color-mix(in oklab, oklch(82.8% 0.189 84.429) 35%, transparent); }
+  .dark .border-emerald-200 { border-color: color-mix(in oklab, oklch(76.5% 0.177 163.223) 35%, transparent); }
+  .dark .border-emerald-300 { border-color: color-mix(in oklab, oklch(76.5% 0.177 163.223) 35%, transparent); }
+  .dark .border-pink-200 { border-color: color-mix(in oklab, oklch(71.8% 0.202 349.761) 35%, transparent); }
+  .dark .border-sky-200 { border-color: color-mix(in oklab, oklch(74.6% 0.16 232.661) 35%, transparent); }
+  .dark .border-violet-200 { border-color: color-mix(in oklab, oklch(70.2% 0.183 293.541) 35%, transparent); }
+  .dark .ring-amber-200 { --tw-ring-color: color-mix(in oklab, oklch(82.8% 0.189 84.429) 35%, transparent); }
+  .dark .ring-emerald-200 { --tw-ring-color: color-mix(in oklab, oklch(76.5% 0.177 163.223) 35%, transparent); }
+  .dark .ring-orange-200 { --tw-ring-color: color-mix(in oklab, oklch(75% 0.183 55.934) 35%, transparent); }
+  .dark .ring-rose-200 { --tw-ring-color: color-mix(in oklab, oklch(71.2% 0.194 13.428) 35%, transparent); }
+  .dark .ring-sky-200 { --tw-ring-color: color-mix(in oklab, oklch(74.6% 0.16 232.661) 35%, transparent); }
+  .dark .ring-violet-200 { --tw-ring-color: color-mix(in oklab, oklch(70.2% 0.183 293.541) 35%, transparent); }
+  .dark .text-amber-600 { color: oklch(87.9% 0.169 91.605); }
+  .dark .text-amber-700 { color: oklch(87.9% 0.169 91.605); }
+  .dark .text-amber-800 { color: oklch(87.9% 0.169 91.605); }
+  .dark .text-amber-900 { color: oklch(87.9% 0.169 91.605); }
+  .dark .text-emerald-600 { color: oklch(84.5% 0.143 164.978); }
+  .dark .text-emerald-700 { color: oklch(84.5% 0.143 164.978); }
+  .dark .text-emerald-800 { color: oklch(84.5% 0.143 164.978); }
+  .dark .text-emerald-900 { color: oklch(84.5% 0.143 164.978); }
+  .dark .text-green-800 { color: oklch(87.1% 0.15 154.449); }
+  .dark .text-orange-700 { color: oklch(83.7% 0.128 66.29); }
+  .dark .text-pink-800 { color: oklch(82.3% 0.12 346.018); }
+  .dark .text-red-700 { color: oklch(80.8% 0.114 19.571); }
+  .dark .text-red-800 { color: oklch(80.8% 0.114 19.571); }
+  .dark .text-rose-700 { color: oklch(81% 0.117 11.638); }
+  .dark .text-rose-800 { color: oklch(81% 0.117 11.638); }
+  .dark .text-sky-700 { color: oklch(82.8% 0.111 230.318); }
+  .dark .text-sky-800 { color: oklch(82.8% 0.111 230.318); }
+  .dark .text-violet-700 { color: oklch(81.1% 0.111 293.571); }
+  .dark .text-violet-800 { color: oklch(81.1% 0.111 293.571); }
 }
