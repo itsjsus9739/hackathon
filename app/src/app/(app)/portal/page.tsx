@@ -17,7 +17,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { AccesosEstudiantes, SolicitarAcceso } from "./accesos";
 
-export const metadata: Metadata = { title: "Portal del emprendedor · CDE Conecta" };
+export const metadata: Metadata = { title: "Portal del emprendedor · CDE Nest" };
 
 type Filtros = { empresa?: string; q?: string };
 

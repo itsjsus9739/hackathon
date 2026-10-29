@@ -198,7 +198,7 @@ export function FormularioPlan({
         ))}
         {estudiantes.length === 0 ? (
           <p className="text-muted-foreground rounded-md border border-dashed p-3 text-xs">
-            Aún no hay estudiantes registrados en CDE Conecta. Cuando se registren como estudiantes podrás asignarlos.
+            Aún no hay estudiantes registrados en CDE Nest. Cuando se registren como estudiantes podrás asignarlos.
           </p>
         ) : (
           <>

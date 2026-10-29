@@ -1,4 +1,4 @@
-# CDE Conecta
+# CDE Nest
 
 Sistema integrado de gestión de la información del CDE UNAB (Hackatón Semana de Ingeniería 2026).
 Plan completo, alcance y pitch: [`../PLAN_HACKATHON.md`](../PLAN_HACKATHON.md).

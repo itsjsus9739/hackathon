@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { obtenerSesion } from "@/lib/sesion";
 import { FormularioRestablecer } from "./formulario-restablecer";
 
-export const metadata: Metadata = { title: "Nueva contraseña · CDE Conecta" };
+export const metadata: Metadata = { title: "Nueva contraseña · CDE Nest" };
 
 // Se llega desde el enlace del correo: /auth/confirm abre una sesión temporal y redirige aquí
 export default async function PaginaRestablecer() {
@@ -16,7 +16,7 @@ export default async function PaginaRestablecer() {
     <main className="bg-[var(--panel)] flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <p className="text-primario text-sm font-semibold">CDE Conecta · UNAB</p>
+          <p className="text-primario text-sm font-semibold">CDE Nest · UNAB</p>
           <CardTitle className="text-xl">Crea una nueva contraseña</CardTitle>
           <CardDescription>Para {sesion.correo}</CardDescription>
         </CardHeader>

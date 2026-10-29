@@ -1,4 +1,4 @@
-# Sprites del búho · CDE Conecta UNAB
+# Sprites del búho · CDE Nest UNAB
 
 56 PNG con fondo transparente (397 x 382 px), recortados de las hojas del PDF.
 Todos comparten el mismo lienzo, así que el búho no "salta" al cambiar de pose.

@@ -9,7 +9,7 @@ import { ETIQUETA_ROL } from "@/lib/roles";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { FormularioVerificar } from "../formulario";
 
-export const metadata: Metadata = { title: "Verificar certificado · CDE Conecta", robots: { index: false } };
+export const metadata: Metadata = { title: "Verificar certificado · CDE Nest", robots: { index: false } };
 
 const FECHA = new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "long", year: "numeric", timeZone: "America/Bogota" });
 

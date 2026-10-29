@@ -23,7 +23,7 @@ type Props = { params: Promise<{ id: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const ficha = await obtenerFicha(id);
-  return { title: ficha ? `${ficha.empresa.nombre} · Ficha 360° · CDE Conecta` : "Empresa no encontrada · CDE Conecta" };
+  return { title: ficha ? `${ficha.empresa.nombre} · Ficha 360° · CDE Nest` : "Empresa no encontrada · CDE Nest" };
 }
 
 // Ficha 360°: perfil de la empresa y todo su recorrido con el CDE.

@@ -30,7 +30,7 @@ export function AsignaturasDocente({
   semestres,
 }: {
   asignaturas: AsignaturaDocente[];
-  /** Estudiantes registrados en CDE Conecta (para inscribir) */
+  /** Estudiantes registrados en CDE Nest (para inscribir) */
   estudiantes: Persona[];
   /** Semestre actual primero */
   semestres: string[];

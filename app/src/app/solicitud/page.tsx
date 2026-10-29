@@ -10,7 +10,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { FormularioSolicitud } from "./formulario-solicitud";
 
-export const metadata: Metadata = { title: "Solicitud de acceso · CDE Conecta" };
+export const metadata: Metadata = { title: "Solicitud de acceso · CDE Nest" };
 
 export default async function PaginaSolicitud() {
   const sesion = await obtenerSesion();
@@ -70,7 +70,7 @@ export default async function PaginaSolicitud() {
     <main className="bg-[var(--panel)] flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <p className="text-primario text-sm font-semibold">CDE Conecta · UNAB</p>
+          <p className="text-primario text-sm font-semibold">CDE Nest · UNAB</p>
           <CardTitle className="flex flex-wrap items-center gap-2 text-xl">
             Solicitud de acceso
             <Badge variant={solicitud?.estado === "rechazado" ? "destructive" : "secondary"}>

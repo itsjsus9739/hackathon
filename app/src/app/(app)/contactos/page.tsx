@@ -7,7 +7,7 @@ import { AsignaturasDocente, type AsignaturaDocente } from "./asignaturas-docent
 import { ListaContactos } from "./lista-contactos";
 import { MisProyectos } from "./mis-proyectos";
 
-export const metadata: Metadata = { title: "Mis contactos · CDE Conecta" };
+export const metadata: Metadata = { title: "Mis contactos · CDE Nest" };
 
 /** Semestre actual y el siguiente (julio-diciembre = 2), en hora de Bogotá. */
 function semestres() {

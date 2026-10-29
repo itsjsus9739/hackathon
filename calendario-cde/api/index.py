@@ -1,5 +1,5 @@
 """
-CDE Conecta - Calendario por roles (Flask, desplegable en Vercel).
+CDE Nest - Calendario por roles (Flask, desplegable en Vercel).
 
 Tipos de actividad: evento, networking, conversatorio, cita, coworking.
 Roles: admin, miembro, profesor, emprendedor, estudiante.

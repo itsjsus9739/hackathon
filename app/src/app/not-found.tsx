@@ -1,6 +1,6 @@
 import { PantallaBuho } from "@/components/buho/pantalla-buho";
 
-export const metadata = { title: "Página no encontrada · CDE Conecta" };
+export const metadata = { title: "Página no encontrada · CDE Nest" };
 
 // 404 global: cualquier ruta que no exista.
 export default function NoEncontrada() {

@@ -11,7 +11,7 @@ import { Constants } from "@/lib/supabase/database.types";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Empresas · CDE Conecta" };
+export const metadata: Metadata = { title: "Empresas · CDE Nest" };
 
 const POR_PAGINA = 25;
 type Filtros = { q?: string; sector?: string; tamano?: string; pagina?: string };

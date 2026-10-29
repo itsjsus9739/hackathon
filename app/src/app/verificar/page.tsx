@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { LogoCde } from "@/components/marca/logo-cde";
 import { FormularioVerificar } from "./formulario";
 
-export const metadata: Metadata = { title: "Verificar certificado · CDE Conecta" };
+export const metadata: Metadata = { title: "Verificar certificado · CDE Nest" };
 
 // Página pública: escribir el código de un certificado del CDE para comprobarlo.
 export default function PaginaVerificarInicio() {

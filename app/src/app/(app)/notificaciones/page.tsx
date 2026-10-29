@@ -5,7 +5,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { ListaNotificaciones, type NotificacionVista } from "./lista";
 
-export const metadata: Metadata = { title: "Notificaciones · CDE Conecta" };
+export const metadata: Metadata = { title: "Notificaciones · CDE Nest" };
 
 export default async function PaginaNotificaciones() {
   const sesion = await obtenerSesion();

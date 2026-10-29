@@ -9,7 +9,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { FormularioAporte, RevisionAporte } from "./formularios";
 
-export const metadata: Metadata = { title: "Aportes · CDE Conecta" };
+export const metadata: Metadata = { title: "Aportes · CDE Nest" };
 
 const FECHA = new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "short", timeZone: "America/Bogota" });
 const ESTADO: Record<string, string> = {

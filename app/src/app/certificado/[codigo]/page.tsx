@@ -8,7 +8,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { BarraCertificado } from "./barra";
 
-export const metadata: Metadata = { title: "Certificado · CDE Conecta" };
+export const metadata: Metadata = { title: "Certificado · CDE Nest" };
 
 // Fuera del grupo (app): sin menú, para que el PDF salga limpio. Lo ven su dueño y el CDE (RLS).
 export default async function PaginaCertificado({ params }: { params: Promise<{ codigo: string }> }) {

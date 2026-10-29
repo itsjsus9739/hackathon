@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { ListaAsistencia } from "./lista";
 import { EscanerAsistencia } from "./escaner";
 
-export const metadata: Metadata = { title: "Tomar asistencia · CDE Conecta" };
+export const metadata: Metadata = { title: "Tomar asistencia · CDE Nest" };
 
 const ZONA = "America/Bogota";
 const FECHA = new Intl.DateTimeFormat("es-CO", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: ZONA });

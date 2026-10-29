@@ -12,7 +12,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { FormularioPlan } from "../../nuevo/formulario-plan";
 import { opcionesFormularioPlan, puedeCrearPlanes } from "../../opciones";
 
-export const metadata: Metadata = { title: "Editar plan de acción · CDE Conecta" };
+export const metadata: Metadata = { title: "Editar plan de acción · CDE Nest" };
 
 export default async function PaginaEditarPlan({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

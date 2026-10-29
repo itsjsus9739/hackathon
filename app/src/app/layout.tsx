@@ -3,7 +3,7 @@ import { SCRIPT_TEMA } from "@/lib/tema";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CDE Conecta · UNAB",
+  title: "CDE Nest · UNAB",
   description: "Sistema integrado de gestión de la información del Centro de Desarrollo Empresarial UNAB",
 };
 

@@ -23,7 +23,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Formación y recompensas · CDE Conecta" };
+export const metadata: Metadata = { title: "Formación y recompensas · CDE Nest" };
 
 const ZONA = "America/Bogota";
 const FECHA = new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "short", timeZone: ZONA });

@@ -1,4 +1,4 @@
-# Calendario CDE Conecta
+# Calendario CDE Nest
 
 Subpestaña tipo Google Calendar para el CDE UNAB: eventos, networking, conversatorios, citas y coworking, con permisos por rol y confirmación de asistencia. Backend en Python (Flask) como función serverless de Vercel; frontend en HTML + FullCalendar.
 
@@ -37,7 +37,7 @@ python api/index.py
 
 Al iniciar se cargan 9 usuarios de demostración (uno o más por rol) y 6 actividades de ejemplo. En la pantalla inicial eliges con qué usuario entrar para mostrar cómo cambia el calendario según el rol.
 
-## Integración con CDE Conecta (Next.js)
+## Integración con CDE Nest (Next.js)
 
 Este calendario vive en `calendario-cde/` en la raíz del repo y se despliega como un **proyecto de Vercel aparte**. La app Next.js (`app/`) lo muestra en `/agenda` dentro de un iframe que apunta a `/calendario`; `app/next.config.ts` reescribe `/calendario` y `/calendario/api/*` hacia la URL de este proyecto (variable `CALENDARIO_URL`). Así todo queda en el mismo dominio y la cookie de sesión de Flask funciona dentro del iframe.
 

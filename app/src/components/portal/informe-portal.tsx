@@ -166,7 +166,7 @@ export function InformePortal({ datos, generadoPor, generadoEn }: { datos: Porta
       )}
 
       <footer className="mt-6 border-t border-[#ddefe5] pt-2 text-[8pt] text-[#5e7a6c]">
-        Generado por {generadoPor} el {fechaHora(generadoEn.toISOString())} desde CDE Conecta · Centro de Desarrollo Empresarial UNAB. Contiene datos
+        Generado por {generadoPor} el {fechaHora(generadoEn.toISOString())} desde CDE Nest · Centro de Desarrollo Empresarial UNAB. Contiene datos
         personales y empresariales: compártelo solo con personas autorizadas (Ley 1581 de 2012).
       </footer>
     </article>

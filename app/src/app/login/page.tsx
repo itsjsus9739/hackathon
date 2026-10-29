@@ -8,7 +8,7 @@ import { BotonTema } from "@/components/tema/boton-tema";
 import { obtenerSesion } from "@/lib/sesion";
 import { FormularioIngreso, FormularioRegistro } from "./formulario-acceso";
 
-export const metadata: Metadata = { title: "Ingresar · CDE Conecta" };
+export const metadata: Metadata = { title: "Ingresar · CDE Nest" };
 
 const ERRORES_ENLACE: Record<string, string> = {
   enlace: "El enlace no es válido o ya venció. Pide uno nuevo y ábrelo en el mismo navegador donde lo solicitaste.",
@@ -29,7 +29,7 @@ export default async function PaginaLogin({ searchParams }: { searchParams: Prom
       <div className="relative w-full max-w-5xl rounded-md bg-card px-5 py-6 shadow-2xl sm:px-10 sm:py-9">
         <header className="flex flex-col-reverse items-start gap-4 border-b-2 border-[var(--primario)] pb-5 sm:flex-row sm:items-center sm:justify-between sm:pb-7">
           <h1 className="text-2xl leading-tight font-light text-[var(--primario-texto)] sm:text-3xl">
-            CDE Conecta
+            CDE Nest
             <span className="block">Sistema de Gestión Empresarial</span>
           </h1>
           <LogoCde priority className="w-44 sm:w-52" />

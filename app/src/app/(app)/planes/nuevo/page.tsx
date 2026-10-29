@@ -11,7 +11,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { opcionesFormularioPlan, puedeCrearPlanes } from "../opciones";
 import { FormularioPlan } from "./formulario-plan";
 
-export const metadata: Metadata = { title: "Nuevo plan de acción · CDE Conecta" };
+export const metadata: Metadata = { title: "Nuevo plan de acción · CDE Nest" };
 
 export default async function PaginaNuevoPlan({ searchParams }: { searchParams: Promise<{ empresa?: string }> }) {
   const { empresa } = await searchParams;

@@ -10,7 +10,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { guardarAvatar } from "./actions";
 import { Vestibulo, type SalaLista } from "./vestibulo";
 
-export const metadata: Metadata = { title: "Coworking · CDE Conecta" };
+export const metadata: Metadata = { title: "Coworking · CDE Nest" };
 
 export default async function PaginaCoworking({ searchParams }: { searchParams: Promise<{ sala?: string }> }) {
   const { sala: salaPedida } = await searchParams;

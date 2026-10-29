@@ -33,10 +33,10 @@ export async function avisarRegistroAlCde(p: { nombre: string; correo: string; r
       to: destinatarios,
       subject: esDocente ? `Confirma un registro como docente: ${p.nombre}` : `Nueva solicitud de acceso: ${p.nombre}`,
       html: `<p>Hola, equipo del CDE:</p>
-<p><b>${nombre}</b> (${correo}) se acaba de registrar en CDE Conecta como <b>${rol}</b>.</p>
+<p><b>${nombre}</b> (${correo}) se acaba de registrar en CDE Nest como <b>${rol}</b>.</p>
 <p>${estado}</p>
 <p>${esDocente ? "Si no es docente de la UNAB, cambia su rol o rechaza su solicitud." : "Revísala en la campana de notificaciones para aprobarla o rechazarla."}</p>
-<p><a href="${escapar(p.origen)}/notificaciones">Revisar en CDE Conecta</a></p>
+<p><a href="${escapar(p.origen)}/notificaciones">Revisar en CDE Nest</a></p>
 <p>Centro de Desarrollo Empresarial · UNAB</p>`,
     });
     if (errorEnvio) throw errorEnvio;

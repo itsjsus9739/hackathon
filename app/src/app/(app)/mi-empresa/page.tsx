@@ -10,7 +10,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { FormularioMiEmpresa } from "./formulario";
 import { VincularEmpresa } from "./vincular";
 
-export const metadata: Metadata = { title: "Actualizar datos empresariales · CDE Conecta" };
+export const metadata: Metadata = { title: "Actualizar datos empresariales · CDE Nest" };
 
 // El emprendedor revisa y actualiza los datos de su empresa (en vez de importar bases, que es del CDE)
 export default async function PaginaMiEmpresa() {

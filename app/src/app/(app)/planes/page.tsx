@@ -10,7 +10,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Planes de acción · CDE Conecta" };
+export const metadata: Metadata = { title: "Planes de acción · CDE Nest" };
 
 type Filtros = { vista?: string; mios?: string; empresa?: string };
 

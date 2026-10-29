@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 
 // Sprites del búho en /public/buho (397 x 382, fondo transparente, para fondos claros).
 const SPRITES = {
-  "error-404": { src: "/buho/buho-error-404.png", alt: "Búho de CDE Conecta buscando una página perdida" },
-  mantenimiento: { src: "/buho/buho-mantenimiento.png", alt: "Búho de CDE Conecta con casco trabajando en este módulo" },
-  "acceso-denegado": { src: "/buho/buho-acceso-denegado.png", alt: "Búho de CDE Conecta indicando que no hay acceso" },
+  "error-404": { src: "/buho/buho-error-404.png", alt: "Búho de CDE Nest buscando una página perdida" },
+  mantenimiento: { src: "/buho/buho-mantenimiento.png", alt: "Búho de CDE Nest con casco trabajando en este módulo" },
+  "acceso-denegado": { src: "/buho/buho-acceso-denegado.png", alt: "Búho de CDE Nest indicando que no hay acceso" },
 } as const;
 
 type Accion = { href: string; etiqueta: string };

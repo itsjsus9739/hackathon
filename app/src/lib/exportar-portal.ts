@@ -187,13 +187,13 @@ const COLUMNAS: Record<string, string[]> = {
 /** Libro de Excel del portal de una o varias empresas. */
 export function libroPortal(lista: PortalDatos[], meta: { generadoPor: string; generadoEn: Date }) {
   const libro = XLSX.utils.book_new();
-  libro.Props = { Title: "Portal del emprendedor · CDE Conecta", Author: meta.generadoPor, Company: "Centro de Desarrollo Empresarial UNAB", CreatedDate: meta.generadoEn };
+  libro.Props = { Title: "Portal del emprendedor · CDE Nest", Author: meta.generadoPor, Company: "Centro de Desarrollo Empresarial UNAB", CreatedDate: meta.generadoEn };
   const hojas = filasPorHoja(lista);
   for (const [nombre, filas] of Object.entries(hojas)) {
     XLSX.utils.book_append_sheet(libro, hoja(filas as Fila[], COLUMNAS[nombre]), nombre);
   }
   const notas = [
-    ["Portal del emprendedor · CDE Conecta (Centro de Desarrollo Empresarial UNAB)"],
+    ["Portal del emprendedor · CDE Nest (Centro de Desarrollo Empresarial UNAB)"],
     [],
     ["Generado", momento(meta.generadoEn.toISOString())],
     ["Por", meta.generadoPor],
@@ -201,7 +201,7 @@ export function libroPortal(lista: PortalDatos[], meta: { generadoPor: string; g
     [],
     ["Cómo leerlo"],
     ["· Una hoja por sección; cada fila lleva la columna «Empresa» para filtrar o consolidar varias empresas."],
-    ["· El libro es editable: las fechas y números son valores reales de Excel. Los cambios aquí NO se guardan en CDE Conecta."],
+    ["· El libro es editable: las fechas y números son valores reales de Excel. Los cambios aquí NO se guardan en CDE Nest."],
     ["· «Etapa actual» se estima a partir de los registros: una etapa cuenta solo si hay un registro que la respalde."],
     ["· «Datos estimados por el CDE» son campos que el emprendedor aún debe confirmar."],
     ["· «Ejemplo = Sí» marca datos de demostración del CDE, no registros reales."],

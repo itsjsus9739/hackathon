@@ -43,7 +43,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
         <Link href="/" className="mb-3 flex items-center gap-3 pl-1">
           <MarcaCde className="size-11" />
           <span className="text-[var(--tinta)]">
-            <span className="block text-lg leading-tight font-bold tracking-tight">CDE Conecta</span>
+            <span className="block text-lg leading-tight font-bold tracking-tight">CDE Nest</span>
             <span className="text-muted-foreground block text-xs leading-snug">Centro de Desarrollo Empresarial</span>
           </span>
         </Link>
@@ -69,7 +69,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
         <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-[var(--panel)]/95 px-4 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur md:hidden">
           <Link href="/" className="flex items-center gap-2 font-bold text-[var(--tinta)]">
             <MarcaCde className="size-8" />
-            CDE Conecta
+            CDE Nest
           </Link>
           <div className="flex items-center gap-1">
             <BotonTema />

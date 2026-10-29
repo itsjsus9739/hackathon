@@ -6,7 +6,7 @@ import { asistenteConfigurado, modeloEnUso, variablesFaltantes } from "@/lib/ia/
 import { obtenerSesion } from "@/lib/sesion";
 import { Asistente } from "./asistente";
 
-export const metadata: Metadata = { title: "Asistente IA · CDE Conecta" };
+export const metadata: Metadata = { title: "Asistente IA · CDE Nest" };
 // Una pregunta puede requerir varias consultas: se da margen a la función en Vercel
 export const maxDuration = 60;
 

@@ -9,7 +9,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { FormularioAjuste, FormularioInsignia, ResolverCanje } from "./controles";
 
-export const metadata: Metadata = { title: "Gestión de recompensas · CDE Conecta" };
+export const metadata: Metadata = { title: "Gestión de recompensas · CDE Nest" };
 
 const FECHA = new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "America/Bogota" });
 

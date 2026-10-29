@@ -7,7 +7,7 @@ import { cargarPortales, ErrorExportacion, leerPedido } from "@/lib/portal-servi
 import { obtenerSesion } from "@/lib/sesion";
 import { BarraInforme } from "./barra";
 
-export const metadata: Metadata = { title: "Informe del portal · CDE Conecta" };
+export const metadata: Metadata = { title: "Informe del portal · CDE Nest" };
 export const maxDuration = 60;
 
 // Fuera del grupo (app): sin menú ni barras, para que el PDF salga limpio. La sesión y el

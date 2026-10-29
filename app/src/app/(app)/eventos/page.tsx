@@ -5,7 +5,7 @@ import { ETIQUETA_ROL, obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { CalendarioEventos } from "./cargador";
 
-export const metadata: Metadata = { title: "Eventos · CDE Conecta" };
+export const metadata: Metadata = { title: "Eventos · CDE Nest" };
 
 export default async function Pagina({ searchParams }: { searchParams: Promise<{ e?: string }> }) {
   const { e } = await searchParams;

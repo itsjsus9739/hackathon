@@ -181,6 +181,6 @@ export async function marcarAsistencia(entrada: z.input<typeof esquemaAsistencia
 /** Lo que lee la cámara del CDE: el QR que el participante muestra en su teléfono. */
 export async function registrarAsistenciaQr(texto: string): Promise<ResultadoAsistencia> {
   const idInscripcion = leerQrAsistencia(texto);
-  if (!idInscripcion) return { error: "Este código no es un QR de asistencia de CDE Conecta." };
+  if (!idInscripcion) return { error: "Este código no es un QR de asistencia de CDE Nest." };
   return marcarAsistencia({ idInscripcion, asistio: true });
 }

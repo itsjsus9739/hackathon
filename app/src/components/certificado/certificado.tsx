@@ -80,7 +80,7 @@ export function Certificado({
               {rol} · semestre {datos.semestre}
             </p>
             <p className="mx-auto mt-[4mm] max-w-[200mm] text-[11.5pt] leading-relaxed">
-              participó activamente en las actividades de formación, acompañamiento y emprendimiento del CDE a través de CDE Conecta, con
+              participó activamente en las actividades de formación, acompañamiento y emprendimiento del CDE a través de CDE Nest, con
               los siguientes logros:
             </p>
           </div>

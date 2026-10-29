@@ -8,7 +8,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { Importador } from "./importador";
 
-export const metadata: Metadata = { title: "Importar y depurar · CDE Conecta" };
+export const metadata: Metadata = { title: "Importar y depurar · CDE Nest" };
 
 export default async function PaginaImportar() {
   const sesion = await obtenerSesion();
