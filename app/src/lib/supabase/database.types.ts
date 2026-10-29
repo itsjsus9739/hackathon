@@ -16,6 +16,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      plan_estudiantes: {
+        Row: {
+          asignado_en: string
+          asignado_por: string | null
+          id: string
+          id_estudiante: string
+          id_plan: string
+        }
+        Insert: {
+          asignado_en?: string
+          asignado_por?: string | null
+          id?: string
+          id_estudiante: string
+          id_plan: string
+        }
+        Update: {
+          asignado_en?: string
+          asignado_por?: string | null
+          id?: string
+          id_estudiante?: string
+          id_plan?: string
+        }
+        Relationships: []
+      }
       avances_plan: {
         Row: {
           creado_en: string
@@ -2248,6 +2272,9 @@ export type Database = {
       }
     }
     Functions: {
+      empresas_para_planes: { Args: never; Returns: { id: string; nombre: string }[] }
+      es_docente: { Args: never; Returns: boolean }
+      gestiona_plan: { Args: { plan: string }; Returns: boolean }
       crear_asignatura_docente: { Args: { nombre: string; semestre: string }; Returns: string }
       dicta_asignatura: { Args: { asignatura: string; sem: string }; Returns: boolean }
       es_estudiante: { Args: { persona: string }; Returns: boolean }
