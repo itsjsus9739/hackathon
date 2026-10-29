@@ -86,9 +86,13 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
         equipo: (equipos.data ?? [])
           .filter((e) => e.id_plan === p.id)
           .map((e) => personas.get(e.id_estudiante)?.nombre ?? "Estudiante"),
+        // Mismas reglas que puede_reportar_avance en la base: CDE, responsables, quien creó el plan,
+        // los estudiantes asignados al plan y el docente/estudiante del proyecto de aula de la empresa
         puedeReportar:
           esCde ||
           p.id_responsable === sesion?.id ||
+          creador.get(p.id!) === sesion?.id ||
+          (equipos.data ?? []).some((e) => e.id_plan === p.id && e.id_estudiante === sesion?.id) ||
           propios.some((c) => c.id_responsable === sesion?.id) ||
           empresasDeMisProyectos.has(p.id_empresa!),
         // Fecha formateada en el servidor (evita diferencias de hidratación por zona horaria)
