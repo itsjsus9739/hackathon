@@ -52,6 +52,7 @@ export function AsignaturasDocente({
       </div>
 
       <form
+        data-recorrido="contactos-asignatura"
         className="flex flex-col gap-2 rounded-xl border bg-white p-3 sm:flex-row sm:items-end"
         onSubmit={(e) => {
           e.preventDefault();
@@ -85,11 +86,11 @@ export function AsignaturasDocente({
       {error && <p className="text-destructive text-sm">{error}</p>}
 
       {asignaturas.length === 0 ? (
-        <p className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
+        <p data-recorrido="contactos-asignaturas" className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
           Aún no tienes asignaturas registradas. Añade la primera para inscribir a tus estudiantes.
         </p>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div data-recorrido="contactos-asignaturas" className="grid gap-4 lg:grid-cols-2">
           {asignaturas.map((a) => (
             <TarjetaAsignatura key={`${a.id}-${a.semestre}`} asignatura={a} estudiantes={estudiantes} />
           ))}

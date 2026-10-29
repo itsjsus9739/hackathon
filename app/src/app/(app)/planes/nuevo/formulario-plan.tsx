@@ -98,7 +98,7 @@ export function FormularioPlan({
         </>
       )}
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2 sm:col-span-2">
+        <div className="space-y-2 sm:col-span-2" data-recorrido="plan-empresa">
           <Label htmlFor="id_empresa">Empresa</Label>
           <NativeSelect
             id="id_empresa"
@@ -186,7 +186,7 @@ export function FormularioPlan({
         </div>
       </div>
 
-      <fieldset className="space-y-2">
+      <fieldset className="space-y-2" data-recorrido="plan-estudiantes">
         <legend className="text-sm font-medium">
           Estudiantes del plan {equipo.size > 0 && <span className="text-muted-foreground font-normal">({equipo.size} asignados)</span>}
         </legend>
@@ -237,7 +237,7 @@ export function FormularioPlan({
         )}
       </fieldset>
 
-      <fieldset className="space-y-3">
+      <fieldset className="space-y-3" data-recorrido="plan-compromisos">
         <legend className="text-sm font-medium">Compromisos</legend>
         {filas.map((f, i) => (
           <div key={f.clave} className="grid gap-2 rounded-md border p-3 sm:grid-cols-[minmax(0,1fr)_11rem_9.5rem_auto] sm:items-end">

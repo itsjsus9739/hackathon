@@ -192,12 +192,12 @@ export default function Calendario({ yo, personas, etiquetasRol, eventoInicial }
     <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
       <aside className="order-2 flex flex-col gap-4 lg:order-1">
         {creables.length > 0 && (
-          <Button size="lg" className="w-full" onClick={() => setFormulario({ actividad: null })}>
+          <Button size="lg" className="w-full" data-recorrido="eventos-crear" onClick={() => setFormulario({ actividad: null })}>
             <CalendarPlus /> Crear actividad
           </Button>
         )}
 
-        <section className="rounded-lg border p-4">
+        <section data-recorrido="eventos-invitaciones" className="rounded-lg border p-4">
           <h3 className="text-muted-foreground mb-3 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
             Invitaciones pendientes
             {invitaciones.length > 0 && <Badge>{invitaciones.length}</Badge>}
@@ -229,7 +229,7 @@ export default function Calendario({ yo, personas, etiquetasRol, eventoInicial }
           )}
         </section>
 
-        <section className="rounded-lg border p-4">
+        <section data-recorrido="eventos-filtros" className="rounded-lg border p-4">
           <h3 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">Mostrar</h3>
           <div className="space-y-1.5">
             {TIPOS_EVENTO.map((t) => (
@@ -281,7 +281,7 @@ export default function Calendario({ yo, personas, etiquetasRol, eventoInicial }
         </section>
       </aside>
 
-      <div className="calendario-cde bg-background order-1 min-w-0 rounded-lg border p-2 sm:p-4 lg:order-2">
+      <div data-recorrido="eventos-calendario" className="calendario-cde bg-background order-1 min-w-0 rounded-lg border p-2 sm:p-4 lg:order-2">
         <FullCalendar
           ref={calendario}
           plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
@@ -455,6 +455,7 @@ function Detalle(p: {
           <strong className="flex-1 text-sm">{textoRespuesta}</strong>
           <Button
             size="sm"
+            data-recorrido="evento-asistire"
             disabled={ocupado || miEstado === "confirmado" || (lleno && miEstado !== "pendiente")}
             onClick={() => iniciar(() => p.responder(a.id, "confirmado"))}
           >
