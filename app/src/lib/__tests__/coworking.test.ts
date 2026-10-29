@@ -47,9 +47,11 @@ describe("coworking", () => {
   });
 
   it("la voz se oye según la cercanía", () => {
-    expect(volumenPorDistancia({ x: 0, y: 0 }, { x: 1, y: 1 })).toBe(1);
-    expect(volumenPorDistancia({ x: 0, y: 0 }, { x: 4, y: 0 })).toBe(0.5);
-    expect(volumenPorDistancia({ x: 0, y: 0 }, { x: 7, y: 0 })).toBe(0);
+    expect(volumenPorDistancia({ x: 0, y: 0 }, { x: 2, y: 2 })).toBe(1);
+    expect(volumenPorDistancia({ x: 0, y: 0 }, { x: 6, y: 0 })).toBe(0.5);
+    expect(volumenPorDistancia({ x: 0, y: 0 }, { x: 9, y: 0 })).toBe(0);
+    // Dos escritorios de la sala (sillas 1.5,1.5 y 7.5,3.5) sí se oyen
+    expect(volumenPorDistancia({ x: 1.5, y: 1.5 }, { x: 7.5, y: 3.5 })).toBeGreaterThan(0.4);
   });
 
   it("el chat se reinicia todos los días a las 4:00 a. m. de Colombia", () => {

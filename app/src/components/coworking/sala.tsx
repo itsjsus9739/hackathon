@@ -25,7 +25,7 @@ import {
   type Presencia,
 } from "@/lib/coworking/tipos";
 import { crearTransporteLocal, crearTransporteSupabase, type Movimiento, type Transporte } from "@/lib/coworking/transporte";
-import { Voz } from "@/lib/coworking/voz";
+import { hayTurn, Voz, type EstadoPar } from "@/lib/coworking/voz";
 import { NOMBRE_MASCOTA } from "@/lib/recorrido";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 
@@ -35,12 +35,28 @@ type Movil = Presencia & { px: number; py: number; ruta: Punto[]; pose: Pose; se
 
 const VELOCIDAD = 0.08; // baldosas por cuadro
 const VELOCIDAD_BUHO = 0.03;
+// Lo que dice Banu al hacerle clic (en orden, y vuelve a empezar)
 const CONSEJOS = [
-  "¡Hola! Revisa los planes de acción en la plataforma.",
+  "¡Hola! Soy Banu, el búho del CDE. Haz clic en mí cuando necesites una idea.",
   "Haz clic en una silla libre para sentarte a trabajar.",
-  "Únete a la voz y acércate a alguien para hablar: a más de 6 baldosas no se oye.",
-  "Completa los datos de tu empresa en «Mi empresa» y gana puntos.",
+  "Únete a la voz y acércate a alguien: entre más cerca, mejor se oye.",
+  "¿Ya revisaste los compromisos de tu plan de acción? Cumplir uno te da +30 puntos.",
+  "Completa los datos de tu empresa en «Mi empresa»: cada dato real suma +10 puntos.",
+  "Una idea sin plan es solo un deseo. ¡Anótala en tu plan de acción!",
+  "Asistir a un evento del CDE y escanear el QR también suma puntos.",
+  "Valida tu idea con clientes reales antes de invertir de más.",
+  "Escribe en el chat de la sala: aquí todos están construyendo algo.",
   "El chat de la sala se reinicia todos los días a las 4:00 a. m.",
+  "Toma agua y estira las alas: trabajar descansado rinde más. ☕",
+  "Un buen pitch cabe en un minuto: problema, solución y por qué tú.",
+  "Conoce a tus clientes: pregúntales qué les duele antes de venderles.",
+  "Las finanzas también son estrategia: separa las cuentas de tu empresa de las personales.",
+  "¿Tienes dudas? Agenda una asesoría con el equipo del CDE.",
+  "Mira la Formación: hay insignias secretas esperando a que las descubras. 🤫",
+  "El trabajo en equipo multiplica: invita a tu equipo a una sala propia.",
+  "Celebra los avances pequeños: cada compromiso cumplido cuenta.",
+  "Si te trabas, explica tu problema en voz alta. ¡A veces la solución aparece sola!",
+  "Revisa tu diagnóstico: tus brechas te dicen por dónde empezar.",
 ];
 
 const aPresencia = (m: Movil): Presencia => ({
@@ -117,7 +133,8 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
   const [texto, setTexto] = useState("");
   const [enVoz, setEnVoz] = useState(false);
   const [silenciado, setSilenciado] = useState(false);
-  const [conectadosVoz, setConectadosVoz] = useState<string[]>([]);
+  const [estadosVoz, setEstadosVoz] = useState<Record<string, EstadoPar>>({});
+  const enVozRef = useRef<string[]>([]);
   const [errorVoz, setErrorVoz] = useState<string | null>(null);
   const [guardando, iniciarGuardado] = useTransition();
   const [avisoAvatar, setAvisoAvatar] = useState<string | null>(null);
@@ -139,7 +156,7 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
         ? crearTransporteSupabase(crearClienteNavegador(), { sala, idCanal: modo.idCanal, nombres: new Map(modo.nombres) })
         : crearTransporteLocal(sala);
     transporte.current = t;
-    const v = new Voz(identidad.id, t, () => setConectadosVoz(v.conectados()));
+    const v = new Voz(identidad.id, t, () => setEstadosVoz(v.estados()));
     voz.current = v;
 
     // Otro jugador cambió de destino: se calcula su recorrido aquí (los demás solo mandan a dónde van)
@@ -175,7 +192,8 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
       }
       for (const id of [...otros.current.keys()]) if (!vistos.has(id)) otros.current.delete(id);
       setPersonas(lista.filter((p) => p.id !== identidad.id));
-      v.sincronizar(lista.filter((p) => p.enVoz).map((p) => p.id));
+      enVozRef.current = lista.filter((p) => p.enVoz && p.id !== identidad.id).map((p) => p.id);
+      v.sincronizar(enVozRef.current);
     });
     t.alRecibirMovimiento((m) => {
       const o = otros.current.get(m.id);
@@ -216,6 +234,12 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
     const intervalo = setInterval(enviarDestino, 2000);
     return () => clearInterval(intervalo);
   }, [enviarDestino]);
+
+  // La voz se revisa cada 4 s: abre conexiones que falten y reintenta las que fallaron
+  useEffect(() => {
+    const intervalo = setInterval(() => voz.current?.sincronizar(enVozRef.current), 4000);
+    return () => clearInterval(intervalo);
+  }, []);
 
   // Volumen por cercanía: cada medio segundo según la distancia en la sala
   useEffect(() => {
@@ -371,7 +395,7 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
       setEnVoz(true);
       setSilenciado(false);
       publicar();
-      voz.current?.sincronizar([identidad.id, ...personas.filter((p) => p.enVoz).map((p) => p.id)]);
+      voz.current?.sincronizar(enVozRef.current);
     } catch {
       setErrorVoz("No se pudo usar el micrófono. Revisa el permiso del navegador.");
     }
@@ -429,10 +453,25 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
         </div>
       </div>
       {errorVoz && <p className="text-destructive text-sm">{errorVoz}</p>}
+      {enVoz && Object.values(estadosVoz).includes("fallo") && (
+        <p className="text-sm text-amber-700">
+          Con alguien no se pudo conectar la voz: la red (por ejemplo, el Wi-Fi de la universidad) bloquea la conexión directa
+          entre equipos.{" "}
+          {hayTurn() ? "Prueben salir y volver a entrar a la voz." : "Prueben con datos móviles o pidan configurar un servidor TURN (NEXT_PUBLIC_TURN_URL)."}
+        </p>
+      )}
       {enVoz && (
         <p className="text-muted-foreground text-xs">
-          En la voz: {enVozOtros.length ? enVozOtros.map((p) => `${p.nombre}${conectadosVoz.includes(p.id) ? "" : " (conectando…)"}`).join(", ") : "solo tú por ahora"}.
-          Acércate a alguien para oírle mejor; a más de 6 baldosas no se oye.
+          En la voz:{" "}
+          {enVozOtros.length
+            ? enVozOtros
+                .map((p) => {
+                  const e = estadosVoz[p.id];
+                  return `${p.nombre}${e === "conectado" ? " ✓" : e === "fallo" ? " (no se pudo conectar)" : " (conectando…)"}`;
+                })
+                .join(", ")
+            : "solo tú por ahora"}
+          . Entre más cerca, mejor se oye.
         </p>
       )}
 

@@ -171,15 +171,18 @@ export function poseDesde(dx: number, dy: number) {
   return `${sy >= 0 ? "fr" : "Esp"}${sx >= 0 ? "_drch" : "_izq"}` as "fr_drch" | "fr_izq" | "Esp_drch" | "Esp_izq";
 }
 
+export const VOZ_COMPLETA = 3; // baldosas a las que se oye completo
+export const VOZ_ALCANCE = 9; // más lejos no se oye (solo las esquinas opuestas de la sala)
+
 /**
- * Volumen de la voz según la distancia en baldosas (como en Habbo/Gather):
- * a 2 o menos se oye completo, se apaga linealmente hasta 6 y más lejos no se oye.
+ * Volumen de la voz según la distancia en baldosas (como en Habbo/Gather): completo hasta 3 baldosas
+ * y se apaga poco a poco hasta 9. Antes se cortaba a 6 y dos personas en escritorios distintos no se oían.
  */
 export function volumenPorDistancia(a: Punto, b: Punto): number {
   const d = Math.hypot(a.x - b.x, a.y - b.y);
-  if (d <= 2) return 1;
-  if (d >= 6) return 0;
-  return Number((1 - (d - 2) / 4).toFixed(2));
+  if (d <= VOZ_COMPLETA) return 1;
+  if (d >= VOZ_ALCANCE) return 0;
+  return Number((1 - (d - VOZ_COMPLETA) / (VOZ_ALCANCE - VOZ_COMPLETA)).toFixed(2));
 }
 
 /** Semilla estable a partir del id, para repartir a la gente por la sala. */
