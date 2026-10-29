@@ -4,7 +4,7 @@ export const MODULOS = [
   { href: "/empresas", etiqueta: "Empresas" },
   { href: "/importar", etiqueta: "Importar y depurar" },
   { href: "/planes", etiqueta: "Planes de acción" },
-  { href: "/citas", etiqueta: "Citas" },
+  { href: "/contactos", etiqueta: "Mis contactos" },
   { href: "/eventos", etiqueta: "Eventos" },
   { href: "/formacion", etiqueta: "Formación y recompensas" },
   { href: "/conocimiento", etiqueta: "Conocimiento" },

@@ -11,13 +11,7 @@ export type Sesion = {
   estadoAcceso: Enums<"estado_acceso">;
 };
 
-export const ETIQUETA_ROL: Record<Enums<"rol_usuario">, string> = {
-  admin_cde: "Admin CDE",
-  cde: "Miembro CDE",
-  docente: "Docente",
-  estudiante: "Estudiante",
-  emprendedor: "Emprendedor",
-};
+export { ETIQUETA_ROL } from "./roles";
 
 /** Usuario autenticado + su perfil. null si no hay sesión. Se cachea por petición. */
 export const obtenerSesion = cache(async (): Promise<Sesion | null> => {

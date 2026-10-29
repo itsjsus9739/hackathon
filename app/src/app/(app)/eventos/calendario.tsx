@@ -11,6 +11,7 @@ import type { DateSelectArg, EventDropArg, EventInput, EventSourceFuncArg } from
 import type { EventResizeDoneArg } from "@fullcalendar/interaction";
 import { CalendarPlus, Clock, Loader2, MapPin, Tag, Trash2, User, X } from "lucide-react";
 
+import { AvatarRol, EtiquetaRol } from "@/components/personas/rol";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import {
   tiposCreables,
   type EstadoRespuesta,
 } from "@/lib/eventos";
+import { COLOR_ROL, ORDEN_ROL } from "@/lib/roles";
 import type { Enums } from "@/lib/supabase/database.types";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { borrarEvento, guardarEvento, moverEvento, responderEvento } from "./actions";
@@ -57,12 +59,8 @@ type Props = {
   eventoInicial: string | null;
 };
 
-const ORDEN_ROLES: Rol[] = ["admin_cde", "cde", "docente", "emprendedor", "estudiante"];
-
 const formatoFecha = new Intl.DateTimeFormat("es-CO", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 const formatoHora = new Intl.DateTimeFormat("es-CO", { hour: "2-digit", minute: "2-digit" });
-const iniciales = (n: string) =>
-  n.replace(/\(.*\)/g, "").trim().split(/\s+/).slice(0, 2).map((p) => p[0] ?? "").join("").toUpperCase();
 /** Fecha → valor de <input type="datetime-local"> en la hora del navegador */
 const aEntradaLocal = (d: Date) => {
   const x = new Date(d.getTime() - d.getTimezoneOffset() * 60_000);
@@ -485,13 +483,14 @@ function Detalle(p: {
             const persona = nombres.get(x.id_usuario);
             return (
               <li key={x.id_usuario} className="flex items-center gap-3 py-2 text-sm">
-                <span className="bg-primary text-primary-foreground grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold">
-                  {iniciales(persona?.nombre ?? "?")}
-                </span>
-                <span>
-                  {persona?.nombre ?? "Miembro"}
-                  <br />
-                  <span className="text-muted-foreground text-xs">{persona ? etiquetasRol[persona.rol] : ""}</span>
+                {persona ? (
+                  <AvatarRol nombre={persona.nombre} rol={persona.rol} className="size-7 text-[10px]" />
+                ) : (
+                  <span className="bg-muted grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold">?</span>
+                )}
+                <span className="space-y-0.5">
+                  <span className="block">{persona?.nombre ?? "Miembro"}</span>
+                  {persona && <EtiquetaRol rol={persona.rol} />}
                 </span>
                 <span
                   className={`ml-auto rounded-full px-2 py-0.5 text-xs ${
@@ -554,7 +553,7 @@ function Formulario(p: {
 
   const organizador = a?.creado_por ?? yo.id;
   const q = busqueda.trim().toLowerCase();
-  const grupos = ORDEN_ROLES.map((rol) => ({
+  const grupos = ORDEN_ROL.map((rol) => ({
     rol,
     gente: personas.filter(
       (x) => x.rol === rol && x.id !== organizador && (!q || x.nombre.toLowerCase().includes(q) || etiquetasRol[rol].toLowerCase().includes(q)),
@@ -658,7 +657,9 @@ function Formulario(p: {
             ) : (
               grupos.map((g) => (
                 <div key={g.rol}>
-                  <div className="bg-muted text-muted-foreground px-3 pt-2 pb-1 text-[11px] uppercase">{etiquetasRol[g.rol]}</div>
+                  <div className={`px-3 pt-2 pb-1 text-[11px] font-semibold uppercase ${COLOR_ROL[g.rol].fondo} ${COLOR_ROL[g.rol].texto}`}>
+                    {etiquetasRol[g.rol]}
+                  </div>
                   {g.gente.map((x) => (
                     <label key={x.id} className="hover:bg-muted flex cursor-pointer items-center gap-3 px-3 py-1.5">
                       <input

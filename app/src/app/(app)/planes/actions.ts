@@ -192,3 +192,24 @@ export async function editarPlan(_: EstadoAccion, formulario: FormData): Promise
   revalidatePath(`/empresas/${actual.id_empresa}`);
   redirect(`/planes?empresa=${actual.id_empresa}&vista=todos`);
 }
+
+const esquemaAvancePlan = z.object({
+  id_plan: z.uuid(),
+  texto: z.string().trim().min(5, "Cuenta qué se avanzó (mínimo 5 caracteres)").max(2000),
+});
+
+/** El docente (o el CDE, o el responsable) deja constancia de un avance; la empresa recibe el aviso. */
+export async function reportarAvancePlan(entrada: z.input<typeof esquemaAvancePlan>): Promise<EstadoAccion> {
+  const datos = esquemaAvancePlan.safeParse(entrada);
+  if (!datos.success) return { error: datos.error.issues[0]?.message ?? "Datos no válidos." };
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.from("avances_plan").insert(datos.data);
+  if (error) {
+    return {
+      error: error.message.includes("row-level security")
+        ? "Solo el docente del proyecto de aula, el responsable o el CDE pueden reportar avances de este plan."
+        : "No se pudo guardar el avance. Inténtalo de nuevo.",
+    };
+  }
+  revalidatePath("/planes");
+}

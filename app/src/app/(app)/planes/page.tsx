@@ -33,7 +33,8 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
   // RLS: cada quien recibe solo los planes que le corresponden
   let consultaPlanes = supabase.from("avance_planes").select("*").order("fecha_limite", { ascending: true, nullsFirst: false });
   if (empresa) consultaPlanes = consultaPlanes.eq("id_empresa", empresa);
-  const [planes, compromisos, ejemplos, editables, directorio] = await Promise.all([
+  const esAcademia = sesion?.rol === "docente" || sesion?.rol === "estudiante";
+  const [planes, compromisos, ejemplos, editables, directorio, avances, comunidad, misProyectos] = await Promise.all([
     consultaPlanes,
     supabase
       .from("compromisos")
@@ -42,13 +43,20 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
     supabase.from("planes_accion").select("id").eq("es_ejemplo", true),
     supabase.rpc("compromisos_editables"),
     supabase.rpc("directorio"),
+    supabase.from("avances_plan").select("id, id_plan, id_autor, texto, creado_en").order("creado_en", { ascending: false }),
+    supabase.rpc("personas_comunidad"),
+    // Docentes y estudiantes reportan avances en los planes de las empresas de sus proyectos de aula
+    esAcademia ? supabase.from("proyectos_aula").select("id_empresa") : Promise.resolve({ data: [], error: null }),
   ]);
-  for (const r of [planes, compromisos, ejemplos, editables, directorio]) {
+  for (const r of [planes, compromisos, ejemplos, editables, directorio, avances, comunidad, misProyectos]) {
     if (r.error) throw new Error(`No se pudieron consultar los planes: ${r.error.message}`);
   }
 
   const hoy = hoyBogota();
   const nombres = new Map((directorio.data ?? []).map((p) => [p.id, p.nombre]));
+  const personas = new Map((comunidad.data ?? []).map((p) => [p.id, p]));
+  const empresasDeMisProyectos = new Set((misProyectos.data ?? []).map((p) => p.id_empresa));
+  const formatoAvance = new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "America/Bogota" });
   const puedeEditar = new Set(editables.data ?? []);
   const esEjemplo = new Set((ejemplos.data ?? []).map((p) => p.id));
 
@@ -72,6 +80,24 @@ export default async function PaginaPlanes({ searchParams }: { searchParams: Pro
         esMio: p.id_responsable === sesion?.id || propios.some((c) => c.id_responsable === sesion?.id),
         editableEstado: esCde || p.id_responsable === sesion?.id,
         editablePlan: esCde,
+        puedeReportar:
+          esCde ||
+          p.id_responsable === sesion?.id ||
+          propios.some((c) => c.id_responsable === sesion?.id) ||
+          empresasDeMisProyectos.has(p.id_empresa!),
+        // Fecha formateada en el servidor (evita diferencias de hidratación por zona horaria)
+        avances: (avances.data ?? [])
+          .filter((a) => a.id_plan === p.id)
+          .map((a) => {
+            const autor = personas.get(a.id_autor);
+            return {
+              id: a.id,
+              texto: a.texto,
+              fecha: formatoAvance.format(new Date(a.creado_en)),
+              autor: autor?.nombre ?? nombres.get(a.id_autor) ?? "Participante",
+              rol: autor?.rol ?? null,
+            };
+          }),
         compromisos: propios.map((c) => ({
           id: c.id,
           descripcion: c.descripcion,

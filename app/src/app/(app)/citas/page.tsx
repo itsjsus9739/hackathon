@@ -1,7 +1,6 @@
-import { Proximamente } from "@/components/buho/pantalla-buho";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Citas · CDE Conecta" };
-
+// Citas se reemplazó por Mis contactos (las citas se agendan en Eventos, tipo «Cita»)
 export default function Pagina() {
-  return <Proximamente modulo="Citas" descripcion="Solicitud de citas, agenda de asesores y recordatorios automáticos por correo." />;
+  redirect("/contactos");
 }

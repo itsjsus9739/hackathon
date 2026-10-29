@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { estaVencido, nombreArea, textoPlazo } from "@/lib/planes";
 import { cn } from "@/lib/utils";
+import { AvancesPlan, type AvanceVista } from "./avances";
 import { ControlAvance, SelectorEstadoPlan } from "./controles";
 
 export type PlanVista = {
@@ -23,6 +24,9 @@ export type PlanVista = {
   editableEstado: boolean;
   /** Solo el CDE edita responsables, fechas y compromisos */
   editablePlan: boolean;
+  /** CDE, responsables y el docente/estudiante del proyecto de aula de la empresa */
+  puedeReportar: boolean;
+  avances: AvanceVista[];
   compromisos: {
     id: string;
     descripcion: string;
@@ -147,6 +151,7 @@ export function TarjetaPlan({ plan, hoy }: { plan: PlanVista; hoy: string }) {
             );
           })}
         </ul>
+        <AvancesPlan idPlan={plan.id} avances={plan.avances} puedeReportar={plan.puedeReportar} />
       </CardContent>
     </Card>
   );

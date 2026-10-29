@@ -11,7 +11,7 @@ import { estaActivo, ICONO_MODULO } from "./iconos";
 const GRUPOS: { titulo?: string; rutas: RutaModulo[] }[] = [
   { rutas: ["/"] },
   { titulo: "Gestión", rutas: ["/empresas", "/importar", "/planes"] },
-  { titulo: "Actividades", rutas: ["/citas", "/eventos", "/coworking"] },
+  { titulo: "Actividades", rutas: ["/contactos", "/eventos", "/coworking"] },
   { titulo: "Aprendizaje", rutas: ["/formacion", "/conocimiento", "/asistente", "/portal"] },
 ];
 

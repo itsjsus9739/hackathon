@@ -16,6 +16,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      avances_plan: {
+        Row: {
+          creado_en: string
+          id: string
+          id_autor: string
+          id_compromiso: string | null
+          id_plan: string
+          texto: string
+        }
+        Insert: {
+          creado_en?: string
+          id?: string
+          id_autor?: string
+          id_compromiso?: string | null
+          id_plan: string
+          texto: string
+        }
+        Update: {
+          creado_en?: string
+          id?: string
+          id_autor?: string
+          id_compromiso?: string | null
+          id_plan?: string
+          texto?: string
+        }
+        Relationships: []
+      }
       brechas_empresa: {
         Row: {
           cerrada_en: string | null
@@ -2221,6 +2248,19 @@ export type Database = {
       }
     }
     Functions: {
+      crear_asignatura_docente: { Args: { nombre: string; semestre: string }; Returns: string }
+      dicta_asignatura: { Args: { asignatura: string; sem: string }; Returns: boolean }
+      es_estudiante: { Args: { persona: string }; Returns: boolean }
+      mis_contactos: {
+        Args: never
+        Returns: {
+          id: string
+          nombre: string
+          rol: Database["public"]["Enums"]["rol_usuario"]
+          relacion: string
+        }[]
+      }
+      puede_reportar_avance: { Args: { plan: string }; Returns: boolean }
       puede_registrar_brechas: { Args: { empresa: string }; Returns: boolean }
       semestre_de: { Args: { fecha: string }; Returns: string }
       acceso_aprobado: { Args: never; Returns: boolean }
