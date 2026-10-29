@@ -95,3 +95,42 @@ export async function solicitarEmpresa(_: EstadoMiEmpresa, formulario: FormData)
   revalidatePath("/mi-empresa");
   return { ok: "Enviamos tu empresa al CDE. Un administrador confirmará que te pertenece y te avisaremos en la campana." };
 }
+
+export type EmpresaEncontrada = {
+  id: string;
+  nombre: string;
+  nit: string | null;
+  municipio: string | null;
+  sector: string | null;
+  tiene_representante: boolean;
+  vinculada: boolean;
+  solicitud_pendiente: boolean;
+};
+
+/** Antes de registrar: ¿la empresa ya está en la base? (por NIT o nombre; la base devuelve solo datos mínimos) */
+export async function buscarEmpresaRegistro(texto: string): Promise<{ error?: string; resultados?: EmpresaEncontrada[] }> {
+  const t = texto.trim().slice(0, 120);
+  if (t.length < 3) return { error: "Escribe el NIT o al menos 3 letras del nombre." };
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase.rpc("buscar_empresa_registro", { texto: t });
+  if (error) return { error: "No se pudo buscar. Inténtalo de nuevo." };
+  return { resultados: data ?? [] };
+}
+
+/** Unirse a una empresa que ya existe: un admin del CDE la confirma (representante si no tiene, si no miembro). */
+export async function unirseAEmpresa(_: EstadoMiEmpresa, formulario: FormData): Promise<EstadoMiEmpresa> {
+  const datos = z
+    .object({ empresa: z.uuid(), cargo: z.string().trim().max(120).nullable() })
+    .safeParse({ empresa: formulario.get("empresa"), cargo: vacio(formulario.get("cargo")) });
+  if (!datos.success) return { error: "Datos no válidos." };
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("solicitar_union_empresa", { empresa: datos.data.empresa, cargo: datos.data.cargo });
+  if (error) {
+    if (error.message.includes("Ya enviaste")) return { error: "Ya pediste unirte a esta empresa: el CDE la está revisando." };
+    if (error.message.includes("ya está vinculada")) return { error: "Esa empresa ya está vinculada a tu cuenta." };
+    if (error.message.includes("Solo los emprendedores")) return { error: "Solo los emprendedores se unen a una empresa." };
+    return { error: "No se pudo enviar la solicitud. Inténtalo de nuevo." };
+  }
+  revalidatePath("/mi-empresa");
+  return { ok: "Listo: pediste unirte. Un administrador del CDE lo confirmará y te avisaremos en la campana." };
+}

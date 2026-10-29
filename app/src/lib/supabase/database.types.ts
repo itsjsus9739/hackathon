@@ -2373,6 +2373,20 @@ export type Database = {
       }
     }
     Functions: {
+      buscar_empresa_registro: {
+        Args: { texto: string }
+        Returns: {
+          id: string
+          nombre: string
+          nit: string | null
+          municipio: string | null
+          sector: string | null
+          tiene_representante: boolean
+          vinculada: boolean
+          solicitud_pendiente: boolean
+        }[]
+      }
+      solicitar_union_empresa: { Args: { empresa: string; cargo?: string | null }; Returns: string }
       otorgar_acceso_portal: { Args: { empresa: string; estudiante: string }; Returns: undefined }
       portal_datos: { Args: { empresa: string }; Returns: Json }
       portal_empresas: {

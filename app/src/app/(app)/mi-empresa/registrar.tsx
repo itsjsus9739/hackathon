@@ -12,7 +12,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { solicitarEmpresa } from "./actions";
 
 /** El emprendedor envía los datos de su empresa; un admin del CDE confirma que le pertenece. */
-export function RegistrarEmpresa({ sectores, tamanos, abierto = false }: { sectores: string[]; tamanos: readonly string[]; abierto?: boolean }) {
+export function RegistrarEmpresa({
+  sectores,
+  tamanos,
+  abierto = false,
+  inicial,
+}: {
+  sectores: string[];
+  tamanos: readonly string[];
+  abierto?: boolean;
+  /** Lo que el emprendedor ya escribió al buscar (NIT o nombre) */
+  inicial?: { nombre?: string; nit?: string };
+}) {
   const [estado, accion, enviando] = useActionState(solicitarEmpresa, undefined);
   const [mostrar, setMostrar] = useState(abierto);
 
@@ -29,11 +40,11 @@ export function RegistrarEmpresa({ sectores, tamanos, abierto = false }: { secto
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="nombre-nueva">Nombre de la empresa o emprendimiento</Label>
-          <Input id="nombre-nueva" name="nombre" required minLength={2} maxLength={200} placeholder="Ej. Panadería La Espiga" />
+          <Input id="nombre-nueva" name="nombre" required minLength={2} maxLength={200} defaultValue={inicial?.nombre} placeholder="Ej. Panadería La Espiga" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="nit-nueva">NIT (si lo tiene)</Label>
-          <Input id="nit-nueva" name="nit" inputMode="numeric" maxLength={20} placeholder="Solo números" />
+          <Input id="nit-nueva" name="nit" inputMode="numeric" maxLength={20} defaultValue={inicial?.nit} placeholder="Solo números" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="cargo-nueva">Tu cargo</Label>

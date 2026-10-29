@@ -8,7 +8,7 @@ import { obtenerSesion } from "@/lib/sesion";
 import { Constants } from "@/lib/supabase/database.types";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { FormularioMiEmpresa } from "./formulario";
-import { RegistrarEmpresa } from "./registrar";
+import { VincularEmpresa } from "./vincular";
 
 export const metadata: Metadata = { title: "Actualizar datos empresariales · CDE Conecta" };
 
@@ -99,19 +99,19 @@ export default async function PaginaMiEmpresa() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Building2 className="size-5" aria-hidden /> {empresas.data?.length ? "Agregar otra empresa" : "Registra tu empresa"}
+            <Building2 className="size-5" aria-hidden /> {empresas.data?.length ? "Vincular otra empresa" : "Vincula tu empresa"}
           </CardTitle>
           <CardDescription>
             {empresas.data?.length
-              ? "Si eres parte de otra empresa, envíala al CDE para vincularla a tu cuenta."
-              : "Tu cuenta aún no tiene una empresa vinculada. Envía sus datos: un administrador del CDE confirmará que te pertenece."}
+              ? "Si también eres parte de otra empresa, búscala y pide unirte; si no está en la base, regístrala."
+              : "Tu cuenta aún no tiene una empresa vinculada. Búscala: si ya está en la base del CDE solo pides unirte, y si no, la registras. Un administrador del CDE lo confirma."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <RegistrarEmpresa
+          <VincularEmpresa
             sectores={(sectores.data ?? []).map((s) => s.nombre)}
             tamanos={Constants.public.Enums.tamano_empresa}
-            abierto={!empresas.data?.length}
+            tieneEmpresas={Boolean(empresas.data?.length)}
           />
         </CardContent>
       </Card>
