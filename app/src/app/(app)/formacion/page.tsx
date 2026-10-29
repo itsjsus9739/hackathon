@@ -136,7 +136,7 @@ export default async function PaginaFormacion() {
       {/* A. Cabecera de progreso */}
       <section
         data-recorrido="formacion-progreso"
-        className="flex flex-col gap-5 rounded-3xl border bg-gradient-to-br from-white to-[var(--verde-suave)] p-5 sm:flex-row sm:items-center sm:p-6"
+        className="flex flex-col gap-5 rounded-3xl border bg-gradient-to-br from-card to-[var(--verde-suave)] p-5 sm:flex-row sm:items-center sm:p-6"
       >
         <Image src={buho.src} alt={buho.alt} width={397} height={382} priority className="mx-auto h-auto w-32 shrink-0 sm:mx-0 sm:w-40" />
         <div className="min-w-0 flex-1 space-y-4">
@@ -144,7 +144,7 @@ export default async function PaginaFormacion() {
             <p className="text-xs font-semibold tracking-wide text-[var(--primario-texto)] uppercase">Nivel {nivel.actual.nivel} de 5</p>
             <h2 className="text-2xl font-bold text-[var(--tinta)]">{nivel.actual.nombre}</h2>
             <div
-              className="mt-2 h-2.5 overflow-hidden rounded-full bg-black/10"
+              className="mt-2 h-2.5 overflow-hidden rounded-full bg-foreground/10"
               role="progressbar"
               aria-valuenow={nivel.progreso}
               aria-valuemin={0}
@@ -169,7 +169,7 @@ export default async function PaginaFormacion() {
             <Cifra icono={Medal} etiqueta="Insignias" valor={mias.size} />
           </dl>
           {puntos === 0 && (
-            <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-[var(--primario)] bg-white/70 p-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-[var(--primario)] bg-card/70 p-3 sm:flex-row sm:items-center">
               <p className="flex-1 text-sm">
                 Aún no tienes puntos. Completa el recorrido con el búho y gana tus primeros <b>20 puntos</b> y la insignia Bienvenida.
               </p>
@@ -180,7 +180,7 @@ export default async function PaginaFormacion() {
       </section>
 
       {/* Reglas */}
-      <section id="como-gano" className="scroll-mt-20 rounded-2xl border bg-white p-4">
+      <section id="como-gano" className="scroll-mt-20 rounded-2xl border bg-card p-4">
         <h2 className="flex items-center gap-2 font-semibold text-[var(--tinta)]">
           <Info className="size-4 text-[var(--primario-texto)]" aria-hidden /> ¿Cómo gano puntos?
         </h2>
@@ -213,7 +213,7 @@ export default async function PaginaFormacion() {
               const { publico, detalle } = leerRecompensa(r.descripcion);
               const agotada = r.stock !== null && r.stock <= 0;
               return (
-                <li key={r.id} className="flex flex-col rounded-2xl border bg-white p-4">
+                <li key={r.id} className="flex flex-col rounded-2xl border bg-card p-4">
                   <div className="flex items-start justify-between gap-2">
                     <p className="leading-tight font-semibold">{r.nombre}</p>
                     <span className="shrink-0 rounded-full bg-[var(--verde-suave)] px-2 py-0.5 text-sm font-bold text-[var(--primario-texto)] tabular-nums">
@@ -310,7 +310,7 @@ export default async function PaginaFormacion() {
                       <span
                         className={cn(
                           "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums",
-                          r.posicion === 1 ? "bg-[#ffe08a] text-[#7a5a00]" : r.posicion === 2 ? "bg-[#e8edf0] text-[#4d5a62]" : r.posicion === 3 ? "bg-[#f1cfb3] text-[#7a4a24]" : "bg-black/5",
+                          r.posicion === 1 ? "bg-[#ffe08a] text-[#7a5a00]" : r.posicion === 2 ? "bg-[#e8edf0] text-[#4d5a62]" : r.posicion === 3 ? "bg-[#f1cfb3] text-[#7a4a24]" : "bg-foreground/5",
                         )}
                       >
                         {r.posicion}
@@ -346,19 +346,19 @@ export default async function PaginaFormacion() {
           <h2 className="text-lg font-semibold text-[var(--tinta)]">Insignias de tu círculo</h2>
           <ul className="grid gap-3 sm:grid-cols-2">
             {circuloLista.map((p) => (
-              <li key={p.id} className="flex items-center gap-3 rounded-2xl border bg-white p-3">
+              <li key={p.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{p.nombre}</p>
                   <p className={cn("text-xs", COLOR_ROL[p.rol].texto)}>{ETIQUETA_ROL[p.rol]}</p>
                 </div>
                 <div className="flex -space-x-2">
                   {p.insignias.slice(0, 5).map((i) => (
-                    <span key={i.id} title={i.nombre} className="rounded-full ring-2 ring-white">
+                    <span key={i.id} title={i.nombre} className="rounded-full ring-2 ring-card">
                       <Medalla nivel={i.nivel} criterio={i.criterio} area={i.area} tamano="sm" />
                     </span>
                   ))}
                   {p.insignias.length > 5 && (
-                    <span className="flex size-9 items-center justify-center rounded-full bg-black/5 text-xs font-semibold ring-2 ring-white">
+                    <span className="flex size-9 items-center justify-center rounded-full bg-foreground/5 text-xs font-semibold ring-2 ring-card">
                       +{p.insignias.length - 5}
                     </span>
                   )}
@@ -374,7 +374,7 @@ export default async function PaginaFormacion() {
 
 function Cifra({ icono: Icono, etiqueta, valor }: { icono: typeof Coins; etiqueta: string; valor: number }) {
   return (
-    <div className="rounded-xl border bg-white p-2.5 sm:p-3">
+    <div className="rounded-xl border bg-card p-2.5 sm:p-3">
       <dt className="text-muted-foreground flex items-center gap-1 text-[11px] sm:text-xs">
         <Icono className="hidden size-3.5 sm:block" aria-hidden /> {etiqueta}
       </dt>

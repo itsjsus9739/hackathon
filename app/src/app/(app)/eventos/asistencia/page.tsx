@@ -72,7 +72,7 @@ export default async function PaginaAsistencia({ searchParams }: { searchParams:
                 aria-current={ev.id === elegido?.id ? "page" : undefined}
                 className={cn(
                   "shrink-0 rounded-xl border px-3 py-2 text-left text-sm",
-                  ev.id === elegido?.id ? "border-[var(--primario)] bg-[var(--verde-suave)]" : "bg-white hover:bg-black/5",
+                  ev.id === elegido?.id ? "border-[var(--primario)] bg-[var(--verde-suave)]" : "bg-card hover:bg-foreground/5",
                 )}
               >
                 <span className="block max-w-56 truncate font-medium">{ev.nombre}</span>
@@ -82,7 +82,7 @@ export default async function PaginaAsistencia({ searchParams }: { searchParams:
           </nav>
 
           {elegido && (
-            <section className="space-y-4 rounded-2xl border bg-white p-4">
+            <section className="space-y-4 rounded-2xl border bg-card p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-lg font-semibold">{elegido.nombre}</h2>
                 <span

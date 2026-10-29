@@ -27,7 +27,7 @@ export function MisProyectos({ rol, proyectos, sinProyecto }: { rol: "estudiante
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {proyectos.map((p) => (
-            <li key={p.id} className="space-y-2 rounded-xl border bg-white p-4">
+            <li key={p.id} className="space-y-2 rounded-xl border bg-card p-4">
               <p className="flex items-center gap-2 text-sm font-semibold text-sky-800">
                 <BookOpen className="size-4" aria-hidden /> {p.asignatura}
               </p>

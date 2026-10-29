@@ -72,7 +72,7 @@ export function ListaContactos({ contactos, vacio }: { contactos: Contacto[]; va
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {visibles.map((c) => (
-            <li key={c.id} className={cn("flex items-start gap-3 rounded-xl border border-l-4 bg-white p-3", COLOR_ROL[c.rol].borde)}>
+            <li key={c.id} className={cn("flex items-start gap-3 rounded-xl border border-l-4 bg-card p-3", COLOR_ROL[c.rol].borde)}>
               <AvatarRol nombre={c.nombre} rol={c.rol} />
               <div className="min-w-0 flex-1 space-y-1">
                 <p className="truncate text-sm font-semibold">{c.nombre}</p>

@@ -56,7 +56,7 @@ export default async function PaginaGestion() {
             {canjes.data.map((c) => {
               const persona = nombres.get(c.id_usuario);
               return (
-                <li key={c.id} className="grid gap-3 rounded-2xl border bg-white p-4 sm:grid-cols-[1fr_20rem] sm:items-center">
+                <li key={c.id} className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-[1fr_20rem] sm:items-center">
                   <div className="flex min-w-0 items-center gap-3">
                     <Image src="/buho/buho-canjear-premio.png" alt="" width={397} height={382} className="hidden h-auto w-12 sm:block" />
                     <div className="min-w-0">

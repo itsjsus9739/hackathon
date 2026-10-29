@@ -14,7 +14,7 @@ function HitoItem({ hito, ahora }: { hito: Hito; ahora: number }) {
     <li className="relative pb-6 pl-10 last:pb-0">
       {/* Punto sobre la línea vertical */}
       <span
-        className={`absolute top-0 left-0 flex size-7 items-center justify-center rounded-full bg-white ring-4 ${estilo.anillo}`}
+        className={`absolute top-0 left-0 flex size-7 items-center justify-center rounded-full bg-card ring-4 ${estilo.anillo}`}
         aria-hidden
       >
         <Icono className={`size-3.5 ${estilo.texto}`} />

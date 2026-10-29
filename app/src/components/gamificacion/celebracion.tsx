@@ -83,7 +83,7 @@ export function Celebracion({ idUsuario, insignias, nivel }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="celebracion-titulo"
-        className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl"
+        className="w-full max-w-sm rounded-3xl bg-card p-6 text-center shadow-2xl"
       >
         <Image
           src={esInsignia ? "/buho/buho-nueva-insignia.png" : "/buho/buho-nivel-completado.png"}
@@ -114,7 +114,7 @@ export function Celebracion({ idUsuario, insignias, nivel }: Props) {
           <Button ref={boton} onClick={cerrar}>
             ¡Genial!
           </Button>
-          <Link href="/formacion" onClick={cerrar} className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-black/5">
+          <Link href="/formacion" onClick={cerrar} className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-foreground/5">
             Ver mis logros
           </Link>
         </div>

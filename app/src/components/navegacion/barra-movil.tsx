@@ -91,8 +91,8 @@ export function BarraMovil({ nombre, rol, etiquetaRol }: { nombre: string; rol: 
       {abierto && (
         <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menú" id="menu-movil">
           <button type="button" aria-label="Cerrar el menú" className="absolute inset-0 bg-black/40" onClick={() => setAbierto(false)} />
-          <div className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-2xl bg-white px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl">
-            <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-black/15" aria-hidden />
+          <div className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-2xl bg-card px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl">
+            <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-foreground/15" aria-hidden />
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-semibold">{nombre}</p>
