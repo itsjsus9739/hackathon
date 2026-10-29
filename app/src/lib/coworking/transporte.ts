@@ -10,7 +10,8 @@ import type { MensajeChat, Presencia } from "./tipos";
 //  - Local: BroadcastChannel entre pestañas del mismo navegador (pruebas y demo sin internet).
 
 export type Senal = { de: string; para: string; tipo: "offer" | "answer" | "ice"; datos: unknown };
-export type Movimiento = { id: string; x: number; y: number };
+/** Destino de alguien (centro de la baldosa) y la silla en la que se va a sentar, si es el caso */
+export type Movimiento = { id: string; x: number; y: number; silla: string | null };
 
 export type Transporte = {
   conectar(yo: Presencia): Promise<void>;

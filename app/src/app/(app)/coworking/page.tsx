@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { SalaCoworking } from "@/components/coworking/sala";
-import { normalizarAvatar, type MensajeChat } from "@/lib/coworking/tipos";
+import { normalizarAvatar, ultimoReinicioChat, type MensajeChat } from "@/lib/coworking/tipos";
 import { esUuid } from "@/lib/empresas";
 import { ETIQUETA_ROL, obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
@@ -66,6 +66,7 @@ export default async function PaginaCoworking({ searchParams }: { searchParams: 
     .from("mensajes")
     .select("id, id_autor, contenido, creado_en")
     .eq("id_canal", canal.data.id)
+    .gte("creado_en", ultimoReinicioChat().toISOString()) // el chat se reinicia cada día a las 4:00 a. m.
     .order("creado_en", { ascending: false })
     .limit(50);
   const historial: MensajeChat[] = (ultimos ?? []).reverse().map((m) => ({
@@ -83,7 +84,7 @@ export default async function PaginaCoworking({ searchParams }: { searchParams: 
       </Link>
       <div>
         <h1 className="text-2xl font-semibold">{sala?.nombre ?? "Sala principal"}</h1>
-        <p className="text-muted-foreground text-sm">Muévete con clic o con las flechas. Acércate a alguien para hablar.</p>
+        <p className="text-muted-foreground text-sm">Camina, siéntate en un escritorio y acércate a alguien para hablar por voz.</p>
       </div>
       <SalaCoworking
         key={salaPedida}

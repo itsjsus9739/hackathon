@@ -1,3 +1,6 @@
 {
-  "crons": [{ "path": "/api/cron/recordatorios", "schedule": "0 13 * * *" }]
+  "crons": [
+    { "path": "/api/cron/recordatorios", "schedule": "0 13 * * *" },
+    { "path": "/api/cron/chat-coworking", "schedule": "0 9 * * *" }
+  ]
 }

@@ -6,42 +6,81 @@ import { Headphones, Loader2, Mic, MicOff, PhoneOff, Save, Send, Users } from "l
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ALTO, ANCHO, aCuadricula, cargarSprites, Escena, type Mascota, type Personaje, type Pose, type PoseBuho } from "@/lib/coworking/dibujo";
 import {
-  LADO,
-  OBJETOS,
+  OPCIONES_AVATAR,
   baldosaInicial,
   baldosaLibre,
+  buscarRuta,
+  claveSilla,
+  objetoEn,
+  poseDesde,
+  proximoReinicioChat,
   semillaDe,
+  sillaPorClave,
   volumenPorDistancia,
   type Avatar,
   type MensajeChat,
+  type Objeto,
   type Presencia,
 } from "@/lib/coworking/tipos";
-import { crearTransporteLocal, crearTransporteSupabase, type Transporte } from "@/lib/coworking/transporte";
+import { crearTransporteLocal, crearTransporteSupabase, type Movimiento, type Transporte } from "@/lib/coworking/transporte";
 import { Voz } from "@/lib/coworking/voz";
+import { NOMBRE_MASCOTA } from "@/lib/recorrido";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 
-// Geometría isométrica del demo original (baldosas de 64×32, sala de 8×8), con el lienzo ajustado a la sala
-const ANCHO = 600;
-const ALTO = 380;
-const TW = 64;
-const TH = 32;
-const OX = 300;
-const OY = 100;
-const aPantalla = (gx: number, gy: number) => ({ x: ((gx - gy) * TW) / 2 + OX, y: ((gx + gy) * TH) / 2 + OY });
-const aCuadricula = (px: number, py: number) => {
-  const a = (px - OX) / (TW / 2);
-  const b = (py - OY) / (TH / 2);
-  return { gx: Math.floor((a + b) / 2), gy: Math.floor((b - a) / 2) };
-};
+type Punto = { x: number; y: number };
+/** Presencia + estado de la animación local (px/py = posición dibujada, ruta = baldosas por recorrer) */
+type Movil = Presencia & { px: number; py: number; ruta: Punto[]; pose: Pose; sentado: Objeto | null; ultimoMovimiento?: number };
 
-type Movil = Presencia & { px: number; py: number; ultimoMovimiento?: number }; // px/py = posición animada
+const VELOCIDAD = 0.08; // baldosas por cuadro
+const VELOCIDAD_BUHO = 0.03;
+const CONSEJOS = [
+  "¡Hola! Revisa los planes de acción en la plataforma.",
+  "Haz clic en una silla libre para sentarte a trabajar.",
+  "Únete a la voz y acércate a alguien para hablar: a más de 6 baldosas no se oye.",
+  "Completa los datos de tu empresa en «Mi empresa» y gana puntos.",
+  "El chat de la sala se reinicia todos los días a las 4:00 a. m.",
+];
+
+const aPresencia = (m: Movil): Presencia => ({
+  id: m.id,
+  nombre: m.nombre,
+  rol: m.rol,
+  avatar: m.avatar,
+  x: m.x,
+  y: m.y,
+  silla: m.silla,
+  enVoz: m.enVoz,
+  silenciado: m.silenciado,
+});
+
+/** Avanza un cuadro por la ruta; al llegar a una silla elegida, se sienta. Devuelve si se movió. */
+function avanzar(u: Movil, vel: number): boolean {
+  const destino = u.ruta[0];
+  if (!destino) return false;
+  const dx = destino.x - u.px;
+  const dy = destino.y - u.py;
+  const d = Math.hypot(dx, dy);
+  if (d > 0.001) u.pose = poseDesde(dx, dy);
+  if (d < vel + 0.005) {
+    u.px = destino.x;
+    u.py = destino.y;
+    u.ruta.shift();
+    if (!u.ruta.length && u.silla) u.sentado = sillaPorClave(u.silla);
+  } else {
+    u.px += (dx / d) * vel;
+    u.py += (dy / d) * vel;
+  }
+  return true;
+}
 
 type Props = {
   yo: { id: string; nombre: string; rol: string };
   /** "principal" o el id de una sala creada: cada sala es un canal de Realtime distinto */
   sala: string;
   avatarInicial: Avatar;
+  /** Mensajes desde el último reinicio del chat (4:00 a. m.) */
   historial: MensajeChat[];
   /** "supabase" en la app; "local" (entre pestañas del mismo navegador) para pruebas y demo sin internet */
   modo: { tipo: "supabase"; idCanal: string; nombres: [string, string][] } | { tipo: "local" };
@@ -55,10 +94,26 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
   const otros = useRef(new Map<string, Movil>());
   const [avatar, setAvatar] = useState<Avatar>(avatarInicial);
   const inicio = useMemo(() => baldosaInicial([], semillaDe(identidad.id)), [identidad.id]);
-  const yo = useRef<Movil>({ ...identidad, avatar: avatarInicial, x: inicio.x, y: inicio.y, px: inicio.x, py: inicio.y, enVoz: false, silenciado: false });
+  const yo = useRef<Movil>({
+    ...identidad,
+    avatar: avatarInicial,
+    x: inicio.x,
+    y: inicio.y,
+    silla: null,
+    enVoz: false,
+    silenciado: false,
+    px: inicio.x,
+    py: inicio.y,
+    ruta: [],
+    pose: "fr_izq",
+    sentado: null,
+  });
+  const buho = useRef({ px: 6.5, py: 1.5, ruta: [] as Punto[], pose: "sentado" as PoseBuho, mensaje: null as string | null, quieto: Date.now(), consejo: 0, ocultar: 0 });
+  const [cargada, setCargada] = useState(false);
   const [personas, setPersonas] = useState<Presencia[]>([]);
   const [estado, setEstado] = useState<"conectando" | "conectado" | "error">("conectando");
   const [mensajes, setMensajes] = useState<MensajeChat[]>(historial);
+  const [reiniciado, setReiniciado] = useState(false);
   const [texto, setTexto] = useState("");
   const [enVoz, setEnVoz] = useState(false);
   const [silenciado, setSilenciado] = useState(false);
@@ -68,12 +123,11 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
   const [avisoAvatar, setAvisoAvatar] = useState<string | null>(null);
   const finChat = useRef<HTMLDivElement>(null);
 
-  const publicar = useCallback(() => {
-    const { px: _px, py: _py, ...presencia } = yo.current;
-    void _px;
-    void _py;
-    transporte.current?.actualizar(presencia);
-  }, []);
+  const publicar = useCallback(() => transporte.current?.actualizar(aPresencia(yo.current)), []);
+  const enviarDestino = useCallback(() => {
+    const { x, y, silla } = yo.current;
+    transporte.current?.enviarMovimiento({ id: identidad.id, x, y, silla });
+  }, [identidad.id]);
 
   // Conexión con la sala: depende solo de valores estables (un objeto nuevo en props no debe reconectar)
   const modoActual = useRef(modo);
@@ -88,6 +142,20 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
     const v = new Voz(identidad.id, t, () => setConectadosVoz(v.conectados()));
     voz.current = v;
 
+    // Otro jugador cambió de destino: se calcula su recorrido aquí (los demás solo mandan a dónde van)
+    const irA = (o: Movil, m: Pick<Movimiento, "x" | "y" | "silla">) => {
+      const mismo = o.x === m.x && o.y === m.y && o.silla === m.silla;
+      o.x = m.x;
+      o.y = m.y;
+      o.silla = m.silla;
+      if (mismo && (o.ruta.length || Math.hypot(o.px - m.x, o.py - m.y) < 0.05)) return; // repetición cada 2 s
+      o.sentado = null;
+      const ruta = buscarRuta({ x: o.px, y: o.py }, Math.floor(m.x), Math.floor(m.y), [], Boolean(m.silla));
+      if (ruta.length) o.ruta = ruta;
+      else if (Math.hypot(o.px - m.x, o.py - m.y) > 0.05) o.ruta = [{ x: m.x, y: m.y }];
+      else o.sentado = sillaPorClave(m.silla);
+    };
+
     t.alCambiarEstado(setEstado);
     t.alCambiarPresencia((lista) => {
       const vistos = new Set<string>();
@@ -95,15 +163,15 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
         if (p.id === identidad.id) continue;
         vistos.add(p.id);
         const previo = otros.current.get(p.id);
+        if (!previo) {
+          otros.current.set(p.id, { ...p, silla: p.silla ?? null, px: p.x, py: p.y, ruta: [], pose: "fr_izq", sentado: sillaPorClave(p.silla ?? null) });
+          continue;
+        }
         // La posición la manda el broadcast de movimiento (repetido cada 2 s); la de la presencia solo
         // sirve mientras no haya llegado ninguno.
-        const reciente = Boolean(previo?.ultimoMovimiento);
-        otros.current.set(
-          p.id,
-          previo
-            ? { ...p, x: reciente ? previo.x : p.x, y: reciente ? previo.y : p.y, px: previo.px, py: previo.py, ultimoMovimiento: previo.ultimoMovimiento }
-            : { ...p, px: p.x, py: p.y },
-        );
+        const { x, y, silla } = previo;
+        Object.assign(previo, p, { x, y, silla }); // nombre, avatar y voz; el destino lo decide irA
+        if (!previo.ultimoMovimiento) irA(previo, { x: p.x, y: p.y, silla: p.silla ?? null });
       }
       for (const id of [...otros.current.keys()]) if (!vistos.has(id)) otros.current.delete(id);
       setPersonas(lista.filter((p) => p.id !== identidad.id));
@@ -111,17 +179,12 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
     });
     t.alRecibirMovimiento((m) => {
       const o = otros.current.get(m.id);
-      if (o && Number.isFinite(m.x) && Number.isFinite(m.y)) {
-        o.x = m.x;
-        o.y = m.y;
-        o.ultimoMovimiento = Date.now();
-      }
+      if (!o || !Number.isFinite(m.x) || !Number.isFinite(m.y)) return;
+      o.ultimoMovimiento = Date.now();
+      irA(o, { x: m.x, y: m.y, silla: typeof m.silla === "string" ? m.silla : null });
     });
     t.alRecibirMensaje((m) => setMensajes((ms) => (ms.some((x) => x.id === m.id) ? ms : [...ms.slice(-99), m])));
-    const { px: _px, py: _py, ...presencia } = yo.current;
-    void _px;
-    void _py;
-    void t.conectar(presencia).catch(() => setEstado("error"));
+    void t.conectar(aPresencia(yo.current)).catch(() => setEstado("error"));
 
     return () => {
       v.desactivar();
@@ -134,13 +197,25 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
     finChat.current?.scrollIntoView({ block: "nearest" });
   }, [mensajes]);
 
-  // La posición se repite cada 2 s: quien entra o se reconecta ve a cada uno donde está de verdad
+  // El chat se reinicia todos los días a las 4:00 a. m.: quien tenga la sala abierta lo ve vaciarse a esa hora
   useEffect(() => {
-    const intervalo = setInterval(() => {
-      transporte.current?.enviarMovimiento({ id: identidad.id, x: yo.current.x, y: yo.current.y });
-    }, 2000);
+    let reloj: ReturnType<typeof setTimeout>;
+    const programar = () => {
+      reloj = setTimeout(() => {
+        setMensajes([]);
+        setReiniciado(true);
+        programar();
+      }, proximoReinicioChat().getTime() - Date.now() + 1000);
+    };
+    programar();
+    return () => clearTimeout(reloj);
+  }, []);
+
+  // El destino se repite cada 2 s: quien entra o se reconecta ve a cada uno donde está de verdad
+  useEffect(() => {
+    const intervalo = setInterval(enviarDestino, 2000);
     return () => clearInterval(intervalo);
-  }, [identidad.id]);
+  }, [enviarDestino]);
 
   // Volumen por cercanía: cada medio segundo según la distancia en la sala
   useEffect(() => {
@@ -152,142 +227,130 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
     return () => clearInterval(intervalo);
   }, []);
 
-  // Dibujo de la sala (bucle de animación)
+  // Escena: se cargan los sprites y empieza el bucle de animación
+  const escena = useRef<Escena | null>(null);
   useEffect(() => {
     const cv = canvas.current;
     const ctx = cv?.getContext("2d");
     if (!cv || !ctx) return;
-    ctx.imageSmoothingEnabled = false;
     let cuadro = 0;
+    let vivo = true;
 
-    const rect = (x: number, y: number, dx: number, dy: number, w: number, h: number, c: string, px = 4) => {
-      ctx.fillStyle = c;
-      ctx.fillRect(x + dx * px, y + dy * px, w * px, h * px);
-    };
+    const personajeDe = (m: Movil, esYo: boolean, moviendose: boolean): Personaje => ({
+      nombre: m.nombre,
+      rol: m.rol,
+      avatar: m.avatar,
+      px: m.px,
+      py: m.py,
+      pose: m.pose,
+      sentado: m.sentado,
+      moviendose,
+      esYo,
+      enVoz: m.enVoz,
+      silenciado: m.silenciado,
+    });
 
-    const dibujarAvatar = (m: Movil, esYo: boolean, moviendose: boolean, x: number, y: number) => {
-      const a = m.avatar;
-      const rebote = moviendose ? Math.abs(Math.sin(Date.now() / 100)) * 3 : 0;
-      const paso = moviendose ? Math.sin(Date.now() / 100) * 2 : 0;
-      const by = y - rebote;
-      if (esYo) {
-        ctx.fillStyle = "rgba(42,120,214,0.18)";
-        ctx.beginPath();
-        ctx.ellipse(x, y, 16, 7, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      rect(x, by, -3, -16, 6, 2, a.pelo);
-      rect(x, by, -3, -14, 6, 5, a.piel);
-      rect(x, by, -4, -9, 8, 6, a.camiseta);
-      rect(x, y, -3, -3, 2, 3 - paso, "#33415c");
-      rect(x, y, 1, -3, 2, 3 + paso, "#33415c");
-      if (a.accesorio === "audifonos") {
-        rect(x, by, -4, -14, 1, 4, "#222");
-        rect(x, by, 3, -14, 1, 4, "#222");
-      } else if (a.accesorio === "gafas") {
-        rect(x, by, -3, -12, 6, 1, "#111");
-      }
-      ctx.textAlign = "center";
-      ctx.fillStyle = esYo ? "#1d4ed8" : "#333";
-      ctx.font = "bold 11px sans-serif";
-      ctx.fillText(`${m.enVoz ? (m.silenciado ? "🔇 " : "🎤 ") : ""}${m.nombre}`, x, y - 75);
-      ctx.fillStyle = "#666";
-      ctx.font = "10px sans-serif";
-      ctx.fillText(`[${m.rol}]`, x, y - 63);
-    };
-
-    const dibujarObjeto = (x: number, y: number, tipo: string) => {
-      if (tipo === "mesa") {
-        rect(x, y, -6, -8, 12, 6, "#8b5a2b");
-        rect(x, y, -5, -2, 2, 4, "#5c3a21");
-        rect(x, y, 3, -2, 2, 4, "#5c3a21");
-      } else if (tipo === "silla") {
-        rect(x, y, -3, -5, 6, 2, "#444");
-        rect(x, y, -3, -9, 2, 4, "#444");
-      } else if (tipo === "pc") {
-        rect(x, y, -2, -12, 4, 3, "#ccc");
-        rect(x, y, -1, -9, 2, 1, "#999");
-      } else if (tipo === "planta") {
-        rect(x, y, -3, -5, 6, 5, "#c18553");
-        rect(x, y, -4, -12, 8, 7, "#3a7d44");
-      }
-    };
-
-    const acercar = (m: Movil) => {
-      const dx = m.x - m.px;
-      const dy = m.y - m.py;
-      const d = Math.hypot(dx, dy);
-      if (d > 0.05) {
-        m.px += (dx / d) * Math.min(0.08, d);
-        m.py += (dy / d) * Math.min(0.08, d);
+    const moverBuho = () => {
+      const b = buho.current;
+      if (b.mensaje && Date.now() > b.ocultar) b.mensaje = null;
+      const destino = b.ruta[0];
+      if (destino) {
+        const dx = destino.x - b.px;
+        const dy = destino.y - b.py;
+        const d = Math.hypot(dx, dy);
+        if (d < VELOCIDAD_BUHO + 0.005) {
+          b.px = destino.x;
+          b.py = destino.y;
+          b.ruta.shift();
+          if (!b.ruta.length) b.quieto = Date.now();
+        } else {
+          b.px += (dx / d) * VELOCIDAD_BUHO;
+          b.py += (dy / d) * VELOCIDAD_BUHO;
+          b.pose = `${dx + dy >= 0 ? "frente" : "espalda"}${dx - dy < 0 ? "_izq" : "_der"}` as PoseBuho;
+        }
         return true;
       }
-      m.px = m.x;
-      m.py = m.y;
+      b.pose = "sentado";
+      // Cada 7 s, si nadie le habla, camina a otro punto libre de la sala
+      if (!b.mensaje && Date.now() - b.quieto > 7000) {
+        const gente = [yo.current, ...otros.current.values()].map((m) => ({ x: m.x, y: m.y }));
+        const destinos = [{ x: 2, y: 6 }, { x: 6, y: 2 }, { x: 4, y: 4 }, { x: 6, y: 6 }, { x: 4, y: 0 }].filter((d) => baldosaLibre(d.x, d.y, gente));
+        const elegido = destinos[Math.floor(Math.random() * destinos.length)];
+        if (elegido) b.ruta = buscarRuta({ x: b.px, y: b.py }, elegido.x, elegido.y, gente);
+        b.quieto = Date.now();
+      }
       return false;
     };
 
     const bucle = () => {
-      ctx.clearRect(0, 0, ANCHO, ALTO);
-      for (let gx = 0; gx < LADO; gx++) {
-        for (let gy = 0; gy < LADO; gy++) {
-          const p = aPantalla(gx, gy);
-          ctx.fillStyle = (gx + gy) % 2 ? "#e2e8f0" : "#cbd5e1";
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x + TW / 2, p.y + TH / 2);
-          ctx.lineTo(p.x, p.y + TH);
-          ctx.lineTo(p.x - TW / 2, p.y + TH / 2);
-          ctx.closePath();
-          ctx.fill();
-          ctx.strokeStyle = "#94a3b8";
-          ctx.stroke();
-        }
+      const e = escena.current;
+      if (e) {
+        const lista: Personaje[] = [];
+        for (const o of otros.current.values()) lista.push(personajeDe(o, false, avanzar(o, VELOCIDAD)));
+        lista.push(personajeDe(yo.current, true, avanzar(yo.current, VELOCIDAD)));
+        const moviendose = moverBuho();
+        const b = buho.current;
+        const mascota: Mascota = { px: b.px, py: b.py, pose: b.pose, moviendose, mensaje: b.mensaje };
+        e.dibujar(lista, mascota);
       }
-      const moviendo = new Map<string, boolean>();
-      moviendo.set(identidad.id, acercar(yo.current));
-      for (const o of otros.current.values()) moviendo.set(o.id, acercar(o));
-
-      type Entidad = { orden: number; dibujar: () => void };
-      const entidades: Entidad[] = [
-        ...OBJETOS.map((o) => ({ orden: o.x + o.y, dibujar: () => { const p = aPantalla(o.x, o.y); dibujarObjeto(p.x, p.y, o.tipo); } })),
-        ...[yo.current, ...otros.current.values()].map((m) => ({
-          orden: m.px + m.py + 0.01,
-          dibujar: () => {
-            const p = aPantalla(m.px, m.py);
-            const enSilla = OBJETOS.some((o) => o.tipo === "silla" && Math.abs(o.x - m.px) < 0.1 && Math.abs(o.y - m.py) < 0.1);
-            dibujarAvatar(m, m.id === identidad.id, moviendo.get(m.id) ?? false, p.x, p.y + (enSilla ? 10 : 0));
-          },
-        })),
-      ];
-      entidades.sort((a, b) => a.orden - b.orden).forEach((e) => e.dibujar());
       cuadro = requestAnimationFrame(bucle);
     };
-    bucle();
-    return () => cancelAnimationFrame(cuadro);
-  }, [identidad.id]);
 
+    void cargarSprites().then((sprites) => {
+      if (!vivo) return;
+      escena.current = new Escena(ctx, sprites);
+      setCargada(true);
+    });
+    bucle();
+    return () => {
+      vivo = false;
+      cancelAnimationFrame(cuadro);
+    };
+  }, []);
+
+  /** Camina a una baldosa libre o, si es una silla libre, se sienta en ella. */
   const moverA = (gx: number, gy: number) => {
-    const ocupadas = [...otros.current.values()].map((o) => ({ x: o.x, y: o.y }));
-    if (!baldosaLibre(gx, gy, ocupadas)) return;
-    yo.current.x = gx + 0.5;
-    yo.current.y = gy + 0.5;
+    const y = yo.current;
+    const gente = [...otros.current.values()].flatMap((o) => [{ x: o.x, y: o.y }, { x: o.px, y: o.py }]);
+    const obj = objetoEn(gx, gy);
+    let silla: string | null = null;
+    if (obj?.tipo === "silla") {
+      silla = claveSilla(obj);
+      const ocupada = [...otros.current.values()].some((o) => o.silla === silla);
+      if (ocupada || y.silla === silla) return;
+    } else if (!baldosaLibre(gx, gy, gente)) return;
+    const ruta = buscarRuta({ x: y.px, y: y.py }, gx, gy, gente, Boolean(silla));
+    if (!ruta.length) return;
+    y.ruta = ruta;
+    y.sentado = null;
+    y.silla = silla;
+    y.x = gx + 0.5;
+    y.y = gy + 0.5;
     // Sin tocar la presencia: moverse seguido con ella hacía que Supabase sacara al jugador del canal
-    transporte.current?.enviarMovimiento({ id: identidad.id, x: yo.current.x, y: yo.current.y });
+    enviarDestino();
   };
 
-  const clicEnSala = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
+  const clicEnSala = (ev: React.MouseEvent<HTMLCanvasElement>) => {
+    const r = ev.currentTarget.getBoundingClientRect();
     // El canvas se escala para caber en pantalla: se traduce el clic a su resolución interna
-    const c = aCuadricula(((e.clientX - r.left) * ANCHO) / r.width, ((e.clientY - r.top) * ALTO) / r.height);
+    const px = ((ev.clientX - r.left) * ANCHO) / r.width;
+    const py = ((ev.clientY - r.top) * ALTO) / r.height;
+    const b = buho.current;
+    if (escena.current?.tocaMascota({ ...b, moviendose: false }, px, py)) {
+      b.mensaje = b.mensaje ? null : CONSEJOS[b.consejo++ % CONSEJOS.length];
+      b.ocultar = Date.now() + 9000;
+      b.ruta = []; // se queda quieto mientras habla
+      return;
+    }
+    const c = aCuadricula(px, py);
     moverA(c.gx, c.gy);
   };
 
-  const teclado = (e: React.KeyboardEvent<HTMLCanvasElement>) => {
+  const teclado = (ev: React.KeyboardEvent<HTMLCanvasElement>) => {
     const pasos: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
-    const paso = pasos[e.key];
+    const paso = pasos[ev.key];
     if (!paso) return;
-    e.preventDefault();
+    ev.preventDefault();
     moverA(Math.floor(yo.current.x) + paso[0], Math.floor(yo.current.y) + paso[1]);
   };
 
@@ -336,6 +399,7 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
   };
 
   const enVozOtros = personas.filter((p) => p.enVoz);
+  const selector = "h-9 rounded-md border bg-card px-2 text-sm";
 
   return (
     <div className="space-y-4">
@@ -374,39 +438,50 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="space-y-3">
-          <canvas
-            ref={canvas}
-            width={ANCHO}
-            height={ALTO}
-            tabIndex={0}
-            aria-label="Sala de coworking. Haz clic en una baldosa o usa las flechas para moverte."
-            onClick={clicEnSala}
-            onKeyDown={teclado}
-            className="w-full cursor-pointer rounded-lg border bg-card focus-visible:ring-2 focus-visible:ring-[var(--serie-1)] focus-visible:outline-none"
-            style={{ aspectRatio: `${ANCHO} / ${ALTO}`, imageRendering: "pixelated" }}
-          />
+          <div className="relative">
+            <canvas
+              ref={canvas}
+              width={ANCHO}
+              height={ALTO}
+              tabIndex={0}
+              aria-label={`Sala de coworking. Haz clic en el piso o usa las flechas para moverte, en una silla libre para sentarte y en ${NOMBRE_MASCOTA} para un consejo.`}
+              onClick={clicEnSala}
+              onKeyDown={teclado}
+              className="w-full cursor-pointer rounded-lg border bg-[#f0f2f6] focus-visible:ring-2 focus-visible:ring-[var(--primario)] focus-visible:outline-none dark:bg-[#1a2420]"
+              style={{ aspectRatio: `${ANCHO} / ${ALTO}` }}
+            />
+            {!cargada && (
+              <p className="text-muted-foreground absolute inset-0 flex items-center justify-center gap-2 text-sm">
+                <Loader2 className="size-4 animate-spin" aria-hidden /> Cargando la sala…
+              </p>
+            )}
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Clic en el piso para caminar, en una silla libre para sentarte y en {NOMBRE_MASCOTA} para un consejo. También puedes usar las flechas.
+          </p>
           {/* Editor de avatar */}
           <details className="rounded-lg border p-3 text-sm">
             <summary className="cursor-pointer font-medium">Personalizar mi avatar</summary>
             <div className="mt-3 flex flex-wrap items-end gap-4">
-              {(["piel", "camiseta", "pelo"] as const).map((campo) => (
-                <label key={campo} className="flex flex-col gap-1 text-xs capitalize">
-                  {campo}
-                  <input type="color" value={avatar[campo]} onChange={(e) => cambiarAvatar({ [campo]: e.target.value })} className="h-9 w-14 cursor-pointer rounded border" />
+              {(
+                [
+                  ["camisa", "Camisa"],
+                  ["pantalon", "Pantalón"],
+                  ["pelo", "Cabello"],
+                  ["accesorio", "Accesorio"],
+                ] as const
+              ).map(([campo, etiqueta]) => (
+                <label key={campo} className="flex flex-col gap-1 text-xs">
+                  {etiqueta}
+                  <select value={avatar[campo]} onChange={(e) => cambiarAvatar({ [campo]: e.target.value })} className={selector}>
+                    {OPCIONES_AVATAR[campo].map((o) => (
+                      <option key={o.valor} value={o.valor}>
+                        {o.etiqueta}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               ))}
-              <label className="flex flex-col gap-1 text-xs">
-                Accesorio
-                <select
-                  value={avatar.accesorio}
-                  onChange={(e) => cambiarAvatar({ accesorio: e.target.value as Avatar["accesorio"] })}
-                  className="h-9 rounded-md border px-2 text-sm"
-                >
-                  <option value="ninguno">Ninguno</option>
-                  <option value="audifonos">Audífonos</option>
-                  <option value="gafas">Gafas</option>
-                </select>
-              </label>
               {guardarAvatar && (
                 <Button
                   size="sm"
@@ -428,13 +503,17 @@ export function SalaCoworking({ yo: identidad, sala, avatarInicial, historial, m
         </div>
 
         {/* Chat de la sala */}
-        <div className="flex h-[28rem] flex-col overflow-hidden rounded-lg border lg:h-auto lg:max-h-[36rem]">
-          <p className="bg-[var(--serie-1)] px-3 py-2 text-sm font-semibold text-white">Chat del coworking</p>
+        <div className="flex h-[28rem] flex-col overflow-hidden rounded-lg border lg:h-auto lg:max-h-[42rem]">
+          <div className="bg-[var(--primario)] px-3 py-2 text-white">
+            <p className="text-sm font-semibold">Chat del coworking</p>
+            <p className="text-[11px] text-white/85">Se reinicia todos los días a las 4:00 a. m.</p>
+          </div>
           <div className="flex-1 space-y-2 overflow-y-auto bg-muted p-3 text-sm" aria-live="polite">
-            {mensajes.length === 0 && <p className="text-muted-foreground text-xs">Nadie ha escrito todavía. ¡Saluda!</p>}
+            {reiniciado && <p className="text-muted-foreground text-center text-xs italic">El chat se reinició (4:00 a. m.).</p>}
+            {mensajes.length === 0 && !reiniciado && <p className="text-muted-foreground text-xs">Nadie ha escrito hoy todavía. ¡Saluda!</p>}
             {mensajes.map((m) => (
               <p key={m.id} className="break-words">
-                <b className={m.idAutor === identidad.id ? "text-[var(--serie-1)]" : ""}>{m.idAutor === identidad.id ? "Tú" : m.autor}:</b> {m.texto}
+                <b className={m.idAutor === identidad.id ? "text-[var(--primario-texto)]" : ""}>{m.idAutor === identidad.id ? "Tú" : m.autor}:</b> {m.texto}
               </p>
             ))}
             <div ref={finChat} />
