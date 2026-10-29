@@ -78,13 +78,25 @@ export const limpiarRespuesta = (texto: string) =>
     .replace(/^[\s\S]*?<\/think>/i, "") // etiqueta de cierre sin apertura
     .trim();
 
+/**
+ * Motivo que da el proveedor, resumido, para saber qué cuota se agotó (Gemini dice si es por minuto,
+ * por día o si el modelo no tiene cuota gratuita: «limit: 0»). Sin claves ni datos: solo el texto del error.
+ */
+export function detalleProveedor(e: { message?: string }): string {
+  const texto = (e.message ?? "").replace(/\s+/g, " ").trim();
+  if (!texto) return "";
+  const cuota = texto.match(/Quota exceeded for metric: [^,]+, limit: \d+/i)?.[0];
+  return ` Detalle: ${(cuota ?? texto).slice(0, 220)}`;
+}
+
 /** Segundos que pide esperar el proveedor (cabecera retry-after o "try again in 7.5s" en el mensaje). */
 export function esperaSugerida(e: { headers?: Headers | Record<string, string> | null; message?: string }): number {
   const h = e.headers;
   const valor = h instanceof Headers ? h.get("retry-after") : h?.["retry-after"];
   const segundos = Number(valor);
   if (Number.isFinite(segundos) && segundos > 0) return segundos * 1000;
-  const m = e.message?.match(/try again in ([\d.]+)\s*(ms|s)/i);
+  // Groq: "try again in 7.5s"; Gemini: "Please retry in 34.2s"
+  const m = e.message?.match(/(?:try again|retry) in ([\d.]+)\s*(ms|s)/i);
   if (m) return Number(m[1]) * (m[2].toLowerCase() === "ms" ? 1 : 1000);
   return 8000;
 }
@@ -182,7 +194,7 @@ export async function preguntarAModeloAbierto(pregunta: string): Promise<Respues
         ok: false,
         error: consultas.length
           ? "El proveedor de IA llegó a su límite por minuto antes de terminar. Abajo están los datos que alcancé a consultar; vuelve a preguntar en un minuto para la respuesta completa."
-          : "Se alcanzó el límite de preguntas por minuto del proveedor de IA (plan gratuito). Vuelve a intentarlo en un minuto.",
+          : `Se alcanzó el límite del proveedor de IA (plan gratuito). Vuelve a intentarlo en un minuto.${detalleProveedor(e)}`,
         consultas,
       };
     }

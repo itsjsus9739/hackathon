@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 const { resultadoParaModelo } = await import("../ia/comun");
-const { elegirModelo, esperaSugerida, limpiarRespuesta } = await import("../ia/abierto");
+const { detalleProveedor, elegirModelo, esperaSugerida, limpiarRespuesta } = await import("../ia/abierto");
 
 describe("límite de tokens del proveedor de IA", () => {
   it("recorta las filas que se le reenvían al modelo y avisa cuántas quedaron fuera", () => {
@@ -42,5 +42,17 @@ describe("modelo no disponible en el proveedor (404)", () => {
     expect(
       elegirModelo(["models/gemini-2.0-flash", "models/gemini-2.5-flash", "models/gemini-2.5-flash-lite", "models/gemini-2.5-flash-image", "models/gemini-2.5-pro"], "gemini-x"),
     ).toBe("models/gemini-2.5-flash");
+  });
+});
+
+describe("límite de Gemini", () => {
+  it("lee la espera que pide Gemini y resume qué cuota se agotó", () => {
+    expect(esperaSugerida({ message: "Resource exhausted. Please retry in 34.2s." })).toBe(34200);
+    const msg =
+      "429 You exceeded your current quota. * Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-flash Please retry in 20s.";
+    expect(detalleProveedor({ message: msg })).toBe(
+      " Detalle: Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0",
+    );
+    expect(detalleProveedor({})).toBe("");
   });
 });
