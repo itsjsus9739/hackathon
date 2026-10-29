@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Building2, ShieldAlert } from "lucide-react";
+import { Building2, Check, ShieldAlert } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BONO_PERFIL_COMPLETO, perfilEmpresa, PUNTOS_POR_DATO } from "@/lib/gamificacion";
 import { obtenerSesion } from "@/lib/sesion";
 import { Constants } from "@/lib/supabase/database.types";
 import { crearClienteServidor } from "@/lib/supabase/server";
@@ -84,7 +85,8 @@ export default async function PaginaMiEmpresa() {
             </CardTitle>
             <CardDescription>El CDE recibe un aviso cuando guardas cambios.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-5">
+            <ProgresoPerfil empresa={e} />
             <FormularioMiEmpresa
               empresa={{ ...e, estimados: e.datos_estimados }}
               sectores={(sectores.data ?? []).map((s) => s.nombre)}
@@ -113,6 +115,63 @@ export default async function PaginaMiEmpresa() {
           />
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+/** Anillo «Tu empresa está al X %»: cada dato real suma puntos (la base los otorga al guardar, 0030). */
+function ProgresoPerfil({ empresa }: { empresa: Parameters<typeof perfilEmpresa>[0] }) {
+  const { campos, completos, porcentaje } = perfilEmpresa(empresa);
+  const completo = completos === campos.length;
+  const radio = 26;
+  const circunferencia = 2 * Math.PI * radio;
+  return (
+    <div className="flex flex-col gap-4 rounded-2xl border bg-[var(--verde-suave)]/50 p-4 sm:flex-row sm:items-center">
+      <div className="relative size-20 shrink-0 self-center" role="img" aria-label={`Perfil de la empresa al ${porcentaje} %`}>
+        <svg viewBox="0 0 64 64" className="size-20 -rotate-90">
+          <circle cx="32" cy="32" r={radio} fill="none" strokeWidth="7" className="stroke-foreground/10" />
+          <circle
+            cx="32"
+            cy="32"
+            r={radio}
+            fill="none"
+            strokeWidth="7"
+            strokeLinecap="round"
+            className="stroke-[var(--primario)] transition-[stroke-dashoffset] duration-1000"
+            strokeDasharray={circunferencia}
+            strokeDashoffset={circunferencia * (1 - porcentaje / 100)}
+          />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-[var(--tinta)] tabular-nums">
+          {porcentaje}%
+        </span>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-[var(--tinta)]">
+          {completo ? "¡Perfil completo! Ganaste el bono" : `Tu empresa está al ${porcentaje} %`}
+        </p>
+        <p className="text-muted-foreground text-sm">
+          {completo
+            ? "Gracias: con tus datos el CDE te recomienda mejor."
+            : `Gana +${PUNTOS_POR_DATO} pts por cada dato que completes o confirmes, y +${BONO_PERFIL_COMPLETO} al tenerlos todos.`}
+        </p>
+        <ul className="mt-2 flex flex-wrap gap-1.5">
+          {campos.map((c) => (
+            <li
+              key={c.campo}
+              className={
+                c.completo
+                  ? "flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800"
+                  : "rounded-full border border-dashed px-2 py-0.5 text-xs text-[var(--primario-texto)]"
+              }
+            >
+              {c.completo ? <Check className="size-3" aria-hidden /> : null}
+              {c.etiqueta}
+              {!c.completo && <b>+{PUNTOS_POR_DATO}</b>}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

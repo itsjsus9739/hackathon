@@ -1314,6 +1314,7 @@ export type Database = {
           nivel: number
           nombre: string
           roles: Database["public"]["Enums"]["rol_usuario"][] | null
+          secreta: boolean
         }
         Insert: {
           activa?: boolean
@@ -1327,6 +1328,7 @@ export type Database = {
           nivel?: number
           nombre: string
           roles?: Database["public"]["Enums"]["rol_usuario"][] | null
+          secreta?: boolean
         }
         Update: {
           activa?: boolean
@@ -1340,6 +1342,7 @@ export type Database = {
           nivel?: number
           nombre?: string
           roles?: Database["public"]["Enums"]["rol_usuario"][] | null
+          secreta?: boolean
         }
         Relationships: [
           {

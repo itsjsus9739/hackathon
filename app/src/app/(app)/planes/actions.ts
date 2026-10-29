@@ -32,7 +32,7 @@ export async function actualizarCompromiso(entrada: z.input<typeof esquemaAvance
   if (error) return { error: traducir(error.message) };
   if (!data?.length) return { error: "No tienes permiso para actualizar este compromiso." };
   revalidatePath("/planes");
-  revalidatePath("/empresas", "layout");
+  revalidatePath("/", "layout"); // un compromiso cumplido da puntos: barra de nivel y «+30 pts»
 }
 
 const esquemaEstadoPlan = z.object({ id: z.uuid(), estado: z.enum(ESTADOS_PLAN) });

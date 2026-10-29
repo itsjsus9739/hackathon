@@ -91,6 +91,16 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
   }
+  /* Opciones de las listas nativas (<select>): el navegador las pinta en una ventana propia que no
+     hereda el fondo; sin esto, en modo oscuro salen con fondo blanco y texto claro */
+  select option,
+  select optgroup {
+    background-color: var(--card);
+    color: var(--foreground);
+  }
+  select option:disabled {
+    color: var(--muted-foreground);
+  }
 }
 
 /* Etiquetas de color (estados, roles, avisos) en modo oscuro: fondo translúcido y texto claro del mismo tono.
@@ -140,4 +150,21 @@
   .dark .text-sky-800 { color: oklch(82.8% 0.111 230.318); }
   .dark .text-violet-700 { color: oklch(81.1% 0.111 293.571); }
   .dark .text-violet-800 { color: oklch(81.1% 0.111 293.571); }
+}
+
+/* «+20 pts»: entra con un rebote, sube y se desvanece */
+@keyframes subir-puntos {
+  0% { opacity: 0; transform: translateY(16px) scale(0.6); }
+  12% { opacity: 1; transform: translateY(0) scale(1.12); }
+  22% { transform: translateY(0) scale(1); }
+  75% { opacity: 1; transform: translateY(-18px); }
+  100% { opacity: 0; transform: translateY(-46px); }
+}
+.puntos-flotantes {
+  animation: subir-puntos 2.6s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .puntos-flotantes {
+    animation-name: none;
+  }
 }

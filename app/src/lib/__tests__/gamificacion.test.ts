@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   calcularNivel,
+  perfilEmpresa,
   estadoInsignia,
   leerRecompensa,
   progresoInsignia,
@@ -15,6 +16,8 @@ const contexto = (c: Partial<ContextoInsignias> = {}): ContextoInsignias => ({
   aportesPorArea: new Map(),
   aportesTotal: 0,
   onboarding: false,
+  compromisos: 0,
+  canjes: 0,
   ...c,
 });
 
@@ -48,6 +51,16 @@ describe("Progreso de insignias", () => {
     expect(progresoInsignia({ criterio: "manual", meta: 1, id_area: null }, contexto())).toBeNull();
   });
 
+  it("cuenta compromisos cumplidos y canjes", () => {
+    expect(progresoInsignia({ criterio: "compromisos_cumplidos", meta: 5, id_area: null }, contexto({ compromisos: 2 }))).toEqual({ actual: 2, meta: 5 });
+    expect(progresoInsignia({ criterio: "canjes", meta: 1, id_area: null }, contexto({ canjes: 3 }))).toEqual({ actual: 1, meta: 1 });
+  });
+
+  it("una insignia secreta sin ganar no muestra su progreso", () => {
+    expect(estadoInsignia(false, { actual: 0 }, true)).toBe("secreta");
+    expect(estadoInsignia(true, null, true)).toBe("ganada");
+  });
+
   it("asigna los cuatro estados", () => {
     expect(estadoInsignia(true, null)).toBe("ganada");
     expect(estadoInsignia(false, null)).toBe("manual");
@@ -76,5 +89,22 @@ describe("Recompensas por rol", () => {
     expect(recompensaParaRol(mentoria, "emprendedor")).toBe(true);
     expect(recompensaParaRol(mentoria, "estudiante")).toBe(false);
     expect(recompensaParaRol("Para: todos. Certificado.", "docente")).toBe(true);
+  });
+});
+
+describe("Perfil de la empresa", () => {
+  it("solo cuenta datos reales: un sector estimado no está completo hasta confirmarlo", () => {
+    const p = perfilEmpresa({
+      sector: "Comercio",
+      tamano: "Micro",
+      municipio: "Bucaramanga",
+      formalizacion: null,
+      descripcion: null,
+      nit: "900123456",
+      datos_estimados: ["sector"],
+    });
+    expect(p.completos).toBe(3);
+    expect(p.porcentaje).toBe(50);
+    expect(p.campos.find((c) => c.campo === "sector")?.completo).toBe(false);
   });
 });

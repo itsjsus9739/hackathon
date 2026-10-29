@@ -54,6 +54,7 @@ export async function actualizarMiEmpresa(_: EstadoMiEmpresa, formulario: FormDa
   }
   revalidatePath("/mi-empresa");
   revalidatePath(`/empresas/${d.empresa}`);
+  revalidatePath("/", "layout"); // puntos ganados por completar el perfil: barra de nivel y «+10 pts»
   return { ok: "Datos actualizados. El CDE recibió un aviso." };
 }
 

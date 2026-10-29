@@ -4,12 +4,14 @@ import { LogOut } from "lucide-react";
 
 import { cerrarSesion } from "@/app/login/actions";
 import { RecorridoBuho } from "@/components/buho/recorrido-buho";
+import { BarraNivel } from "@/components/gamificacion/barra-nivel";
 import { Celebraciones } from "@/components/gamificacion/celebraciones";
 import { BarraMovil } from "@/components/navegacion/barra-movil";
 import { MenuLateral } from "@/components/navegacion/menu-lateral";
 import { Campana } from "@/components/notificaciones/campana";
 import { BotonTema } from "@/components/tema/boton-tema";
 import { Button } from "@/components/ui/button";
+import { obtenerProgreso } from "@/lib/progreso";
 import { ETIQUETA_ROL, obtenerSesion } from "@/lib/sesion";
 
 // Puerta de entrada: sin sesión → /login; sin acceso aprobado → /solicitud.
@@ -28,6 +30,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
   const sesion = await obtenerSesion();
   if (!sesion) redirect("/login");
   if (sesion.estadoAcceso !== "aprobado") redirect("/solicitud");
+  const { puntos } = await obtenerProgreso(sesion.id);
 
   return (
     <div className="flex min-h-screen">
@@ -45,7 +48,8 @@ export default async function LayoutAplicacion({ children }: { children: React.R
           </span>
         </Link>
         <MenuLateral rol={sesion.rol} />
-        <div className="mt-auto flex items-center gap-2.5 rounded-2xl border p-3">
+        <BarraNivel puntos={puntos} className="mt-auto mb-2" />
+        <div className="flex items-center gap-2.5 rounded-2xl border p-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7ed8a9] to-[var(--primario)] text-sm font-bold text-white">
             {iniciales(sesion.nombre)}
           </span>
@@ -80,7 +84,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
         </div>
         <main className="min-w-0 flex-1 p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:pt-0 md:pb-6">{children}</main>
       </div>
-      <BarraMovil nombre={sesion.nombre} rol={sesion.rol} etiquetaRol={ETIQUETA_ROL[sesion.rol]} />
+      <BarraMovil nombre={sesion.nombre} rol={sesion.rol} etiquetaRol={ETIQUETA_ROL[sesion.rol]} nivel={<BarraNivel puntos={puntos} className="mb-3" />} />
       <RecorridoBuho idUsuario={sesion.id} rol={sesion.rol} nombre={sesion.nombre} />
       <Celebraciones idUsuario={sesion.id} />
     </div>

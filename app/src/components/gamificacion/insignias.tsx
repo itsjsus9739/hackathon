@@ -78,10 +78,10 @@ function TarjetaInsignia({ insignia: i }: { insignia: InsigniaVista }) {
     <li
       className={cn(
         "flex flex-col items-center rounded-xl border p-3 text-center",
-        ganada ? "bg-card shadow-sm" : "bg-[var(--muted)]/60",
+        ganada ? "bg-card shadow-sm" : i.estado === "secreta" ? "border-dashed bg-[var(--muted)]/60" : "bg-[var(--muted)]/60",
       )}
     >
-      <Medalla nivel={i.nivel} criterio={i.criterio} area={i.area} bloqueada={!ganada} />
+      <Medalla nivel={i.nivel} criterio={i.estado === "secreta" ? "secreta" : i.criterio} area={i.area} bloqueada={!ganada} />
       <p className="mt-2 text-sm leading-tight font-semibold text-balance">{i.nombre}</p>
       <p className="text-muted-foreground mt-0.5 text-xs text-pretty">{i.descripcion}</p>
       <div className="mt-auto w-full pt-2">
@@ -91,6 +91,8 @@ function TarjetaInsignia({ insignia: i }: { insignia: InsigniaVista }) {
           </p>
         ) : i.estado === "manual" ? (
           <p className="text-muted-foreground text-xs italic">La otorga el CDE</p>
+        ) : i.estado === "secreta" ? (
+          <p className="text-muted-foreground text-xs italic">¿Qué será? 🤫</p>
         ) : (
           i.progreso && (
             <div>

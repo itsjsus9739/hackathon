@@ -17,7 +17,17 @@ import { estaActivo, ICONO_MODULO } from "./iconos";
 const PRINCIPALES: RutaModulo[] = ["/", "/empresas", "/eventos", "/coworking"];
 const CORTOS: Partial<Record<RutaModulo, string>> = { "/": "Inicio" };
 
-export function BarraMovil({ nombre, rol, etiquetaRol }: { nombre: string; rol: Enums<"rol_usuario">; etiquetaRol: string }) {
+export function BarraMovil({
+  nombre,
+  rol,
+  etiquetaRol,
+  nivel,
+}: {
+  nombre: string;
+  rol: Enums<"rol_usuario">;
+  etiquetaRol: string;
+  nivel?: React.ReactNode;
+}) {
   const ruta = usePathname();
   const [abierto, setAbierto] = useState(false);
 
@@ -102,6 +112,7 @@ export function BarraMovil({ nombre, rol, etiquetaRol }: { nombre: string; rol: 
                 <X className="size-5" />
               </button>
             </div>
+            {nivel}
             <ul className="grid grid-cols-3 gap-2">
               {modulosPara(rol).map((m) => {
                 const Icono = ICONO_MODULO[m.href];

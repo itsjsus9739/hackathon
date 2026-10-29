@@ -11,6 +11,7 @@ import {
   calcularNivel,
   esCde,
   estadoInsignia,
+  INSIGNIA_SECRETA,
   leerRecompensa,
   progresoInsignia,
   recompensaParaRol,
@@ -38,11 +39,11 @@ export default async function PaginaFormacion() {
   const supabase = await crearClienteServidor();
 
   // RLS: cada quien recibe lo suyo; las insignias ajenas solo de su círculo (0025)
-  const [resumen, catalogo, ganadas, aportesOk, progreso, recompensas, canjes, movimientos, ranking, directorio] = await Promise.all([
+  const [resumen, catalogo, ganadas, aportesOk, progreso, recompensas, canjes, movimientos, ranking, directorio, cumplidos, canjeados] = await Promise.all([
     supabase.from("puntos_usuario").select("puntos, saldo, eventos_asistidos, insignias").eq("id_usuario", sesion.id).maybeSingle(),
     supabase
       .from("insignias")
-      .select("id, nombre, descripcion, nivel, criterio, meta, id_area, roles, areas (nombre)")
+      .select("id, nombre, descripcion, nivel, criterio, meta, id_area, roles, secreta, areas (nombre)")
       .eq("activa", true)
       .order("nivel")
       .order("nombre"),
@@ -64,8 +65,10 @@ export default async function PaginaFormacion() {
       .limit(10),
     supabase.rpc("ranking_puntos", { limite: 10 }),
     supabase.rpc("directorio"),
+    supabase.from("puntos_movimientos").select("id", { count: "exact", head: true }).eq("id_usuario", sesion.id).eq("origen_tipo", "compromiso"),
+    supabase.from("canjes").select("id", { count: "exact", head: true }).eq("id_usuario", sesion.id).neq("estado", "Rechazado"),
   ]);
-  for (const r of [resumen, catalogo, ganadas, aportesOk, progreso, recompensas, canjes, movimientos, ranking, directorio]) {
+  for (const r of [resumen, catalogo, ganadas, aportesOk, progreso, recompensas, canjes, movimientos, ranking, directorio, cumplidos, canjeados]) {
     if (r.error) throw new Error(`No se pudo cargar la gamificación: ${r.error.message}`);
   }
 
@@ -85,6 +88,8 @@ export default async function PaginaFormacion() {
     aportesPorArea,
     aportesTotal: aportesOk.data?.length ?? 0,
     onboarding: Boolean(progreso.data?.completado_en),
+    compromisos: cumplidos.count ?? 0,
+    canjes: canjeados.count ?? 0,
   };
   const catalogoPorId = new Map((catalogo.data ?? []).map((i) => [i.id, i]));
   const insignias: InsigniaVista[] = (catalogo.data ?? [])
@@ -92,19 +97,27 @@ export default async function PaginaFormacion() {
     .filter((i) => !i.roles || i.roles.includes(sesion.rol) || mias.has(i.id))
     .map((i) => {
       const p = progresoInsignia(i, contexto);
+      const estado = estadoInsignia(mias.has(i.id), p, i.secreta);
+      // Secreta sin ganar: el navegador no recibe ni el nombre ni el requisito
+      const oculta = estado === "secreta";
       return {
         id: i.id,
-        nombre: i.nombre,
-        descripcion: i.descripcion,
+        nombre: oculta ? INSIGNIA_SECRETA.nombre : i.nombre,
+        descripcion: oculta ? INSIGNIA_SECRETA.descripcion : i.descripcion,
         nivel: i.nivel,
-        criterio: i.criterio,
-        area: i.areas?.nombre ?? null,
-        estado: estadoInsignia(mias.has(i.id), p),
-        progreso: p,
+        criterio: oculta ? "secreta" : i.criterio,
+        area: oculta ? null : (i.areas?.nombre ?? null),
+        estado,
+        progreso: oculta ? null : p,
         otorgadaEn: mias.get(i.id) ?? null,
       };
     })
-    .sort((a, b) => Number(b.estado === "ganada") - Number(a.estado === "ganada") || (b.progreso?.actual ?? 0) - (a.progreso?.actual ?? 0));
+    .sort(
+      (a, b) =>
+        Number(b.estado === "ganada") - Number(a.estado === "ganada") ||
+        Number(a.estado === "secreta") - Number(b.estado === "secreta") ||
+        (b.progreso?.actual ?? 0) - (a.progreso?.actual ?? 0),
+    );
 
   // --- Círculo: insignias de las personas que puedo ver ---
   const personas = new Map((directorio.data ?? []).map((p) => [p.id, p]));

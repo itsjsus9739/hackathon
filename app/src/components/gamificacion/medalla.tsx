@@ -1,4 +1,20 @@
-import { Award, BookOpen, Briefcase, CalendarCheck, Code2, Lock, Palette, Sparkles, Star, type LucideIcon } from "lucide-react";
+import {
+  Award,
+  BadgeCheck,
+  BookOpen,
+  Briefcase,
+  CalendarCheck,
+  CircleHelp,
+  Code2,
+  Gift,
+  ListChecks,
+  Lock,
+  Palette,
+  Sparkles,
+  Star,
+  Sunrise,
+  type LucideIcon,
+} from "lucide-react";
 
 import { medalla } from "@/lib/gamificacion";
 import { cn } from "@/lib/utils";
@@ -15,6 +31,11 @@ const POR_CRITERIO: Record<string, LucideIcon> = {
   eventos_asistidos: CalendarCheck,
   onboarding: Sparkles,
   manual: Award,
+  compromisos_cumplidos: ListChecks,
+  perfil_completo: BadgeCheck,
+  canjes: Gift,
+  madrugador: Sunrise,
+  secreta: CircleHelp, // insignia secreta sin ganar: no delata su criterio
 };
 
 export function iconoInsignia(criterio: string, area?: string | null): LucideIcon {
