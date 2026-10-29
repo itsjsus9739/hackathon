@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { ShieldAlert } from "lucide-react";
 
 import { Tablero } from "@/components/conocimiento/tablero";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   brechasPorArea,
   calidadDatos,
@@ -11,11 +13,22 @@ import {
 } from "@/lib/conocimiento";
 import { avancePorEje, resumenBrechas } from "@/lib/impacto";
 import { Constants } from "@/lib/supabase/database.types";
+import { obtenerSesion } from "@/lib/sesion";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Conocimiento · CDE Conecta" };
 
 export default async function PaginaConocimiento() {
+  const sesion = await obtenerSesion();
+  if (!sesion || !["cde", "admin_cde"].includes(sesion.rol)) {
+    return (
+      <Alert className="mx-auto max-w-xl">
+        <ShieldAlert aria-hidden />
+        <AlertTitle>Solo para el equipo del CDE</AlertTitle>
+        <AlertDescription>El tablero de conocimiento analiza toda la base de empresas del CDE.</AlertDescription>
+      </Alert>
+    );
+  }
   const supabase = await crearClienteServidor();
   const [empresas, diagnosticos, postulaciones, proyectos, atenciones, brechasEmpresas, evolucion] = await Promise.all([
     supabase

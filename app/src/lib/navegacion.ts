@@ -20,8 +20,11 @@ export const MODULOS = [
 
 export type RutaModulo = (typeof MODULOS)[number]["href"];
 
-/** Módulos que solo ve el equipo del CDE (a los demás roles no se les muestran). */
-export const SOLO_CDE: readonly RutaModulo[] = ["/importar", "/asistente"];
+/**
+ * Módulos que solo ve el equipo del CDE (a los demás roles no se les muestran): Conocimiento y el asistente
+ * analizan toda la base, y los demás roles solo pueden ver las empresas vinculadas a ellos.
+ */
+export const SOLO_CDE: readonly RutaModulo[] = ["/importar", "/conocimiento", "/asistente"];
 
 /** Módulos exclusivos de otros roles: el emprendedor actualiza los datos de su empresa en vez de importar bases. */
 export const SOLO_ROL: Partial<Record<RutaModulo, readonly Rol[]>> = { "/mi-empresa": ["emprendedor"] };

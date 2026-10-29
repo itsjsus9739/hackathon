@@ -199,13 +199,6 @@ const pasosDocente: PasoRecorrido[] = [
     ruta: "/planes",
     objetivo: "planes-filtros",
   },
-  {
-    id: "conocimiento",
-    titulo: "Conocimiento",
-    texto: "Consulta las cifras de las empresas que acompañas: sectores, tamaños y brechas del diagnóstico.",
-    sprite: "estadisticas",
-    ruta: "/conocimiento",
-  },
   eventos("Crea conversatorios y citas, invita a tus estudiantes y a las empresas, y mira quién confirmó."),
   formacion(
     "Valida los aportes de tus estudiantes en «Aportes por validar»: cada aporte validado les suma puntos. Tú también ganas puntos e insignias en los eventos.",
