@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const SPRITES = {
   "error-404": { src: "/buho/buho-error-404.png", alt: "Búho de CDE Conecta buscando una página perdida" },
   mantenimiento: { src: "/buho/buho-mantenimiento.png", alt: "Búho de CDE Conecta con casco trabajando en este módulo" },
+  "acceso-denegado": { src: "/buho/buho-acceso-denegado.png", alt: "Búho de CDE Conecta indicando que no hay acceso" },
 } as const;
 
 type Accion = { href: string; etiqueta: string };

@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 
 import { cerrarSesion } from "@/app/login/actions";
 import { RecorridoBuho } from "@/components/buho/recorrido-buho";
+import { Celebraciones } from "@/components/gamificacion/celebraciones";
 import { BarraMovil } from "@/components/navegacion/barra-movil";
 import { MenuLateral } from "@/components/navegacion/menu-lateral";
 import { Campana } from "@/components/notificaciones/campana";
@@ -76,6 +77,7 @@ export default async function LayoutAplicacion({ children }: { children: React.R
       </div>
       <BarraMovil nombre={sesion.nombre} rol={sesion.rol} etiquetaRol={ETIQUETA_ROL[sesion.rol]} />
       <RecorridoBuho idUsuario={sesion.id} rol={sesion.rol} nombre={sesion.nombre} />
+      <Celebraciones idUsuario={sesion.id} />
     </div>
   );
 }
