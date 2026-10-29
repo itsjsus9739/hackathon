@@ -24,6 +24,7 @@ import {
 import { DiagnosticoMadurez } from "@/components/empresas/diagnostico-madurez";
 import { LineaTiempo } from "@/components/empresas/linea-tiempo";
 import { Medalla } from "@/components/gamificacion/medalla";
+import { ExportarPortal } from "@/components/portal/exportar";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,11 +97,14 @@ export function VistaPortal({ datos, modo, verFicha, saludo }: Props) {
             )}
           </p>
         </div>
-        {hayEjemplos && (
-          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-500/15">
-            Incluye datos de ejemplo del CDE
-          </Badge>
-        )}
+        <div className="flex flex-col items-end gap-2">
+          <ExportarPortal empresa={e.id} />
+          {hayEjemplos && (
+            <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-500/15">
+              Incluye datos de ejemplo del CDE
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Indicadores */}

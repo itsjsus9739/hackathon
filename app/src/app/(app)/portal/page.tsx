@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Eye, KeyRound, Search } from "lucide-react";
 
 import { PantallaBuho } from "@/components/buho/pantalla-buho";
+import { ListaExportable } from "@/components/portal/exportar";
 import { VistaPortal } from "@/components/portal/vista-portal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -149,7 +150,7 @@ function Selector({ cde, lista, q, rol }: { cde: boolean; lista: EmpresaPermitid
           <h1 className="text-2xl font-semibold text-[var(--tinta)]">Portal del emprendedor</h1>
           <p className="text-muted-foreground text-sm">
             {cde
-              ? "Como equipo del CDE puedes ver el portal de cualquier emprendimiento, tal como lo ve su emprendedor (solo lectura)."
+              ? "Como equipo del CDE puedes ver el portal de cualquier emprendimiento (solo lectura) y exportar uno o varios a Excel o PDF."
               : `Como ${rol} ves el portal de las empresas de tus proyectos de aula (solo lectura).`}
           </p>
         </div>
@@ -164,18 +165,22 @@ function Selector({ cde, lista, q, rol }: { cde: boolean; lista: EmpresaPermitid
         </form>
       )}
       {lista.length ? (
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {lista.map((e) => (
-            <li key={e.id}>
-              <Link href={`/portal?empresa=${e.id}`} className="flex flex-col rounded-xl border bg-card p-3 transition hover:border-[var(--primario)]">
-                <span className="font-semibold">{e.nombre}</span>
-                <span className="text-muted-foreground text-xs">
-                  {[e.municipio, e.representante ? `Emprendedor: ${e.representante}` : "Sin emprendedor con cuenta"].filter(Boolean).join(" · ")}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        cde ? (
+          <ListaExportable lista={lista} q={q} />
+        ) : (
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {lista.map((e) => (
+              <li key={e.id}>
+                <Link href={`/portal?empresa=${e.id}`} className="bg-card flex flex-col rounded-xl border p-3 transition hover:border-[var(--primario)]">
+                  <span className="font-semibold">{e.nombre}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {[e.municipio, e.representante ? `Emprendedor: ${e.representante}` : "Sin emprendedor con cuenta"].filter(Boolean).join(" · ")}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )
       ) : (
         <p className="text-muted-foreground rounded-xl border border-dashed p-6 text-center text-sm">
           {cde ? "No hay empresas con ese nombre." : "Aún no tienes empresas en tus proyectos de aula."}
